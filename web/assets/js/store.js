@@ -30,7 +30,98 @@ if(catalogForm){
     });
 }
 
-document.querySelectorAll('[data-variant-picker]').forEach(function(picker){
+document.querySelectorAll('[data-order-update-inline]').forEach(function(button){
+    var raw=button.dataset.orderUpdateInline;
+    var id=button.dataset.orderUpdateInline;
+    var form=document.querySelector('[data-order-form="'+id+'"]');
+    if(!form)return;
+    button.addEventListener('click',function(){
+        var open=form.classList.toggle('open');
+        button.textContent=open?'Close':'Update';
+    });
+});
+document.addEventListener('click',function(event){
+    document.querySelectorAll('.order-update-form.open').forEach(function(form){
+        var wrap=form.parentElement;
+        if(!wrap.contains(event.target)){
+            form.classList.remove('open');
+            var btn=wrap.querySelector('[data-order-update-inline]');
+            if(btn)btn.textContent='Update';
+        }
+    });
+});
+(function(){
+    var STEP_LABELS=['CONFIRMED','PROCESSING','SHIPPING','DELIVERED'];
+    var STEP_DESCS=['Confirmed','Processing','Shipping','Delivered'];
+    var STATUS_CODES=['CONFIRMED','PROCESSING','SHIPPING','DELIVERED'];
+    var STATUS_DESCS={CONFIRMED:'Confirmed by staff',PROCESSING:'Preparing your order',SHIPPING:'In transit to customer',DELIVERED:'Delivered successfully'};
+    var modal=document.getElementById('orderUpdateModal');
+    if(!modal)return;
+    var codeEl=document.getElementById('modalOrderCode');
+    var custEl=document.getElementById('modalOrderCustomer');
+    var idEl=document.getElementById('modalOrderId');
+    var stepperEl=document.getElementById('modalStepper');
+    var gridEl=document.getElementById('modalStatusGrid');
+    var submitBtn=document.getElementById('modalSubmit');
+    function open(data){
+        codeEl.textContent=data.code||'--';
+        custEl.textContent=(data.customer||'--')+(data.total?' · '+data.total+'₫':'');
+        idEl.value=data.id||'';
+        var current=(data.status||'').toUpperCase();
+        var stepIndex=STEP_LABELS.indexOf(current);
+        stepperEl.innerHTML='';
+        STEP_LABELS.forEach(function(label,i){
+            var item=document.createElement('div');
+            var state=i<stepIndex?'done':(i===stepIndex?'current':'future');
+            item.className='order-stepper-item '+state;
+            item.innerHTML='<div class="order-stepper-dot">'+(i+1)+'</div><div class="order-stepper-label">'+STEP_DESCS[i]+'</div>';
+            stepperEl.appendChild(item);
+        });
+        gridEl.innerHTML='';
+        STATUS_CODES.forEach(function(code){
+            var option=document.createElement('label');
+            option.className='order-status-option';
+            option.innerHTML='<input type="radio" name="status" value="'+code+'"'+(code===current?' checked':'')+'><span class="order-status-option-dot"></span><div class="order-status-option-info"><span class="order-status-option-code">'+code.replace(/_/g,' ')+'</span><span class="order-status-option-desc">'+STATUS_DESCS[code]+'</span></div>';
+            gridEl.appendChild(option);
+        });
+        submitBtn.disabled=true;
+        gridEl.querySelectorAll('input[type=radio]').forEach(function(radio){
+            radio.addEventListener('change',function(){
+                submitBtn.disabled=radio.value===current;
+                submitBtn.textContent=radio.value===current?'No Changes':'Confirm Update';
+            });
+        });
+        modal.hidden=false;
+        document.body.classList.add('modal-open');
+    }
+    function close(){
+        modal.hidden=true;
+        document.body.classList.remove('modal-open');
+    }
+    document.addEventListener('click',function(event){
+        var trigger=event.target.closest('[data-order-update]');
+        if(trigger){event.preventDefault();
+            var data={
+                id:trigger.dataset.orderId,
+                code:trigger.dataset.orderCode,
+                status:trigger.dataset.orderStatus,
+                customer:trigger.dataset.orderCustomer,
+                total:trigger.dataset.orderTotal,
+                method:trigger.dataset.orderMethod,
+                type:trigger.dataset.orderType
+            };
+            open(data);
+            return;
+        }
+        if(event.target.closest('[data-modal-close]')){event.preventDefault();close();}
+    });
+    document.addEventListener('keydown',function(event){
+        if(event.key==='Escape'&&!modal.hidden){close();}
+    });
+})();
+(function(){
+    var picker=document.querySelector('[data-variant-picker]');
+    if(!picker)return;
     var selectedMemory=(picker.querySelector('[data-memory].active')||{}).dataset?.memory;
     var selectedColor=(picker.querySelector('[data-color].active')||{}).dataset?.color;
     var variants=Array.from(picker.querySelectorAll('[data-variant]'));
@@ -57,4 +148,4 @@ document.querySelectorAll('[data-variant-picker]').forEach(function(picker){
     picker.querySelectorAll('[data-memory]').forEach(function(button){button.addEventListener('click',function(){selectedMemory=button.dataset.memory;picker.querySelectorAll('[data-memory]').forEach(function(item){item.classList.toggle('active',item===button);});chooseVariant();});});
     picker.querySelectorAll('[data-color]').forEach(function(button){button.addEventListener('click',function(){selectedColor=button.dataset.color;chooseVariant();});});
     chooseVariant();
-});
+})();
