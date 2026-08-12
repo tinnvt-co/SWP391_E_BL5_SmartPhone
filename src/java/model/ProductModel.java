@@ -1,6 +1,8 @@
 package model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class ProductModel implements Serializable {
@@ -16,6 +18,7 @@ public class ProductModel implements Serializable {
     private int latestCost;
     private String image;
     private int discount;
+    private List<ProductVariantModel> variants = new ArrayList<>();
     private int categoryId;
     private String categoryName;
     private int brandId;
@@ -50,6 +53,24 @@ public class ProductModel implements Serializable {
     public void setImage(String image) { this.image = image; }
     public int getDiscount() { return discount; }
     public void setDiscount(int discount) { this.discount = discount; }
+    public List<ProductVariantModel> getVariants() { return variants; }
+    public void setVariants(List<ProductVariantModel> variants) { this.variants = variants; }
+    public List<ProductVariantModel> getMemoryOptions() {
+        List<ProductVariantModel> result = new ArrayList<>();
+        for (ProductVariantModel variant : variants) {
+            boolean exists = result.stream().anyMatch(item -> item.getMemoryKey().equals(variant.getMemoryKey()));
+            if (!exists) result.add(variant);
+        }
+        return result;
+    }
+    public List<ProductVariantModel> getColorOptions() {
+        List<ProductVariantModel> result = new ArrayList<>();
+        for (ProductVariantModel variant : variants) {
+            boolean exists = result.stream().anyMatch(item -> item.getColorName().equals(variant.getColorName()));
+            if (!exists) result.add(variant);
+        }
+        return result;
+    }
     public int getCategoryId() { return categoryId; }
     public void setCategoryId(int categoryId) { this.categoryId = categoryId; }
     public String getCategoryName() { return categoryName; }

@@ -9,6 +9,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import model.ProductModel;
+import model.ProductVariantModel;
 
 public class ProductDAO {
     public List<ProductModel> findAll(String keyword, Integer brandId, Integer categoryId,
@@ -29,6 +30,7 @@ public class ProductDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 List<ProductModel> list = new ArrayList<>();
                 while (rs.next()) list.add(map(rs));
+                if (tableExists(con, "ProductVariant")) loadVariants(con, list);
                 return list;
             }
             }
@@ -39,7 +41,12 @@ public class ProductDAO {
         try (Connection con = DBContext.getConnection()) {
             try (PreparedStatement ps = con.prepareStatement(selectSql(con) + "WHERE p.ID=?")) {
                 ps.setInt(1, id);
-                try (ResultSet rs = ps.executeQuery()) { return rs.next() ? map(rs) : null; }
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (!rs.next()) return null;
+                    ProductModel product = map(rs);
+                    if (tableExists(con, "ProductVariant")) loadVariants(con, List.of(product));
+                    return product;
+                }
             }
         }
     }
@@ -54,9 +61,12 @@ public class ProductDAO {
     private void insert(ProductModel p) throws SQLException {
         try (Connection con = DBContext.getConnection()) {
             boolean legacyDiscount = columnExists(con, "Product", "Discount");
-            String productSql = legacyDiscount
-                    ? "INSERT INTO Product(Name,Description,Release_Year,Rating,warranty_months,Barcode,SKU,Selling_price,Latest_cost,Image,Discount,CategoryID,BrandID,Status) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
-                    : "INSERT INTO Product(Name,Description,Release_Year,Rating,warranty_months,Barcode,SKU,Selling_price,Latest_cost,Image,CategoryID,BrandID,Status) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            String columns = "Name,Description,Release_Year,Rating,warranty_months,Barcode,SKU,Selling_price,Latest_cost,Image"
+                    + (legacyDiscount ? ",Discount" : "")
+                    + ",CategoryID,BrandID,Status";
+            int parameterCount = 13 + (legacyDiscount ? 1 : 0);
+            String productSql = "INSERT INTO Product(" + columns + ") VALUES("
+                    + "?,".repeat(parameterCount - 1) + "?)";
             con.setAutoCommit(false);
             try (PreparedStatement ps = con.prepareStatement(productSql, Statement.RETURN_GENERATED_KEYS)) {
                 bindProduct(ps, p, legacyDiscount);
@@ -65,8 +75,12 @@ public class ProductDAO {
                     if (!keys.next()) throw new SQLException("Cannot create product ID");
                     p.setId(keys.getInt(1));
                 }
-                try (PreparedStatement inventory = con.prepareStatement("INSERT INTO Inventory(ProductID,Amount,Min_amount,Status) VALUES(?,?,0,'ACTIVE')")) {
-                    inventory.setInt(1, p.getId()); inventory.setInt(2, p.getStock()); inventory.executeUpdate();
+                if (tableExists(con, "ProductVariant")) {
+                    createDefaultVariants(con, p);
+                } else {
+                    try (PreparedStatement inventory = con.prepareStatement("INSERT INTO Inventory(ProductID,Amount,Min_amount,Status) VALUES(?,?,0,'ACTIVE')")) {
+                        inventory.setInt(1, p.getId()); inventory.setInt(2, p.getStock()); inventory.executeUpdate();
+                    }
                 }
                 con.commit();
             } catch (SQLException ex) { con.rollback(); throw ex; }
@@ -77,16 +91,22 @@ public class ProductDAO {
     private void update(ProductModel p) throws SQLException {
         try (Connection con = DBContext.getConnection()) {
             boolean legacyDiscount = columnExists(con, "Product", "Discount");
-            String sql = legacyDiscount
-                    ? "UPDATE Product SET Name=?,Description=?,Release_Year=?,Rating=?,warranty_months=?,Barcode=?,SKU=?,Selling_price=?,Latest_cost=?,Image=?,Discount=?,CategoryID=?,BrandID=?,Status=? WHERE ID=?"
-                    : "UPDATE Product SET Name=?,Description=?,Release_Year=?,Rating=?,warranty_months=?,Barcode=?,SKU=?,Selling_price=?,Latest_cost=?,Image=?,CategoryID=?,BrandID=?,Status=? WHERE ID=?";
+            String sql = "UPDATE Product SET Name=?,Description=?,Release_Year=?,Rating=?,warranty_months=?,Barcode=?,SKU=?,Selling_price=?,Latest_cost=?,Image=?"
+                    + (legacyDiscount ? ",Discount=?" : "")
+                    + ",CategoryID=?,BrandID=?,Status=? WHERE ID=?";
             con.setAutoCommit(false);
             try (PreparedStatement ps = con.prepareStatement(sql)) {
-                bindProduct(ps, p, legacyDiscount);
-                ps.setInt(legacyDiscount ? 15 : 14, p.getId());
+                int lastIndex = bindProduct(ps, p, legacyDiscount);
+                ps.setInt(lastIndex + 1, p.getId());
                 ps.executeUpdate();
-                try (PreparedStatement inv = con.prepareStatement("INSERT INTO Inventory(ProductID,Amount,Min_amount,Status) VALUES(?,?,0,'ACTIVE') ON DUPLICATE KEY UPDATE Amount=VALUES(Amount)")) {
-                    inv.setInt(1, p.getId()); inv.setInt(2, p.getStock()); inv.executeUpdate();
+                if (tableExists(con, "ProductVariant")) {
+                    try (PreparedStatement inv = con.prepareStatement("UPDATE Inventory i JOIN ProductVariant pv ON pv.ID=i.VariantID SET i.Amount=? WHERE pv.ProductID=?")) {
+                        inv.setInt(1, p.getStock()); inv.setInt(2, p.getId()); inv.executeUpdate();
+                    }
+                } else {
+                    try (PreparedStatement inv = con.prepareStatement("INSERT INTO Inventory(ProductID,Amount,Min_amount,Status) VALUES(?,?,0,'ACTIVE') ON DUPLICATE KEY UPDATE Amount=VALUES(Amount)")) {
+                        inv.setInt(1, p.getId()); inv.setInt(2, p.getStock()); inv.executeUpdate();
+                    }
                 }
                 con.commit();
             } catch (SQLException ex) { con.rollback(); throw ex; }
@@ -100,18 +120,27 @@ public class ProductDAO {
         }
     }
 
-    public int countActive() throws SQLException { return count("p.Status='ACTIVE'"); }
-
-    public int countOutOfStock() throws SQLException { return count("COALESCE(i.Amount,0)=0"); }
-
-    private int count(String condition) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM Product p LEFT JOIN Inventory i ON i.ProductID=p.ID WHERE " + condition;
-        try (Connection con=DBContext.getConnection(); PreparedStatement ps=con.prepareStatement(sql); ResultSet rs=ps.executeQuery()) {
+    public int countActive() throws SQLException {
+        try (Connection con=DBContext.getConnection();
+             PreparedStatement ps=con.prepareStatement("SELECT COUNT(*) FROM Product WHERE Status='ACTIVE'");
+             ResultSet rs=ps.executeQuery()) {
             return rs.next() ? rs.getInt(1) : 0;
         }
     }
 
-    private void bindProduct(PreparedStatement ps, ProductModel p, boolean legacyDiscount) throws SQLException {
+    public int countOutOfStock() throws SQLException {
+        try (Connection con = DBContext.getConnection()) {
+            String sql = tableExists(con, "ProductVariant")
+                    ? "SELECT COUNT(*) FROM Product p WHERE COALESCE((SELECT SUM(i.Amount) FROM ProductVariant pv LEFT JOIN Inventory i ON i.VariantID=pv.ID WHERE pv.ProductID=p.ID AND pv.Status='ACTIVE'),0)=0"
+                    : "SELECT COUNT(*) FROM Product p LEFT JOIN Inventory i ON i.ProductID=p.ID WHERE COALESCE(i.Amount,0)=0";
+            try (PreparedStatement ps=con.prepareStatement(sql); ResultSet rs=ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+        }
+    }
+
+    private int bindProduct(PreparedStatement ps, ProductModel p,
+            boolean legacyDiscount) throws SQLException {
         ps.setString(1,p.getName()); ps.setString(2,p.getDescription());
         if (p.getReleaseYear()==null) ps.setNull(3,java.sql.Types.INTEGER); else ps.setInt(3,p.getReleaseYear());
         ps.setInt(4,p.getRating()); ps.setInt(5,p.getWarrantyMonths()); ps.setString(6,p.getBarcode());
@@ -121,6 +150,7 @@ public class ProductDAO {
         if (legacyDiscount) ps.setInt(index++, p.getDiscount());
         ps.setInt(index++,p.getCategoryId()); ps.setInt(index++,p.getBrandId());
         ps.setString(index,p.getStatus());
+        return index;
     }
 
     private String orderBy(String sort) {
@@ -145,13 +175,16 @@ public class ProductDAO {
                 : columnExists(con, "Product", "Discount") ? "COALESCE(p.Discount,0)" : "0";
         String visibleFeedback = columnExists(con, "Feedback", "Status")
                 ? " AND f.Status='VISIBLE'" : "";
+        String stock = tableExists(con, "ProductVariant")
+                ? "COALESCE((SELECT SUM(i.Amount) FROM ProductVariant pv LEFT JOIN Inventory i ON i.VariantID=pv.ID WHERE pv.ProductID=p.ID AND pv.Status='ACTIVE'),0)"
+                : "COALESCE(i.Amount,0)";
         return "SELECT p.ID,p.Name,p.Description,p.Release_Year,p.Rating,"
                 + "p.warranty_months,p.Barcode,p.SKU,p.Selling_price,p.Latest_cost,p.Image,"
                 + discount + " Discount,p.CategoryID,c.Name CategoryName,p.BrandID,b.Name BrandName,"
-                + "p.Status,p.Created_at,COALESCE(i.Amount,0) Stock,"
+                + "p.Status,p.Created_at," + stock + " Stock,"
                 + "(SELECT COUNT(*) FROM Feedback f WHERE f.ProductID=p.ID" + visibleFeedback + ") ReviewCount "
                 + "FROM Product p JOIN Category c ON c.ID=p.CategoryID JOIN Brand b ON b.ID=p.BrandID "
-                + "LEFT JOIN Inventory i ON i.ProductID=p.ID ";
+                + (tableExists(con, "ProductVariant") ? "" : "LEFT JOIN Inventory i ON i.ProductID=p.ID ");
     }
 
     private boolean tableExists(Connection con, String table) throws SQLException {
@@ -167,6 +200,52 @@ public class ProductDAO {
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, table); ps.setString(2, column);
             try (ResultSet rs = ps.executeQuery()) { return rs.next(); }
+        }
+    }
+
+    private void loadVariants(Connection con, List<ProductModel> products) throws SQLException {
+        if (products.isEmpty()) return;
+        String placeholders = String.join(",", java.util.Collections.nCopies(products.size(), "?"));
+        String sql = "SELECT pv.ID,pv.ProductID,pv.RAM_GB,pv.Storage_GB,pv.ColorName,pv.ColorHex,pv.Selling_price,pv.Image,COALESCE(i.Amount,0) Stock "
+                + "FROM ProductVariant pv LEFT JOIN Inventory i ON i.VariantID=pv.ID "
+                + "WHERE pv.Status='ACTIVE' AND pv.ProductID IN (" + placeholders + ") "
+                + "ORDER BY pv.ProductID,pv.Storage_GB,pv.RAM_GB,pv.ID";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            for (int index = 0; index < products.size(); index++) ps.setInt(index + 1, products.get(index).getId());
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ProductVariantModel variant = new ProductVariantModel();
+                    variant.setId(rs.getInt("ID")); variant.setProductId(rs.getInt("ProductID"));
+                    variant.setRamGb(rs.getInt("RAM_GB")); variant.setStorageGb(rs.getInt("Storage_GB"));
+                    variant.setColorName(rs.getString("ColorName")); variant.setColorHex(rs.getString("ColorHex"));
+                    variant.setSellingPrice(rs.getInt("Selling_price")); variant.setImage(rs.getString("Image"));
+                    variant.setStock(rs.getInt("Stock"));
+                    products.stream().filter(product -> product.getId() == variant.getProductId())
+                            .findFirst().ifPresent(product -> product.getVariants().add(variant));
+                }
+            }
+        }
+    }
+
+    private void createDefaultVariants(Connection con, ProductModel product) throws SQLException {
+        int[][] memories = {{8, 128, 0}, {12, 256, 2500000}, {12, 512, 5000000}};
+        String[][] colors = {{"Black", "#24262B"}, {"Silver", "#D7D8DA"}, {"Blue", "#6F89A8"}, {"Pink", "#D8A7B1"}};
+        String sql = "INSERT INTO ProductVariant(ProductID,RAM_GB,Storage_GB,ColorName,ColorHex,Selling_price,Image,Status) VALUES(?,?,?,?,?,?,?, 'ACTIVE')";
+        try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+             PreparedStatement inventory = con.prepareStatement("INSERT INTO Inventory(VariantID,Amount,Min_amount,Max_amount,Status) VALUES(?,?,0,100,'ACTIVE')")) {
+            for (int[] memory : memories) {
+                for (String[] color : colors) {
+                    ps.setInt(1, product.getId()); ps.setInt(2, memory[0]); ps.setInt(3, memory[1]);
+                    ps.setString(4, color[0]); ps.setString(5, color[1]);
+                    ps.setInt(6, product.getSellingPrice() + memory[2]); ps.setString(7, product.getImage());
+                    ps.executeUpdate();
+                    try (ResultSet keys = ps.getGeneratedKeys()) {
+                        if (!keys.next()) throw new SQLException("Cannot create product variant ID");
+                        inventory.setInt(1, keys.getInt(1)); inventory.setInt(2, product.getStock());
+                        inventory.executeUpdate();
+                    }
+                }
+            }
         }
     }
 

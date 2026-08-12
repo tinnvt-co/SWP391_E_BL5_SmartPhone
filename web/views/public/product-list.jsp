@@ -19,19 +19,20 @@
  <c:if test="${not empty validationError}"><div class="catalog-error"><c:out value="${validationError}"/></div></c:if>
  <section class="product-grid">
   <c:forEach items="${products}" var="p">
-   <article class="product-card">
+   <article class="product-card" data-variant-picker>
     <div class="product-media">
      <c:if test="${p.discount > 0}"><span class="badge sale">-${p.discount}%</span></c:if>
      <button class="heart" type="button" aria-label="Add to wishlist">♡</button>
-     <a href="${pageContext.request.contextPath}/products?action=detail&id=${p.id}"><img src="${pageContext.request.contextPath}${p.image}" alt="${p.name}" onerror="this.src='https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=900&q=80'"></a>
+     <a href="${pageContext.request.contextPath}/products?action=detail&id=${p.id}"><img data-variant-image src="${pageContext.request.contextPath}${p.image}" alt="${p.name}" onerror="this.src='https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=900&q=80'"></a>
      <span class="product-label">${p.discount > 0 ? 'Sản phẩm HOT' : 'Hàng chính hãng'}</span>
     </div>
     <div class="product-info">
      <span class="eyebrow"><c:out value="${p.brandName}"/></span>
      <h3><a href="${pageContext.request.contextPath}/products?action=detail&id=${p.id}"><c:out value="${p.name}"/></a></h3>
-     <div class="card-bottom"><div><c:if test="${p.discount>0}"><del><fmt:formatNumber value="${p.sellingPrice}" pattern="#,##0"/> ₫</del></c:if><strong class="price"><fmt:formatNumber value="${p.finalPrice}" pattern="#,##0"/> ₫</strong></div><button class="cart-button" ${p.stock==0?'disabled':''} aria-label="Add to cart">🛒<span>+</span></button></div>
+     <c:if test="${not empty p.variants}"><div class="memory-options"><c:forEach items="${p.memoryOptions}" var="m" varStatus="loop"><button type="button" class="memory-option ${loop.first?'active':''}" data-memory="${m.memoryKey}">${m.memoryLabel}</button></c:forEach></div><div class="color-options"><c:forEach items="${p.colorOptions}" var="color" varStatus="loop"><button type="button" class="color-option ${loop.first?'active':''}" data-color="${color.colorName}" title="${color.colorName}" style="--variant-color:${color.colorHex}"></button></c:forEach></div><div hidden><c:forEach items="${p.variants}" var="v"><span data-variant data-memory="${v.memoryKey}" data-color="${v.colorName}" data-price="${v.sellingPrice}" data-image="${pageContext.request.contextPath}${v.image}" data-stock="${v.stock}"></span></c:forEach></div></c:if>
+     <div class="card-bottom"><div><c:if test="${p.discount>0}"><del><fmt:formatNumber value="${p.sellingPrice}" pattern="#,##0"/> ₫</del></c:if><strong class="price" data-variant-price><fmt:formatNumber value="${not empty p.variants?p.variants[0].sellingPrice:p.finalPrice}" pattern="#,##0"/> ₫</strong></div><button class="cart-button" data-cart-button ${p.stock==0?'disabled':''} aria-label="Add to cart">🛒<span>+</span></button></div>
      <div class="promotion">Bảo hành chính hãng ${p.warrantyMonths} tháng</div>
-     <div class="product-footer"><div class="rating">★★★★★</div><button class="compare-button" type="button">＋ So sánh</button></div>
+     <div class="product-footer"><div class="rating">★★★★★</div></div>
     </div>
    </article>
   </c:forEach>
