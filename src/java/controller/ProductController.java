@@ -87,6 +87,14 @@ public class ProductController extends HttpServlet {
         }
     }
 
+    static double parseDecimal(String input, double fallback) {
+        try {
+            return Double.parseDouble(input);
+        } catch (Exception exception) {
+            return fallback;
+        }
+    }
+
     static Integer integerOrNull(String input) {
         int result = integer(input, 0);
         return result > 0 ? result : null;
