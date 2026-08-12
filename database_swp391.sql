@@ -8,6 +8,7 @@ SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
 DROP TABLE IF EXISTS `Category`;
+DROP TABLE IF EXISTS `ProductVariant`;
 DROP TABLE IF EXISTS `Product`;
 DROP TABLE IF EXISTS `Inventory`;
 DROP TABLE IF EXISTS `Brand`;
@@ -60,17 +61,33 @@ CREATE TABLE `Product` (
   `Status` VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
   PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `ProductVariant` (
+  `ID` INT NOT NULL AUTO_INCREMENT,
+  `ProductID` INT NOT NULL,
+  `RAM_GB` INT NOT NULL,
+  `Storage_GB` INT NOT NULL,
+  `ColorName` VARCHAR(50) NOT NULL,
+  `ColorHex` VARCHAR(7) NOT NULL,
+  `Selling_price` DECIMAL(12,2) NOT NULL,
+  `Image` VARCHAR(255) NULL,
+  `Status` VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
+  `Created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `Updated_at` TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`ID`),
+  UNIQUE KEY `uk_ProductVariant_option` (`ProductID`, `RAM_GB`, `Storage_GB`, `ColorName`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
  
 CREATE TABLE `Inventory` (
   `ID` INT NOT NULL AUTO_INCREMENT,
-  `ProductID` INT NOT NULL,
+  `VariantID` INT NOT NULL,
   `Amount` INT NOT NULL,
   `Min_amount` INT NULL,
   `Max_amount` INT NULL,
   `Updated_at` TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   `Status` VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
   PRIMARY KEY (`ID`),
-  UNIQUE KEY `uk_Inventory_ProductID` (`ProductID`)
+  UNIQUE KEY `uk_Inventory_VariantID` (`VariantID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
  
 CREATE TABLE `Brand` (
@@ -148,9 +165,9 @@ CREATE TABLE `Wishlist` (
  
 CREATE TABLE `Cart` (
   `UserID` INT NOT NULL,
-  `ProductID` INT NOT NULL,
+  `VariantID` INT NOT NULL,
   `Amount` INT NOT NULL,
-  PRIMARY KEY (`UserID`, `ProductID`)
+  PRIMARY KEY (`UserID`, `VariantID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
  
 CREATE TABLE `Transaction` (
@@ -173,12 +190,13 @@ CREATE TABLE `Transaction` (
  
 CREATE TABLE `Transaction_Product` (
   `TransactionID` INT NOT NULL,
-  `ProductID` INT NOT NULL,
-  `Amount` DECIMAL(12,2) NOT NULL,
+  `VariantID` INT NOT NULL,
+  `Amount` INT NOT NULL,
+  `UnitPrice` DECIMAL(12,2) NOT NULL,
   `Discount_rate` DECIMAL(5,2) NULL,
   `Discount_amount` DECIMAL(12,2) NULL,
   `Total` DECIMAL(12,2) NOT NULL,
-  PRIMARY KEY (`TransactionID`, `ProductID`)
+  PRIMARY KEY (`TransactionID`, `VariantID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
  
 CREATE TABLE `Feedback` (
@@ -216,8 +234,8 @@ CREATE TABLE `ReturnRequest` (
  
 CREATE TABLE `ReturnRequest_Product` (
   `ReturnRequestID` INT NOT NULL,
-  `ProductID` INT NOT NULL,
-  PRIMARY KEY (`ReturnRequestID`, `ProductID`)
+  `VariantID` INT NOT NULL,
+  PRIMARY KEY (`ReturnRequestID`, `VariantID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
  
 CREATE TABLE `DeliveryInfo` (
@@ -276,7 +294,8 @@ CREATE TABLE `DeliveryStatusHistory` (
  
 ALTER TABLE `Product` ADD CONSTRAINT `fk_Product_CategoryID` FOREIGN KEY (`CategoryID`) REFERENCES `Category` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `Product` ADD CONSTRAINT `fk_Product_BrandID` FOREIGN KEY (`BrandID`) REFERENCES `Brand` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `Inventory` ADD CONSTRAINT `fk_Inventory_ProductID` FOREIGN KEY (`ProductID`) REFERENCES `Product` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `ProductVariant` ADD CONSTRAINT `fk_ProductVariant_ProductID` FOREIGN KEY (`ProductID`) REFERENCES `Product` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Inventory` ADD CONSTRAINT `fk_Inventory_VariantID` FOREIGN KEY (`VariantID`) REFERENCES `ProductVariant` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `Supplier_Product` ADD CONSTRAINT `fk_Supplier_Product_SupplierID` FOREIGN KEY (`SupplierID`) REFERENCES `Supplier` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `Supplier_Product` ADD CONSTRAINT `fk_Supplier_Product_ProductID` FOREIGN KEY (`ProductID`) REFERENCES `Product` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `User` ADD CONSTRAINT `fk_User_RoleID` FOREIGN KEY (`RoleID`) REFERENCES `Role` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -285,14 +304,14 @@ ALTER TABLE `Permisson_Role` ADD CONSTRAINT `fk_Permisson_Role_RoleID` FOREIGN K
 ALTER TABLE `Wishlist` ADD CONSTRAINT `fk_Wishlist_UserID` FOREIGN KEY (`UserID`) REFERENCES `User` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `Wishlist` ADD CONSTRAINT `fk_Wishlist_ProductID` FOREIGN KEY (`ProductID`) REFERENCES `Product` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `Cart` ADD CONSTRAINT `fk_Cart_UserID` FOREIGN KEY (`UserID`) REFERENCES `User` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `Cart` ADD CONSTRAINT `fk_Cart_ProductID` FOREIGN KEY (`ProductID`) REFERENCES `Product` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Cart` ADD CONSTRAINT `fk_Cart_VariantID` FOREIGN KEY (`VariantID`) REFERENCES `ProductVariant` (`ID`) ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE `Transaction` ADD CONSTRAINT `fk_Transaction_UserID` FOREIGN KEY (`UserID`) REFERENCES `User` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `Transaction` ADD CONSTRAINT `fk_Transaction_SupplierID` FOREIGN KEY (`SupplierID`) REFERENCES `Supplier` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `Transaction` ADD CONSTRAINT `fk_Transaction_Updated_by` FOREIGN KEY (`Updated_by`) REFERENCES `User` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `Transaction` ADD CONSTRAINT `fk_Transaction_ Reference_transactionID` FOREIGN KEY (`Reference_transactionID`) REFERENCES `Transaction` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `Transaction` ADD CONSTRAINT `fk_Transaction_DeliveryInfoID` FOREIGN KEY (`DeliveryInfoID`) REFERENCES `DeliveryInfo` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `Transaction_Product` ADD CONSTRAINT `fk_Transaction_Product_TransactionID` FOREIGN KEY (`TransactionID`) REFERENCES `Transaction` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `Transaction_Product` ADD CONSTRAINT `fk_Transaction_Product_ProductID` FOREIGN KEY (`ProductID`) REFERENCES `Product` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Transaction_Product` ADD CONSTRAINT `fk_Transaction_Product_VariantID` FOREIGN KEY (`VariantID`) REFERENCES `ProductVariant` (`ID`) ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE `Feedback` ADD CONSTRAINT `fk_Feedback_UserID` FOREIGN KEY (`UserID`) REFERENCES `User` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `Feedback` ADD CONSTRAINT `fk_Feedback_ProductID` FOREIGN KEY (`ProductID`) REFERENCES `Product` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `Answer` ADD CONSTRAINT `fk_Answer_FeedbackID` FOREIGN KEY (`FeedbackID`) REFERENCES `Feedback` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -300,7 +319,7 @@ ALTER TABLE `Answer` ADD CONSTRAINT `fk_Answer_UserID` FOREIGN KEY (`UserID`) RE
 ALTER TABLE `ReturnRequest` ADD CONSTRAINT `fk_ReturnRequest_UserID` FOREIGN KEY (`UserID`) REFERENCES `User` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `ReturnRequest` ADD CONSTRAINT `fk_ReturnRequest_TransactionID` FOREIGN KEY (`TransactionID`) REFERENCES `Transaction` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `ReturnRequest_Product` ADD CONSTRAINT `fk_ReturnRequest_Product_ReturnRequestID` FOREIGN KEY (`ReturnRequestID`) REFERENCES `ReturnRequest` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `ReturnRequest_Product` ADD CONSTRAINT `fk_ReturnRequest_Product_ProductID` FOREIGN KEY (`ProductID`) REFERENCES `Product` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `ReturnRequest_Product` ADD CONSTRAINT `fk_ReturnRequest_Product_VariantID` FOREIGN KEY (`VariantID`) REFERENCES `ProductVariant` (`ID`) ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE `DeliveryInfo` ADD CONSTRAINT `fk_DeliveryInfo_UserID` FOREIGN KEY (`UserID`) REFERENCES `User` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `Discount_Product` ADD CONSTRAINT `fk_Discount_Product_DiscountID` FOREIGN KEY (`DiscountID`) REFERENCES `Discount` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `Discount_Product` ADD CONSTRAINT `fk_Discount_Product_ProductID` FOREIGN KEY (`ProductID`) REFERENCES `Product` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -392,21 +411,60 @@ INSERT INTO `Product` (`ID`, `Name`, `Description`, `Release_Year`, `Rating`, `w
 (2, 'Samsung Galaxy S24 Ultra 256GB', 'Samsung flagship smartphone', 2024, 5, 12, '893000000002', 'SSS24U-256-BLACK', 26990000, 23000000, '/assets/images/products/samsung-galaxy-s24-ultra.jpg', 1, 2, 'ACTIVE'),
 (3, 'Xiaomi 14 256GB', 'Xiaomi high performance smartphone', 2024, 4, 12, '893000000003', 'XIAOMI14-256-BLACK', 18990000, 16000000, '/assets/images/products/xiaomi-14.jpg', 1, 3, 'ACTIVE'),
 (4, 'Oppo Reno 11 5G', 'Oppo camera phone', 2024, 4, 12, '893000000004', 'OPPORENO11-256-GREEN', 10990000, 9000000, '/assets/images/products/oppo-reno-11.jpg', 1, 4, 'ACTIVE'),
-(5, 'AirPods Pro 2', 'Apple wireless earbuds', 2023, 5, 12, '893000000005', 'AIRPODSPRO2-WHITE', 5990000, 4700000, '/assets/images/products/airpods-pro-2.jpg', 2, 1, 'ACTIVE');
+(5, 'iPhone 14 128GB', 'Apple smartphone with selectable memory and colors', 2022, 5, 12, '893000000005', 'IPHONE14', 15990000, 13200000, '/assets/images/products/iphone-15-pro-max.jpg', 1, 1, 'ACTIVE');
 
-INSERT INTO `Inventory` (`ID`, `ProductID`, `Amount`, `Min_amount`, `Max_amount`, `Status`) VALUES
-(1, 1, 20, 5, 100, 'ACTIVE'),
-(2, 2, 15, 5, 100, 'ACTIVE'),
-(3, 3, 30, 5, 100, 'ACTIVE'),
-(4, 4, 25, 5, 100, 'ACTIVE'),
-(5, 5, 40, 10, 150, 'ACTIVE');
+INSERT INTO `Product` (`ID`, `Name`, `Description`, `Release_Year`, `Rating`, `warranty_months`, `Barcode`, `SKU`, `Selling_price`, `Latest_cost`, `Image`, `CategoryID`, `BrandID`, `Status`)
+WITH RECURSIVE `Sequence50` AS (
+  SELECT 1 AS `Number`
+  UNION ALL SELECT `Number` + 1 FROM `Sequence50` WHERE `Number` < 50
+),
+`SeedBrand` AS (
+  SELECT 1 AS `BrandID`, 'Apple' AS `BrandName`, 'APL' AS `Prefix`, 15990000 AS `BasePrice`, '/assets/images/products/iphone-15-pro-max.jpg' AS `Image`
+  UNION ALL SELECT 2, 'Samsung', 'SAM', 11990000, '/assets/images/products/samsung-galaxy-s24-ultra.jpg'
+  UNION ALL SELECT 3, 'Xiaomi', 'XIA', 7990000, '/assets/images/products/xiaomi-14.jpg'
+  UNION ALL SELECT 4, 'OPPO', 'OPP', 6990000, '/assets/images/products/oppo-reno-11.jpg'
+)
+SELECT 5 + ((`SeedBrand`.`BrandID` - 1) * 50) + `Sequence50`.`Number`,
+  CONCAT(`SeedBrand`.`BrandName`, ' Phone ', LPAD(`Sequence50`.`Number`, 2, '0')),
+  CONCAT(`SeedBrand`.`BrandName`, ' smartphone with selectable memory and colors'),
+  2022 + (`Sequence50`.`Number` MOD 5), 4 + (`Sequence50`.`Number` MOD 2), 12,
+  CONCAT('894', LPAD(5 + ((`SeedBrand`.`BrandID` - 1) * 50) + `Sequence50`.`Number`, 9, '0')),
+  CONCAT(`SeedBrand`.`Prefix`, '-', LPAD(`Sequence50`.`Number`, 2, '0')),
+  `SeedBrand`.`BasePrice` + `Sequence50`.`Number` * 50000,
+  FLOOR((`SeedBrand`.`BasePrice` + `Sequence50`.`Number` * 50000) * 0.82),
+  `SeedBrand`.`Image`, 1, `SeedBrand`.`BrandID`, 'ACTIVE'
+FROM `SeedBrand` CROSS JOIN `Sequence50`;
+
+INSERT INTO `ProductVariant` (`ProductID`, `RAM_GB`, `Storage_GB`, `ColorName`, `ColorHex`, `Selling_price`, `Image`, `Status`)
+WITH
+`MemoryOption` AS (
+  SELECT 1 AS `OptionNo`, 8 AS `RAM_GB`, 128 AS `Storage_GB`, 0 AS `ExtraPrice`
+  UNION ALL SELECT 2, 12, 256, 2500000
+  UNION ALL SELECT 3, 12, 512, 5000000
+),
+`ColorOption` AS (
+  SELECT 'Black' AS `ColorName`, '#24262B' AS `ColorHex`
+  UNION ALL SELECT 'Silver', '#D7D8DA'
+  UNION ALL SELECT 'Blue', '#6F89A8'
+  UNION ALL SELECT 'Pink', '#D8A7B1'
+)
+SELECT p.ID, m.RAM_GB, m.Storage_GB, c.ColorName, c.ColorHex,
+  p.Selling_price + m.ExtraPrice, p.Image, 'ACTIVE'
+FROM `Product` p CROSS JOIN `MemoryOption` m CROSS JOIN `ColorOption` c;
+
+INSERT INTO `Inventory` (`VariantID`, `Amount`, `Min_amount`, `Max_amount`, `Status`)
+SELECT pv.ID, 8 + ((pv.ProductID + pv.ID) MOD 13), 2, 50, 'ACTIVE'
+FROM `ProductVariant` pv;
 
 INSERT INTO `Supplier_Product` (`SupplierID`, `ProductID`) VALUES
 (1, 1), (1, 2), (2, 3), (2, 4), (3, 5);
 
-INSERT INTO `Cart` (`UserID`, `ProductID`, `Amount`) VALUES
-(4, 1, 1),
-(4, 5, 2);
+INSERT INTO `Cart` (`UserID`, `VariantID`, `Amount`)
+SELECT 4, pv.ID, 1 FROM `ProductVariant` pv
+WHERE pv.ProductID=1 AND pv.RAM_GB=12 AND pv.Storage_GB=256 AND pv.ColorName='Black'
+UNION ALL
+SELECT 4, pv.ID, 2 FROM `ProductVariant` pv
+WHERE pv.ProductID=5 AND pv.RAM_GB=8 AND pv.Storage_GB=128 AND pv.ColorName='Silver';
 
 INSERT INTO `Wishlist` (`UserID`, `ProductID`) VALUES
 (4, 2),
@@ -419,13 +477,18 @@ INSERT INTO `Transaction` (`ID`, `UserID`, `Total_price`, `Type`, `Status`, `Sup
 (3, 2, 134950000, 'IMPORT', 'COMPLETED', 1, 134950000, 0, 'BANK_TRANSFER', 2, NULL),
 (4, 6, 26990000, 'REFUND', 'PENDING', NULL, 0, 0, 'ORIGINAL_PAYMENT', 2, 2);
 
-INSERT INTO `Transaction_Product` (`TransactionID`, `ProductID`, `Amount`, `Discount_rate`, `Discount_amount`, `Total`) VALUES
-(1, 1, 1, 10, 2999000, 26991000),
-(1, 5, 1, 0, 0, 5990000),
-(2, 2, 1, 5, 1349500, 25640500),
-(3, 1, 5, 0, 0, 130000000),
-(3, 5, 1, 0, 0, 4700000),
-(4, 2, 1, 0, 0, 26990000);
+INSERT INTO `Transaction_Product` (`TransactionID`, `VariantID`, `Amount`, `UnitPrice`, `Discount_rate`, `Discount_amount`, `Total`)
+SELECT 1, pv.ID, 1, pv.Selling_price, 10, pv.Selling_price*0.10, pv.Selling_price*0.90 FROM `ProductVariant` pv WHERE pv.ProductID=1 AND pv.RAM_GB=12 AND pv.Storage_GB=256 AND pv.ColorName='Black'
+UNION ALL
+SELECT 1, pv.ID, 1, pv.Selling_price, 0, 0, pv.Selling_price FROM `ProductVariant` pv WHERE pv.ProductID=5 AND pv.RAM_GB=8 AND pv.Storage_GB=128 AND pv.ColorName='Silver'
+UNION ALL
+SELECT 2, pv.ID, 1, pv.Selling_price, 5, pv.Selling_price*0.05, pv.Selling_price*0.95 FROM `ProductVariant` pv WHERE pv.ProductID=2 AND pv.RAM_GB=12 AND pv.Storage_GB=256 AND pv.ColorName='Blue'
+UNION ALL
+SELECT 3, pv.ID, 5, pv.Selling_price, 0, 0, pv.Selling_price*5 FROM `ProductVariant` pv WHERE pv.ProductID=1 AND pv.RAM_GB=8 AND pv.Storage_GB=128 AND pv.ColorName='Black'
+UNION ALL
+SELECT 3, pv.ID, 1, pv.Selling_price, 0, 0, pv.Selling_price FROM `ProductVariant` pv WHERE pv.ProductID=5 AND pv.RAM_GB=8 AND pv.Storage_GB=128 AND pv.ColorName='Black'
+UNION ALL
+SELECT 4, pv.ID, 1, pv.Selling_price, 0, 0, pv.Selling_price FROM `ProductVariant` pv WHERE pv.ProductID=2 AND pv.RAM_GB=12 AND pv.Storage_GB=256 AND pv.ColorName='Blue';
 
 INSERT INTO `DeliveryInfo` (`ID`, `UserID`, `Recipient_name`, `Recipient_phone`, `Delivery_address`, `Status`) VALUES
 (1, 4, 'Demo Customer', '0900000004', 'Thu Duc, Ho Chi Minh City', 'ACTIVE'),
@@ -442,5 +505,6 @@ INSERT INTO `Answer` (`ID`, `FeedbackID`, `Content`, `UserID`) VALUES
 INSERT INTO `ReturnRequest` (`ID`, `Status`, `Description`, `Image`, `UserID`, `TransactionID`) VALUES
 (1, 'REQUESTED', 'Khách đã thanh toán và muốn hủy đơn trước khi giao hàng.', NULL, 6, 2);
 
-INSERT INTO `ReturnRequest_Product` (`ReturnRequestID`, `ProductID`) VALUES
-(1, 2);
+INSERT INTO `ReturnRequest_Product` (`ReturnRequestID`, `VariantID`)
+SELECT 1, pv.ID FROM `ProductVariant` pv
+WHERE pv.ProductID=2 AND pv.RAM_GB=12 AND pv.Storage_GB=256 AND pv.ColorName='Blue';
