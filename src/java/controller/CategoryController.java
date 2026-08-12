@@ -45,6 +45,12 @@ public class CategoryController extends HttpServlet {
                     req.getRequestDispatcher("/views/manager/category-form.jsp").forward(req, resp);
                     return;
                 }
+                if (category.getName().trim().length() > 25) {
+                    req.setAttribute("error", "Category name cannot exceed 25 characters.");
+                    req.setAttribute("category", category);
+                    req.getRequestDispatcher("/views/manager/category-form.jsp").forward(req, resp);
+                    return;
+                }
                 dao.save(category);
             }
             resp.sendRedirect(req.getContextPath() + "/manager/categories?message=Saved");

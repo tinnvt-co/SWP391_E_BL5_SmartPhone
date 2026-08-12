@@ -121,8 +121,6 @@ public class ManagerProductController extends HttpServlet {
         product.setLatestCost(ProductController.integer(
                 request.getParameter("latestCost"), 0));
         product.setImage(request.getParameter("image"));
-        product.setDiscount(ProductController.integer(
-                request.getParameter("discount"), 0));
         product.setCategoryId(ProductController.integer(
                 request.getParameter("categoryId"), 0));
         product.setBrandId(ProductController.integer(
@@ -137,6 +135,12 @@ public class ManagerProductController extends HttpServlet {
         if (product.getName() == null || product.getName().isBlank()) {
             return "Product name is required.";
         }
+        if (product.getName().trim().length() > 50) {
+            return "Product name cannot exceed 50 characters.";
+        }
+        if (product.getDescription() != null && product.getDescription().length() > 255) {
+            return "Description cannot exceed 255 characters.";
+        }
         if (product.getBarcode() == null || product.getBarcode().isBlank()) {
             return "Barcode is required.";
         }
@@ -150,9 +154,6 @@ public class ManagerProductController extends HttpServlet {
                 || product.getLatestCost() < 0
                 || product.getStock() < 0) {
             return "Price, cost and stock cannot be negative.";
-        }
-        if (product.getDiscount() < 0 || product.getDiscount() > 100) {
-            return "Discount must be from 0 to 100.";
         }
         return null;
     }

@@ -46,6 +46,12 @@ public class BrandController extends HttpServlet {
                     req.getRequestDispatcher("/views/manager/brand-form.jsp").forward(req, resp);
                     return;
                 }
+                if (brand.getName().trim().length() > 50) {
+                    req.setAttribute("error", "Brand name cannot exceed 50 characters.");
+                    req.setAttribute("brand", brand);
+                    req.getRequestDispatcher("/views/manager/brand-form.jsp").forward(req, resp);
+                    return;
+                }
                 dao.save(brand);
             }
             resp.sendRedirect(req.getContextPath() + "/manager/brands?message=Saved");
