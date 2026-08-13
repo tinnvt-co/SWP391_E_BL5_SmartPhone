@@ -95,6 +95,10 @@
         <servlet-name>OrderController</servlet-name>
         <servlet-class>controller.OrderController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>StaffDashboardController</servlet-name>
+        <servlet-class>controller.StaffDashboardController</servlet-class>
+    </servlet>
 
     <servlet>
         <servlet-name>AdminUserController</servlet-name>
@@ -196,6 +200,10 @@
     <servlet-mapping>
         <servlet-name>OrderController</servlet-name>
         <url-pattern>/staff/orders</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>StaffDashboardController</servlet-name>
+        <url-pattern>/staff</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

@@ -11,6 +11,24 @@
     transform: translateY(-1px);
 }
 
+.swp-layout-action-staff {
+    color: #fff;
+    border: 1px solid #1e5fa8;
+    background: linear-gradient(135deg, #2f7cd1, #1a4d97);
+    box-shadow: 0 8px 20px rgba(26, 77, 151, .22);
+}
+
+.swp-layout-action-staff:hover {
+    color: #fff;
+    background: linear-gradient(135deg, #3b8be5, #2058ab);
+    transform: translateY(-1px);
+}
+
+.role-pill.role-staff {
+    color: #1e3a8a;
+    background: #dbeafe;
+}
+
 .breadcrumb a {
     color: #168464;
     text-decoration: none;
@@ -587,4 +605,51 @@
     color: #bd6d0b;
     border-color: #e8c98a;
     background: #fff5e0;
+}
+
+/* ---------- Staff dashboard ---------- */
+.staff-welcome {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+    margin-bottom: 26px;
+    padding: 38px 42px;
+    color: #fff;
+    border-radius: 22px;
+    background:
+        radial-gradient(circle at 90% 10%, rgba(255,255,255,.22), transparent 28%),
+        linear-gradient(135deg, #1e3a8a, #2f7cd1 55%, #38bdf8);
+    box-shadow: 0 18px 42px rgba(30, 58, 138, .22);
+}
+
+.staff-welcome::after {
+    content: '';
+    position: absolute;
+    right: 12%;
+    bottom: -85px;
+    width: 220px;
+    height: 220px;
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 50%;
+}
+
+.staff-kicker { font-size: 12px; font-weight: 800; letter-spacing: .16em; opacity: .8; }
+.staff-welcome h1 { position: relative; z-index: 1; margin: 8px 0 7px; font-size: clamp(29px, 3vw, 42px); }
+.staff-welcome p { position: relative; z-index: 1; max-width: 680px; margin: 0; color: rgba(255,255,255,.82); font-size: 16px; }
+.staff-preview { position: relative; z-index: 1; white-space: nowrap; color: #1e3a8a; background: #fff; border-color: #fff; }
+
+.staff-module-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.staff-module-grid .manager-module { min-height: 270px; }
+.profile-module { --module-color: #1e3a8a; --module-soft: #dbeafe; }
+
+@media (max-width: 1100px) {
+    .staff-module-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 680px) {
+    .staff-module-grid { grid-template-columns: 1fr; }
+    .staff-welcome { align-items: flex-start; flex-direction: column; padding: 30px 25px; }
 }
