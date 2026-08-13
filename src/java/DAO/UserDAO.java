@@ -214,6 +214,32 @@ public class UserDAO {
         return findActiveById(user.getId());
     }
 
+    public boolean isCurrentPassword(int userId, String password) throws SQLException {
+        String sql = "SELECT 1 FROM `User` "
+                + "WHERE ID = ? AND Password = ? AND Status = 'ACTIVE'";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ps.setString(2, password);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    public boolean updatePassword(int userId, String newPassword) throws SQLException {
+        String sql = "UPDATE `User` SET Password = ? "
+                + "WHERE ID = ? AND Status = 'ACTIVE'";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, newPassword);
+            ps.setInt(2, userId);
+            return ps.executeUpdate() > 0;
+        }
+    }
+
     public List<String> findPermissionNamesByRoleId(int roleId) throws SQLException {
         String sql = "SELECT p.Name "
                 + "FROM Permisson_Role pr "
