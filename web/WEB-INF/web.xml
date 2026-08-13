@@ -96,6 +96,11 @@
         <servlet-class>controller.OrderController</servlet-class>
     </servlet>
 
+    <servlet>
+        <servlet-name>AdminUserController</servlet-name>
+        <servlet-class>controller.AdminUserController</servlet-class>
+    </servlet>
+
     <servlet-mapping>
         <servlet-name>HomeController</servlet-name>
         <url-pattern>/home</url-pattern>
@@ -187,6 +192,11 @@
     <servlet-mapping>
         <servlet-name>OrderController</servlet-name>
         <url-pattern>/staff/orders</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>AdminUserController</servlet-name>
+        <url-pattern>/admin/users</url-pattern>
     </servlet-mapping>
 
     <welcome-file-list>

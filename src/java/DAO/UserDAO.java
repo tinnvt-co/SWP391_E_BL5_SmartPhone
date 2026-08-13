@@ -260,6 +260,24 @@ public class UserDAO {
         return permissions;
     }
 
+    public List<UserModel> findAll() throws SQLException {
+        String sql = "SELECT u.ID, u.Username, u.Name, u.Phone, u.Address, u.Image, u.Age, "
+                + "u.Email, u.RoleID, u.Status, r.Name AS RoleName "
+                + "FROM `User` u "
+                + "JOIN `Role` r ON u.RoleID = r.ID "
+                + "ORDER BY u.ID DESC";
+
+        List<UserModel> list = new ArrayList<>();
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(mapUser(rs));
+            }
+        }
+        return list;
+    }
+
     private boolean exists(String sql, String value) throws SQLException {
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
