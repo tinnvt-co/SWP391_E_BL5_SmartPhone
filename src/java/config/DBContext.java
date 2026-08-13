@@ -4,17 +4,18 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class DBContext {
+public final class DBContext {
 
-    private static final String URL      = "jdbc:mysql://localhost:3306/swp_hrm_db?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8";
-    private static final String USERNAME = "root";
-    private static final String PASSWORD = "123456";
+    private static final String URL = System.getProperty("smartphone.db.url",
+            "jdbc:mysql://localhost:3306/database_swp391?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Bangkok&characterEncoding=UTF-8");
+    private static final String USERNAME = System.getProperty("smartphone.db.user", "root");
+    private static final String PASSWORD = System.getProperty("smartphone.db.password", "123456");
 
     static {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+        } catch (ClassNotFoundException ex) {
+            throw new ExceptionInInitializerError("MySQL JDBC driver is missing: " + ex.getMessage());
         }
     }
 
@@ -22,19 +23,5 @@ public class DBContext {
         return DriverManager.getConnection(URL, USERNAME, PASSWORD);
     }
 
-    public static void closeConnection(Connection conn) {
-        if (conn != null) {
-            try { conn.close(); } catch (SQLException ignored) {}
-        }
-    }
-
-    public static void main(String[] args) {
-        try (Connection conn = getConnection()) {
-            if (conn != null && !conn.isClosed()) {
-                System.out.println("Connection successful: " + conn.getMetaData().getURL());
-            }
-        } catch (SQLException e) {
-            System.out.println("Connection failed: " + e.getMessage());
-        }
-    }
+    private DBContext() {}
 }
