@@ -1,0 +1,6 @@
+# Copy this file to src/java/mail.properties and fill your Gmail app password locally.
+smartphone.mail.host=smtp.gmail.com
+smartphone.mail.port=587
+smartphone.mail.user=yourgmail@gmail.com
+smartphone.mail.password=your-gmail-app-password
+smartphone.mail.from=yourgmail@gmail.com

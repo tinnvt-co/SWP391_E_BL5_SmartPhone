@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <!DOCTYPE html>
@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile | SWP Mobile</title>
+    <title>My Profile | SmartPhone store</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css">
@@ -231,6 +231,9 @@
                     <a class="active" href="${pageContext.request.contextPath}/profile">
                         <i class="bi bi-person"></i> My Profile
                     </a>
+                    <a href="${pageContext.request.contextPath}/change-password">
+                        <i class="bi bi-shield-lock"></i> Change Password
+                    </a>
                     <a href="${pageContext.request.contextPath}/order-history">
                         <i class="bi bi-receipt"></i> Order History
                     </a>
@@ -348,3 +351,4 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
