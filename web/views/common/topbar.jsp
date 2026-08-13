@@ -5,16 +5,43 @@
 </header>
 <aside class="side-nav">
     <div class="manager-nav-brand"><span>S</span><div><strong>SmartPhone</strong><small>Management Center</small></div></div>
-    <p class="manager-nav-label">YOUR WORKSPACE</p>
-    <a class="${pageName == 'Dashboard' ? 'active' : ''}" href="${pageContext.request.contextPath}/manager">Dashboard</a>
-    <a href="${pageContext.request.contextPath}/products">View Products</a>
-    <a class="${pageName == 'Manage Products' ? 'active' : ''}" href="${pageContext.request.contextPath}/manager/products">Manage Products</a>
-    <a class="${pageName == 'Manage Category' ? 'active' : ''}" href="${pageContext.request.contextPath}/manager/categories">Manage Category</a>
-    <a class="${pageName == 'Manage Brand' ? 'active' : ''}" href="${pageContext.request.contextPath}/manager/brands">Manage Brand</a>
-    <a href="${pageContext.request.contextPath}/manager/inventory">Manage Inventory</a>
-    <a href="${pageContext.request.contextPath}/manager/discounts">Manage Discount</a>
-    <a href="${pageContext.request.contextPath}/manager/sales-stats">Sales Statistics</a>
-    <a href="${pageContext.request.contextPath}/manager/revenue" style="background:linear-gradient(90deg,#4361ee22,#4361ee05);color:var(--blue);font-weight:700">📊 Revenue Dashboard</a>
-    <a href="${pageContext.request.contextPath}/manager/orders">Manage Orders</a>
-    <a href="${pageContext.request.contextPath}/staff/orders">Staff Orders</a>
+
+    <p class="manager-nav-label">OVERVIEW</p>
+    <a class="${pageName == 'Dashboard' ? 'active' : ''}" href="${pageContext.request.contextPath}/manager">
+        <span class="nav-icon"></span>Dashboard
+    </a>
+
+    <p class="manager-nav-label">CATALOG</p>
+    <a href="${pageContext.request.contextPath}/products"><span class="nav-icon"></span>View Products</a>
+    <a class="${pageName == 'Manage Products' ? 'active' : ''}" href="${pageContext.request.contextPath}/manager/products">
+        <span class="nav-icon"></span>Manage Products
+    </a>
+    <a class="${pageName == 'Manage Category' ? 'active' : ''}" href="${pageContext.request.contextPath}/manager/categories">
+        <span class="nav-icon"></span>Manage Category
+    </a>
+    <a class="${pageName == 'Manage Brand' ? 'active' : ''}" href="${pageContext.request.contextPath}/manager/brands">
+        <span class="nav-icon"></span>Manage Brand
+    </a>
+
+    <p class="manager-nav-label">OPERATIONS</p>
+    <a class="${pageName == 'Manage Inventory' ? 'active' : ''}" href="${pageContext.request.contextPath}/manager/inventory">
+        <span class="nav-icon"></span>Manage Inventory
+    </a>
+    <a class="${pageName == 'Manage Orders' || pageName == 'Order Detail' ? 'active' : ''}" href="${pageContext.request.contextPath}/manager/orders">
+        <span class="nav-icon"></span>Manage Orders
+    </a>
+    <a href="${pageContext.request.contextPath}/staff/orders"><span class="nav-icon"></span>Staff Orders</a>
+
+    <p class="manager-nav-label">PROMOTIONS</p>
+    <a class="${pageName == 'Manage Discount' || pageName == 'Add Discount' || pageName == 'Edit Discount' ? 'active' : ''}" href="${pageContext.request.contextPath}/manager/discounts">
+        <span class="nav-icon"></span>Manage Discount
+    </a>
+
+    <p class="manager-nav-label">ANALYTICS</p>
+    <a class="${pageName == 'Sales Statistics' ? 'active' : ''}" href="${pageContext.request.contextPath}/manager/sales-stats">
+        <span class="nav-icon"></span>Sales Statistics
+    </a>
+    <a class="${pageName == 'Revenue' ? 'active' : ''} nav-emphasis" href="${pageContext.request.contextPath}/manager/revenue">
+        <span class="nav-icon"></span>Revenue Dashboard
+    </a>
 </aside>
