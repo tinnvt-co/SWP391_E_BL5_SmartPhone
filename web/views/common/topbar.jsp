@@ -1,4 +1,3 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <header class="topbar">
     <button class="menu-button" type="button" onclick="document.body.classList.toggle('nav-open')" aria-label="Menu">☰</button>
     <nav class="breadcrumb"><span class="role-${pageRole == 'Manager' ? 'manager' : 'public'}">${pageRole}</span><b>/</b><strong>${pageName}</strong></nav>

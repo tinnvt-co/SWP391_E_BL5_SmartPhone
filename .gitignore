@@ -4,3 +4,4 @@
 /nbproject/private/
 /.idea/
 *.iml
+/src/java/mail.properties
