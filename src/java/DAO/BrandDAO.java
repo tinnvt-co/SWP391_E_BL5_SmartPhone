@@ -9,12 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import model.BrandModel;
 
-
 public class BrandDAO {
-
-
-
-
     public List<BrandModel> findAll(boolean activeOnly) throws SQLException {
         String sql = "SELECT b.ID, b.Name, b.Description, b.Status, "
                 + "COUNT(p.ID) AS ProductCount "
@@ -42,10 +37,26 @@ public class BrandDAO {
     }
 
     public BrandModel findById(int id) throws SQLException {
-        return findAll(false).stream()
-                .filter(brand -> brand.getId() == id)
-                .findFirst()
-                .orElse(null);
+        String sql = "SELECT ID, Name, Description, Status "
+                + "FROM Brand WHERE ID = ?";
+
+        try (Connection connection = DBContext.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, id);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (!resultSet.next()) {
+                    return null;
+                }
+
+                BrandModel brand = new BrandModel();
+                brand.setId(resultSet.getInt("ID"));
+                brand.setName(resultSet.getString("Name"));
+                brand.setDescription(resultSet.getString("Description"));
+                brand.setActive("ACTIVE".equals(resultSet.getString("Status")));
+                return brand;
+            }
+        }
     }
 
     public void save(BrandModel brand) throws SQLException {

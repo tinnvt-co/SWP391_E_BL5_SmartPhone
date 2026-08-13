@@ -147,6 +147,17 @@ public class ManagerProductController extends HttpServlet {
         if (product.getSku() == null || product.getSku().isBlank()) {
             return "SKU is required.";
         }
+        if (product.getImage() == null || product.getImage().isBlank()) {
+            return "Image file name is required.";
+        }
+        String imageName = product.getImage().trim();
+        if (imageName.contains("/") || imageName.contains("\\")
+                || imageName.contains(":")) {
+            return "Only the image file name is allowed, not a path or URL.";
+        }
+        if (!imageName.matches("(?i)^[a-z0-9][a-z0-9._-]*\\.(webp|png|jpg|jpeg)$")) {
+            return "Image name may contain letters, numbers, dots, hyphens and underscores only.";
+        }
         if (product.getBrandId() == 0 || product.getCategoryId() == 0) {
             return "Brand and category are required.";
         }
@@ -173,7 +184,7 @@ public class ManagerProductController extends HttpServlet {
 
     private String friendly(SQLException exception) {
         if (exception.getErrorCode() == 1062) {
-            return "Product name, SKU or barcode already exists.";
+            return "Product name, SKU, barcode or image name already exists.";
         }
         return "Database error: " + exception.getMessage();
     }
