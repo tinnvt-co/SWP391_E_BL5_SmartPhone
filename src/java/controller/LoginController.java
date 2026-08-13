@@ -22,9 +22,12 @@ public class LoginController extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
         if (session != null && session.getAttribute("currentUser") != null) {
-            response.sendRedirect(request.getContextPath() + "/home");
+            response.sendRedirect(request.getContextPath()
+                    + defaultPage(session.getAttribute("currentRole")));
             return;
         }
+        request.setAttribute("redirect", safeRedirect(request.getParameter("redirect")));
+        request.setAttribute("requiredRole", request.getParameter("requiredRole"));
         request.getRequestDispatcher("/views/auth/login.jsp").forward(request, response);
     }
 
@@ -36,16 +39,20 @@ public class LoginController extends HttpServlet {
         String username = trim(request.getParameter("username"));
         String password = trim(request.getParameter("password"));
         String remember = request.getParameter("remember");
+        String redirect = safeRedirect(request.getParameter("redirect"));
+        String requiredRole = trim(request.getParameter("requiredRole"));
 
         if (username.isEmpty() || password.isEmpty()) {
-            forwardWithError(request, response, username, remember, "Please enter both username and password.");
+            forwardWithError(request, response, username, remember, redirect,
+                    requiredRole, "Please enter both username and password.");
             return;
         }
 
         try {
             UserModel user = userDAO.findActiveByCredentials(username, password);
             if (user == null) {
-                forwardWithError(request, response, username, remember, "Invalid username, password, or inactive account.");
+                forwardWithError(request, response, username, remember, redirect,
+                        requiredRole, "Invalid username, password, or inactive account.");
                 return;
             }
 
@@ -62,19 +69,38 @@ public class LoginController extends HttpServlet {
             session.setAttribute("permissions", permissions);
             session.setMaxInactiveInterval("on".equals(remember) ? 7 * 24 * 60 * 60 : 30 * 60);
 
-            response.sendRedirect(request.getContextPath() + "/home?login=success");
+            String destination = redirect.isEmpty()
+                    ? defaultPage(user.getRoleName()) : redirect;
+            response.sendRedirect(request.getContextPath() + destination);
         } catch (SQLException e) {
             throw new ServletException(e);
         }
     }
 
     private void forwardWithError(HttpServletRequest request, HttpServletResponse response,
-                                  String username, String remember, String error)
+                                  String username, String remember, String redirect,
+                                  String requiredRole, String error)
             throws ServletException, IOException {
         request.setAttribute("error", error);
         request.setAttribute("username", username);
         request.setAttribute("rememberChecked", "on".equals(remember));
+        request.setAttribute("redirect", redirect);
+        request.setAttribute("requiredRole", requiredRole);
         request.getRequestDispatcher("/views/auth/login.jsp").forward(request, response);
+    }
+
+    private String defaultPage(Object role) {
+        return "/home?login=success";
+    }
+
+    private String safeRedirect(String value) {
+        String target = trim(value);
+        if (!target.startsWith("/") || target.startsWith("//")
+                || target.contains("\\") || target.contains("\r")
+                || target.contains("\n")) {
+            return "";
+        }
+        return target;
     }
 
     private String trim(String value) {

@@ -11,6 +11,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -97,7 +99,15 @@ public class AuthFilter implements Filter {
 
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("currentUser") == null) {
-            response.sendRedirect(contextPath + "/login?redirect=" + response.encodeURL(path));
+            String target = path;
+            if (request.getQueryString() != null) {
+                target += "?" + request.getQueryString();
+            }
+            String redirect = URLEncoder.encode(target, StandardCharsets.UTF_8);
+            String managerRequired = matches(path, "/manager")
+                    ? "&requiredRole=manager" : "";
+            response.sendRedirect(contextPath + "/login?redirect="
+                    + redirect + managerRequired);
             return;
         }
 

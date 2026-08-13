@@ -211,6 +211,13 @@
             </c:if>
 
             <form method="post" action="${pageContext.request.contextPath}/login" autocomplete="on">
+                <input type="hidden" name="redirect" value="<c:out value='${redirect}'/>"/>
+                <input type="hidden" name="requiredRole" value="<c:out value='${requiredRole}'/>"/>
+                <c:if test="${requiredRole == 'manager'}">
+                    <div class="alert alert-info py-2">
+                        Please sign in with a Manager account to access the management workspace.
+                    </div>
+                </c:if>
                 <div class="mb-3">
                     <label class="form-label" for="username">Username</label>
                     <div class="input-group">

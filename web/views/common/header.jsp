@@ -33,6 +33,12 @@
                     </li>
                 </ul>
                 <div class="swp-layout-actions">
+                    <c:if test="${currentRole == 'Manager'}">
+                        <a class="swp-layout-action swp-layout-action-manager"
+                           href="${pageContext.request.contextPath}/manager">
+                            <i class="bi bi-speedometer2"></i> Management Center
+                        </a>
+                    </c:if>
                     <button class="swp-layout-icon-btn" type="button" title="Search"><i class="bi bi-search"></i></button>
                     <button class="swp-layout-icon-btn" type="button" title="Wishlist"><i class="bi bi-heart"></i></button>
                     <button class="swp-layout-icon-btn" type="button" title="Cart"><i class="bi bi-bag"></i></button>
@@ -45,6 +51,13 @@
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li><h6 class="dropdown-header">${currentRole}</h6></li>
+                                    <c:if test="${currentRole == 'Manager'}">
+                                        <li>
+                                            <a class="dropdown-item" href="${pageContext.request.contextPath}/manager">
+                                                <i class="bi bi-speedometer2 me-2"></i>Management Center
+                                            </a>
+                                        </li>
+                                    </c:if>
                                     <li>
                                         <a class="dropdown-item" href="${pageContext.request.contextPath}/profile">
                                             <i class="bi bi-person me-2"></i>Profile

@@ -60,6 +60,10 @@
         <servlet-class>controller.ManagerProductController</servlet-class>
     </servlet>
     <servlet>
+        <servlet-name>ManagerDashboardController</servlet-name>
+        <servlet-class>controller.ManagerDashboardController</servlet-class>
+    </servlet>
+    <servlet>
         <servlet-name>CategoryController</servlet-name>
         <servlet-class>controller.CategoryController</servlet-class>
     </servlet>
@@ -147,6 +151,10 @@
     <servlet-mapping>
         <servlet-name>ManagerProductController</servlet-name>
         <url-pattern>/manager/products</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ManagerDashboardController</servlet-name>
+        <url-pattern>/manager</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>CategoryController</servlet-name>
