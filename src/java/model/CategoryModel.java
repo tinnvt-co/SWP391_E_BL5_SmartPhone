@@ -9,8 +9,11 @@ public class CategoryModel implements Serializable {
     private boolean active;
     private int productCount;
 
-    public CategoryModel() {}
-    public CategoryModel(int id, String name, String description, boolean active, int productCount) {
+    public CategoryModel() {
+    }
+
+    public CategoryModel(int id, String name, String description,
+            boolean active, int productCount) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -29,9 +32,19 @@ public class CategoryModel implements Serializable {
     public int getProductCount() { return productCount; }
     public void setProductCount(int productCount) { this.productCount = productCount; }
     public String getInitial() {
-        if (name == null || name.isBlank()) return "?";
+        if (name == null || name.isBlank()) {
+            return "?";
+        }
+
         String[] words = name.trim().split("\\s+");
-        return words.length == 1 ? words[0].substring(0, Math.min(2, words[0].length())).toUpperCase()
-                : (words[0].substring(0, 1) + words[1].substring(0, 1)).toUpperCase();
+
+        if (words.length == 1) {
+            int endIndex = Math.min(2, words[0].length());
+            return words[0].substring(0, endIndex).toUpperCase();
+        }
+
+        String firstLetter = words[0].substring(0, 1);
+        String secondLetter = words[1].substring(0, 1);
+        return (firstLetter + secondLetter).toUpperCase();
     }
 }

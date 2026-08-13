@@ -9,12 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import model.CategoryModel;
 
-
 public class CategoryDAO {
-
-
-
-
     public List<CategoryModel> findAll(boolean activeOnly) throws SQLException {
         String sql = "SELECT c.ID, c.Name, c.Description, c.Status, "
                 + "COUNT(p.ID) AS ProductCount "
@@ -42,10 +37,26 @@ public class CategoryDAO {
     }
 
     public CategoryModel findById(int id) throws SQLException {
-        return findAll(false).stream()
-                .filter(category -> category.getId() == id)
-                .findFirst()
-                .orElse(null);
+        String sql = "SELECT ID, Name, Description, Status "
+                + "FROM Category WHERE ID = ?";
+
+        try (Connection connection = DBContext.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, id);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (!resultSet.next()) {
+                    return null;
+                }
+
+                CategoryModel category = new CategoryModel();
+                category.setId(resultSet.getInt("ID"));
+                category.setName(resultSet.getString("Name"));
+                category.setDescription(resultSet.getString("Description"));
+                category.setActive("ACTIVE".equals(resultSet.getString("Status")));
+                return category;
+            }
+        }
     }
 
     public void save(CategoryModel category) throws SQLException {

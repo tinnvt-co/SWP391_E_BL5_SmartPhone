@@ -35,7 +35,7 @@ public class OrderDAO {
                 .append("       t.Reference_transactionID, t.DeliveryInfoID, ")
                 .append("       u.Username, u.Name AS UserName, u.Phone, u.Email, ")
                 .append("       upd.Name AS UpdatedByName, ")
-                .append("       (SELECT COUNT(*) FROM Transaction_Product tp ")
+                .append("       (SELECT COUNT(*) FROM Transaction_ProductVariant tp ")
                 .append("          WHERE tp.TransactionID = t.ID) AS ItemCount ")
                 .append("FROM `Transaction` t ")
                 .append("JOIN `User` u   ON t.UserID = u.ID ")
@@ -100,7 +100,7 @@ public class OrderDAO {
                 + "       u.Username, u.Name AS UserName, u.Phone, u.Email, "
                 + "       upd.Name AS UpdatedByName, "
                 + "       d.Recipient_name, d.Recipient_phone, d.Delivery_address, "
-                + "       (SELECT COALESCE(SUM(tp.Amount),0) FROM Transaction_Product tp WHERE tp.TransactionID = t.ID) AS ItemCount "
+                + "       (SELECT COALESCE(SUM(tp.Amount),0) FROM Transaction_ProductVariant tp WHERE tp.TransactionID = t.ID) AS ItemCount "
                 + "FROM `Transaction` t "
                 + "JOIN `User` u   ON t.UserID = u.ID "
                 + "LEFT JOIN `User` upd ON t.Updated_by = upd.ID "
@@ -122,17 +122,17 @@ public class OrderDAO {
     }
 
     public List<OrderItemModel> findOrderItems(int transactionId) throws SQLException {
-        String sql = "SELECT tp.TransactionID, tp.VariantID, tp.Amount, tp.UnitPrice, "
+        String sql = "SELECT tp.TransactionID, tp.ProductVariantID, tp.Amount, tp.UnitPrice, "
                 + "       tp.Discount_rate, tp.Discount_amount, tp.Total, "
                 + "       p.Name AS ProductName, pv.Image AS VariantImage, "
                 + "       b.Name AS BrandName, "
                 + "       pv.RAM_GB, pv.Storage_GB, pv.ColorName "
-                + "FROM Transaction_Product tp "
-                + "JOIN ProductVariant pv ON tp.VariantID = pv.ID "
+                + "FROM Transaction_ProductVariant tp "
+                + "JOIN ProductVariant pv ON tp.ProductVariantID = pv.ID "
                 + "JOIN Product p ON pv.ProductID = p.ID "
                 + "JOIN Brand b ON p.BrandID = b.ID "
                 + "WHERE tp.TransactionID = ? "
-                + "ORDER BY tp.VariantID";
+                + "ORDER BY tp.ProductVariantID";
 
         List<OrderItemModel> items = new ArrayList<>();
         try (Connection connection = DBContext.getConnection();
@@ -308,7 +308,7 @@ public class OrderDAO {
     private OrderItemModel mapOrderItem(ResultSet rs) throws SQLException {
         OrderItemModel item = new OrderItemModel();
         item.setTransactionId(rs.getInt("TransactionID"));
-        item.setVariantId(rs.getInt("VariantID"));
+        item.setVariantId(rs.getInt("ProductVariantID"));
         item.setAmount(rs.getInt("Amount"));
         item.setUnitPrice(rs.getBigDecimal("UnitPrice"));
         item.setDiscountRate(rs.getBigDecimal("Discount_rate"));

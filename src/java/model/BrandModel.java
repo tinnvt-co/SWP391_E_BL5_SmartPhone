@@ -9,8 +9,11 @@ public class BrandModel implements Serializable {
     private boolean active;
     private int productCount;
 
-    public BrandModel() {}
-    public BrandModel(int id, String name, String description, boolean active, int productCount) {
+    public BrandModel() {
+    }
+
+    public BrandModel(int id, String name, String description,
+            boolean active, int productCount) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -28,5 +31,11 @@ public class BrandModel implements Serializable {
     public void setActive(boolean active) { this.active = active; }
     public int getProductCount() { return productCount; }
     public void setProductCount(int productCount) { this.productCount = productCount; }
-    public String getInitial() { return name == null || name.isBlank() ? "?" : name.substring(0, 1).toUpperCase(); }
+    public String getInitial() {
+        if (name == null || name.isBlank()) {
+            return "?";
+        }
+
+        return name.substring(0, 1).toUpperCase();
+    }
 }
