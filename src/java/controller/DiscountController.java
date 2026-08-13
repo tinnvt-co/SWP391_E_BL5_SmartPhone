@@ -1,6 +1,7 @@
 package controller;
 
 import DAO.DiscountDAO;
+import DAO.ProductDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -11,20 +12,30 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import model.DiscountModel;
+import model.ProductModel;
 
 @WebServlet(name = "DiscountController", urlPatterns = {"/manager/discounts"})
 public class DiscountController extends HttpServlet {
     private final DiscountDAO dao = new DiscountDAO();
+    private final ProductDAO productDao = new ProductDAO();
     private static final SimpleDateFormat DT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         try {
-            if ("form".equals(req.getParameter("action"))) {
+            String action = req.getParameter("action");
+            if ("form".equals(action)) {
                 int id = ProductController.integer(req.getParameter("id"), 0);
-                req.setAttribute("discount", id > 0 ? dao.findById(id) : new DiscountModel());
+                DiscountModel discount = id > 0 ? dao.findById(id) : new DiscountModel();
+                req.setAttribute("discount", discount);
+                req.setAttribute("products", productDao.findAll(null, null, null, null, false));
+                req.setAttribute("selectedIds", discount == null ? Set.of() : new HashSet<>(discount.getProductIds()));
                 req.getRequestDispatcher("/views/manager/discount-form.jsp").forward(req, resp);
                 return;
             }
@@ -40,9 +51,10 @@ public class DiscountController extends HttpServlet {
             throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
         try {
-            if ("deactivate".equals(req.getParameter("action"))) {
-                dao.deactivate(ProductController.integer(req.getParameter("id"), 0));
-                resp.sendRedirect(req.getContextPath() + "/manager/discounts?message=Saved");
+            String action = req.getParameter("action");
+            if ("delete".equals(action)) {
+                dao.delete(ProductController.integer(req.getParameter("id"), 0));
+                resp.sendRedirect(req.getContextPath() + "/manager/discounts?message=Deleted");
                 return;
             }
             DiscountModel d = read(req);
@@ -50,6 +62,8 @@ public class DiscountController extends HttpServlet {
             if (error != null) {
                 req.setAttribute("error", error);
                 req.setAttribute("discount", d);
+                req.setAttribute("products", productDao.findAll(null, null, null, null, false));
+                req.setAttribute("selectedIds", new HashSet<>(d.getProductIds()));
                 req.getRequestDispatcher("/views/manager/discount-form.jsp").forward(req, resp);
                 return;
             }
@@ -58,6 +72,10 @@ public class DiscountController extends HttpServlet {
         } catch (SQLException ex) {
             req.setAttribute("error", ex.getMessage());
             req.setAttribute("discount", read(req));
+            try {
+                req.setAttribute("products", productDao.findAll(null, null, null, null, false));
+            } catch (SQLException ignored) { }
+            req.setAttribute("selectedIds", new HashSet<>(read(req).getProductIds()));
             req.getRequestDispatcher("/views/manager/discount-form.jsp").forward(req, resp);
         }
     }
@@ -70,8 +88,21 @@ public class DiscountController extends HttpServlet {
         d.setRate(ProductController.parseDecimal(req.getParameter("rate"), 0));
         d.setStart(parseDate(req.getParameter("start")));
         d.setEnd(parseDate(req.getParameter("end")));
-        d.setActive("ACTIVE".equals(req.getParameter("status")));
+        d.setProductIds(parseProductIds(req.getParameterValues("productIds")));
         return d;
+    }
+
+    private List<Integer> parseProductIds(String[] raw) {
+        List<Integer> ids = new ArrayList<>();
+        if (raw == null) return ids;
+        Set<Integer> seen = new HashSet<>();
+        for (String s : raw) {
+            try {
+                int id = Integer.parseInt(s);
+                if (seen.add(id)) ids.add(id);
+            } catch (NumberFormatException ignored) { }
+        }
+        return ids;
     }
 
     private Timestamp parseDate(String s) {

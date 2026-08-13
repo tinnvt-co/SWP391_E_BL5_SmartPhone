@@ -13,7 +13,7 @@ public final class DBContext {
             + "&serverTimezone=Asia/Bangkok"
             + "&characterEncoding=UTF-8";
     private static final String USERNAME = "root";
-    private static final String PASSWORD = "123456";
+    private static final String PASSWORD = "Duc@123456";
 
     static {
         try {
