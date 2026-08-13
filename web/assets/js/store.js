@@ -140,7 +140,20 @@ document.addEventListener('click',function(event){
             var price=picker.querySelector('[data-variant-price]');
             if(price)price.textContent=new Intl.NumberFormat('vi-VN').format(Number(variant.dataset.price))+' đ';
             var image=picker.querySelector('[data-variant-image]');
-            if(image&&variant.dataset.image)image.src=variant.dataset.image;
+            var frontImage=variant.dataset.frontImage||variant.dataset.image;
+            var backImage=variant.dataset.backImage||frontImage;
+            if(image&&frontImage)image.src=frontImage;
+            var frontThumb=picker.querySelector('[data-front-thumb]');
+            var backThumb=picker.querySelector('[data-back-thumb]');
+            var frontButton=picker.querySelector('[data-gallery-view="front"]');
+            var backButton=picker.querySelector('[data-gallery-view="back"]');
+            if(frontThumb)frontThumb.src=frontImage;
+            if(backThumb)backThumb.src=backImage;
+            if(frontButton)frontButton.dataset.galleryImage=frontImage;
+            if(backButton)backButton.dataset.galleryImage=backImage;
+            if(frontButton){picker.querySelectorAll('[data-gallery-view]').forEach(function(button){button.classList.toggle('active',button===frontButton);});}
+            var galleryCaption=picker.querySelector('[data-gallery-caption]');
+            if(galleryCaption)galleryCaption.textContent='Front view';
             var colorName=picker.querySelector('[data-color-name]');
             if(colorName)colorName.textContent=selectedColor;
             var stock=Number(variant.dataset.stock||0);
@@ -153,6 +166,13 @@ document.addEventListener('click',function(event){
         }
         picker.querySelectorAll('[data-memory]').forEach(function(button){button.addEventListener('click',function(){selectedMemory=button.dataset.memory;picker.querySelectorAll('[data-memory]').forEach(function(item){item.classList.toggle('active',item===button);});chooseVariant();});});
         picker.querySelectorAll('[data-color]').forEach(function(button){button.addEventListener('click',function(){selectedColor=button.dataset.color;chooseVariant();});});
+        picker.querySelectorAll('[data-gallery-view]').forEach(function(button){button.addEventListener('click',function(){
+            var image=picker.querySelector('[data-variant-image]');
+            if(image&&button.dataset.galleryImage)image.src=button.dataset.galleryImage;
+            picker.querySelectorAll('[data-gallery-view]').forEach(function(item){item.classList.toggle('active',item===button);});
+            var caption=picker.querySelector('[data-gallery-caption]');
+            if(caption)caption.textContent=button.dataset.galleryView==='back'?'Back view':'Front view';
+        });});
         chooseVariant();
     });
 })();

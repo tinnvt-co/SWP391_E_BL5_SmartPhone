@@ -149,6 +149,12 @@ body{background:var(--bg);color:var(--text)}
 .status.active{color:#14724f;border-color:#9dd5c0;background:#eaf8f2}
 .status.inactive{color:#b32953;border-color:#edb2c3;background:#fff0f4}
 [data-detail-url]{cursor:pointer}
+.detail-page .main-photo{display:flex;align-items:center;justify-content:center;background:#fff}
+.detail-page .main-photo img{object-fit:contain;padding:18px}
+.detail-page .thumb{cursor:pointer;padding:5px;transition:border-color .15s,transform .15s}
+.detail-page .thumb:hover{transform:translateY(-2px);border-color:#87a6e8}
+.detail-page .thumb img{object-fit:contain}
+.gallery-caption{margin-top:10px;color:var(--muted);font-size:14px;font-weight:700}
 
 .catalog-page{max-width:1760px;background:#f5f6f8}
 .catalog-page .product-grid{grid-template-columns:repeat(3,minmax(320px,1fr));gap:28px;align-items:stretch}

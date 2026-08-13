@@ -318,7 +318,7 @@ public class ProductDAO {
 
         String sql = "SELECT pv.ID, pv.ProductID, pv.RAM_GB, pv.Storage_GB, "
                 + "pv.ColorName, pv.ColorHex, pv.Barcode, pv.SKU, "
-                + "pv.Selling_price, pv.Latest_cost, pv.Image, "
+                + "pv.Selling_price, pv.Latest_cost, pv.Image, pv.BackImage, "
                 + "COALESCE(i.Amount, 0) AS Stock "
                 + "FROM ProductVariant pv "
                 + "LEFT JOIN Inventory i ON i.ProductVariantID = pv.ID "
@@ -355,6 +355,7 @@ public class ProductDAO {
         variant.setSellingPrice(resultSet.getInt("Selling_price"));
         variant.setLatestCost(resultSet.getInt("Latest_cost"));
         variant.setImage(resultSet.getString("Image"));
+        variant.setBackImage(resultSet.getString("BackImage"));
         variant.setStock(resultSet.getInt("Stock"));
         return variant;
     }

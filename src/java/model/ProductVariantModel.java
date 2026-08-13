@@ -14,6 +14,7 @@ public class ProductVariantModel implements Serializable {
     private int sellingPrice;
     private int latestCost;
     private String image;
+    private String backImage;
     private int stock;
 
     public int getId() { return id; }
@@ -43,6 +44,14 @@ public class ProductVariantModel implements Serializable {
             return "/assets/images/product-placeholder.svg";
         }
         return "/assets/images/products/" + image;
+    }
+    public String getBackImage() { return backImage; }
+    public void setBackImage(String backImage) { this.backImage = backImage; }
+    public String getBackImageUrl() {
+        if (backImage == null || backImage.isBlank()) {
+            return getImageUrl();
+        }
+        return "/assets/images/products/" + backImage;
     }
     public int getStock() { return stock; }
     public void setStock(int stock) { this.stock = stock; }
