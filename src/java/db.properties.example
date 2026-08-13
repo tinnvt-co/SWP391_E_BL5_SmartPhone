@@ -1,4 +1,0 @@
-# Copy this file to src/java/db.properties and set your local MySQL account.
-smartphone.db.url=jdbc:mysql://localhost:3306/database_swp391?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Bangkok&characterEncoding=UTF-8
-smartphone.db.user=root
-smartphone.db.password=your-mysql-password
