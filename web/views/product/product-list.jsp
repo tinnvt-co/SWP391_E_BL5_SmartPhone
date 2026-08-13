@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Products | SWP Mobile</title>
+    <title>Products | SmartPhone store</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css">
@@ -91,10 +91,10 @@
                                     <span class="spec">Full HD+</span>
                                     <span class="spec">${product.secondSpec}</span>
                                 </div>
-                                <p class="promo">Online giá rẻ quá</p>
-                                <div class="price"><fmt:formatNumber value="${product.sellingPrice}" type="number" maxFractionDigits="0"/>đ</div>
-                                <div><span class="old-price"><fmt:formatNumber value="${product.originalPrice}" type="number" maxFractionDigits="0"/>đ</span><span class="discount">-${product.discountPercent}%</span></div>
-                                <div class="rating-row"><i class="bi bi-star-fill"></i><span>${product.displayRating}</span><span>•</span><span>Đã bán ${product.soldText}</span></div>
+                                <p class="promo">Online giÃ¡ ráº» quÃ¡</p>
+                                <div class="price"><fmt:formatNumber value="${product.sellingPrice}" type="number" maxFractionDigits="0"/>Ä‘</div>
+                                <div><span class="old-price"><fmt:formatNumber value="${product.originalPrice}" type="number" maxFractionDigits="0"/>Ä‘</span><span class="discount">-${product.discountPercent}%</span></div>
+                                <div class="rating-row"><i class="bi bi-star-fill"></i><span>${product.displayRating}</span><span>â€¢</span><span>ÄÃ£ bÃ¡n ${product.soldText}</span></div>
                             </div>
                         </a>
                     </c:forEach>
@@ -107,3 +107,4 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+

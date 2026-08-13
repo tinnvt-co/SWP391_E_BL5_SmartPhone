@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SWP Mobile | Smartphone Store</title>
+    <title>SmartPhone store | Home</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css">
@@ -213,7 +213,11 @@
             display: flex;
             align-items: center;
             gap: 0.9rem;
+            color: inherit;
+            text-decoration: none;
         }
+
+        .category-tile:hover { color: inherit; }
 
         .category-icon {
             width: 46px;
@@ -253,12 +257,16 @@
             border-radius: 8px;
             border: 1px solid #eef1f5;
             transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            color: inherit;
+            text-decoration: none;
+            display: block;
         }
 
         .product-card:hover {
             transform: translateY(-3px);
             border-color: rgba(240, 93, 79, 0.35);
             box-shadow: 0 18px 42px rgba(23, 32, 42, 0.1);
+            color: inherit;
         }
 
         .product-visual {
@@ -477,6 +485,199 @@
 
         .product-rating-row .bi-star-fill { color: #ffb400; }
 
+        .home-feature-card {
+            min-height: 650px;
+            border-color: #dde2e8;
+            border-radius: 12px;
+            box-shadow: 0 5px 18px rgba(25, 35, 50, 0.12);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .home-feature-card .product-visual {
+            height: 360px;
+            aspect-ratio: auto;
+            padding: 30px 48px 22px;
+        }
+
+        .home-feature-card .product-visual img {
+            object-fit: contain;
+        }
+
+        .product-heart {
+            position: absolute;
+            right: 28px;
+            top: 26px;
+            z-index: 4;
+            width: 40px;
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #111;
+            font-size: 31px;
+        }
+
+        .product-label {
+            position: absolute;
+            left: 20px;
+            bottom: 0;
+            z-index: 3;
+            background: #d90000;
+            color: #fff;
+            border-radius: 999px;
+            padding: 12px 20px;
+            font-size: 18px;
+            line-height: 1;
+            font-weight: 500;
+        }
+
+        .home-feature-card .product-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 28px 20px 24px;
+        }
+
+        .home-feature-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .home-feature-card .eyebrow {
+            display: block;
+            color: #697386;
+            font-size: 19px;
+            letter-spacing: 0;
+            margin-bottom: 16px;
+        }
+
+        .home-title {
+            min-height: 62px;
+            margin-bottom: 22px;
+            color: #111827;
+            font-size: 24px;
+            line-height: 1.28;
+            font-weight: 500;
+        }
+
+        .home-feature-card .product-body > .product-name,
+        .home-feature-card .product-body > .product-specs,
+        .home-feature-card .product-body > .product-promo,
+        .home-feature-card .product-body > .price-row,
+        .home-feature-card .product-body > .old-price-row,
+        .home-feature-card .product-body > .product-rating-row {
+            display: none;
+        }
+
+        .home-memory-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 11px;
+            margin-bottom: 12px;
+        }
+
+        .home-memory-chip {
+            min-width: 120px;
+            min-height: 50px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #d8dee7;
+            border-radius: 12px;
+            color: #333a45;
+            background: #fff;
+            font-size: 17px;
+            font-weight: 500;
+        }
+
+        .home-memory-chip:first-child {
+            border-color: #1f6fff;
+            box-shadow: 0 0 0 1px #1f6fff inset;
+            color: #085dff;
+        }
+
+        .home-color-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 2px 0 26px;
+        }
+
+        .home-color-dot {
+            width: 42px;
+            height: 42px;
+            border: 4px solid #fff;
+            border-radius: 50%;
+            background: var(--variant-color, #d1d5db);
+            box-shadow: 0 0 0 2px #cdd2d8;
+        }
+
+        .home-color-dot:first-child {
+            box-shadow: 0 0 0 3px #357cff;
+        }
+
+        .home-price-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin: 0 0 22px;
+        }
+
+        .home-price-row .price {
+            color: #b40000;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-size: 31px;
+            font-weight: 850;
+        }
+
+        .home-cart-icon {
+            position: relative;
+            min-width: 62px;
+            height: 56px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #91858f;
+            font-size: 38px;
+        }
+
+        .home-cart-icon span {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #5543c9;
+            color: #fff;
+            font-size: 22px;
+            line-height: 27px;
+            text-align: center;
+        }
+
+        .home-warranty {
+            margin-top: auto;
+            min-height: 74px;
+            display: flex;
+            align-items: center;
+            border-radius: 10px;
+            background: #f0f1f4;
+            color: #555d69;
+            padding: 16px;
+            font-size: 19px;
+            line-height: 1.35;
+        }
+
+        .home-feature-card .product-rating-row {
+            margin-top: 22px;
+            gap: 6px;
+            color: #ff7900;
+            font-size: 17px;
+        }
+
         .mini-action {
             width: 38px;
             height: 38px;
@@ -600,7 +801,7 @@
                     </div>
                 </c:if>
                 <span class="eyebrow"><i class="bi bi-lightning-charge-fill"></i> New devices in stock</span>
-                <h1>SWP Mobile</h1>
+                <h1>SmartPhone store</h1>
                 <p>
                     Discover flagship smartphones, tablets, and accessories with clear pricing,
                     live stock visibility, and a clean shopping flow built for everyday buyers.
@@ -637,7 +838,7 @@
             </div>
             <div class="category-strip">
                 <c:forEach var="category" items="${categories}">
-                    <article class="category-tile">
+                    <a class="category-tile" href="${pageContext.request.contextPath}/products?category=${category.id}">
                         <span class="category-icon">
                             <c:choose>
                                 <c:when test="${category.name == 'Accessory'}"><i class="bi bi-earbuds"></i></c:when>
@@ -649,7 +850,7 @@
                             <h3>${category.name}</h3>
                             <p>${category.productCount} products</p>
                         </div>
-                    </article>
+                    </a>
                 </c:forEach>
             </div>
         </div>
@@ -667,15 +868,10 @@
 
             <div class="product-grid">
                 <c:forEach var="product" items="${featuredProducts}">
-                    <article class="product-card">
+                    <a class="product-card home-feature-card" href="${pageContext.request.contextPath}/products?action=detail&id=${product.id}">
                         <div class="product-visual image-missing">
-                            <span class="stock-badge">
-                                <c:choose>
-                                    <c:when test="${product.inventoryAmount > 0}">${product.inventoryAmount} in stock</c:when>
-                                    <c:otherwise>Out of stock</c:otherwise>
-                                </c:choose>
-                            </span>
-                            <span class="product-ai-badge"><i class="bi bi-stars"></i>AI</span>
+                            <span class="product-heart"><i class="bi bi-heart"></i></span>
+                            <span class="product-label">H&agrave;ng ch&iacute;nh h&atilde;ng</span>
                             <div class="mock-phone-stage" aria-hidden="true">
                                 <div class="mock-phone-back">
                                     <div class="mock-camera"></div>
@@ -703,31 +899,75 @@
                             </c:if>
                         </div>
                         <div class="product-body">
+                            <div class="home-feature-content">
+                                <span class="eyebrow"><c:out value="${product.brandName}"/></span>
+                                <h3 class="home-title">${product.name}</h3>
+                                <c:choose>
+                                    <c:when test="${not empty product.variants}">
+                                        <div class="home-memory-options">
+                                            <c:forEach items="${product.memoryOptions}" var="memory" varStatus="loop">
+                                                <c:if test="${loop.index < 3}">
+                                                    <span class="home-memory-chip">${memory.memoryLabel}</span>
+                                                </c:if>
+                                            </c:forEach>
+                                        </div>
+                                        <div class="home-color-options">
+                                            <c:forEach items="${product.colorOptions}" var="color" varStatus="loop">
+                                                <c:if test="${loop.index < 4}">
+                                                    <span class="home-color-dot" title="${color.colorName}" style="--variant-color:${color.colorHex}"></span>
+                                                </c:if>
+                                            </c:forEach>
+                                        </div>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <div class="home-memory-options">
+                                            <span class="home-memory-chip">Full HD+</span>
+                                            <span class="home-memory-chip">${product.secondSpec}</span>
+                                        </div>
+                                        <div class="home-color-options">
+                                            <span class="home-color-dot" style="--variant-color:#e7a8b7"></span>
+                                            <span class="home-color-dot" style="--variant-color:#7e96b2"></span>
+                                            <span class="home-color-dot" style="--variant-color:#d7dadd"></span>
+                                            <span class="home-color-dot" style="--variant-color:#20242b"></span>
+                                        </div>
+                                    </c:otherwise>
+                                </c:choose>
+                                <div class="home-price-row">
+                                    <div class="price">
+                                        <fmt:formatNumber value="${not empty product.variants ? product.variants[0].sellingPrice : product.finalPrice}" type="number" maxFractionDigits="0"/> &#273;
+                                    </div>
+                                    <span class="home-cart-icon"><i class="bi bi-cart3"></i><span>+</span></span>
+                                </div>
+                                <div class="home-warranty">B&#7843;o h&agrave;nh ch&iacute;nh h&atilde;ng ${product.warrantyMonths} th&aacute;ng</div>
+                                <div class="product-rating-row">
+                                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                </div>
+                            </div>
                             <h3 class="product-name">${product.name}</h3>
                             <div class="product-specs">
                                 <span class="spec-chip">Full HD+</span>
                                 <span class="spec-chip">${product.secondSpec}</span>
                             </div>
-                            <p class="product-promo">Online giá rẻ quá</p>
+                            <p class="product-promo">Online giÃ¡ ráº» quÃ¡</p>
                             <div class="price-row">
                                 <div class="price">
-                                    <fmt:formatNumber value="${product.sellingPrice}" type="number" maxFractionDigits="0"/>đ
+                                    <fmt:formatNumber value="${product.sellingPrice}" type="number" maxFractionDigits="0"/>Ä‘
                                 </div>
                             </div>
                             <div class="old-price-row">
                                 <span class="old-price">
-                                    <fmt:formatNumber value="${product.originalPrice}" type="number" maxFractionDigits="0"/>đ
+                                    <fmt:formatNumber value="${product.originalPrice}" type="number" maxFractionDigits="0"/>Ä‘
                                 </span>
                                 <span class="discount-rate">-${product.discountPercent}%</span>
                             </div>
                             <div class="product-rating-row">
                                 <i class="bi bi-star-fill"></i>
                                 <span>${product.displayRating}</span>
-                                <span>•</span>
-                                <span>Đã bán ${product.soldText}</span>
+                                <span>â€¢</span>
+                                <span>ÄÃ£ bÃ¡n ${product.soldText}</span>
                             </div>
                         </div>
-                    </article>
+                    </a>
                 </c:forEach>
             </div>
         </div>
@@ -787,3 +1027,4 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+

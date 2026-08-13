@@ -2,7 +2,6 @@ package controller;
 
 import DAO.ProductDAO;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -11,7 +10,6 @@ import java.sql.SQLException;
 import java.util.Set;
 import model.ProductModel;
 
-@WebServlet(name = "ProductControllerRoute", urlPatterns = {"/products"})
 public class ProductController extends HttpServlet {
 
     private static final int MAX_SEARCH_LENGTH = 100;
