@@ -23,12 +23,11 @@ public class ProductDAO {
     private static final String PRODUCT_SELECT =
             "SELECT p.ID, p.Name, p.Description, p.Release_Year, p.Rating, p.warranty_months, "
             + "p.Barcode, p.SKU, p.Selling_price, p.Latest_cost, p.Image, p.Status, "
-            + "c.Name AS CategoryName, b.Name AS BrandName, COALESCE(i.Amount, 0) AS InventoryAmount, "
-            + "COALESCE((SELECT SUM(tp.Amount) FROM Transaction_Product tp WHERE tp.ProductID = p.ID), 0) AS SoldAmount "
+            + "c.Name AS CategoryName, b.Name AS BrandName, 0 AS InventoryAmount, "
+            + "0 AS SoldAmount "
             + "FROM Product p "
             + "JOIN Category c ON p.CategoryID = c.ID "
-            + "JOIN Brand b ON p.BrandID = b.ID "
-            + "LEFT JOIN Inventory i ON p.ID = i.ProductID ";
+            + "JOIN Brand b ON p.BrandID = b.ID ";
 
     public List<ProductModel> findFeaturedProducts(int limit) throws SQLException {
         String sql = PRODUCT_SELECT
@@ -47,6 +46,55 @@ public class ProductDAO {
             }
         }
         return products;
+    }
+
+    public List<ProductModel> findPublicProducts(String keyword, String sort) throws SQLException {
+        StringBuilder sql = new StringBuilder(PRODUCT_SELECT)
+                .append("WHERE p.Status = 'ACTIVE' ");
+        List<String> params = new ArrayList<>();
+
+        if (keyword != null && !keyword.isBlank()) {
+            sql.append("AND (p.Name LIKE ? OR p.Description LIKE ? OR b.Name LIKE ? OR c.Name LIKE ?) ");
+            String like = "%" + keyword.trim() + "%";
+            params.add(like);
+            params.add(like);
+            params.add(like);
+            params.add(like);
+        }
+
+        switch (sort == null ? "" : sort) {
+            case "price-asc" -> sql.append("ORDER BY p.Selling_price ASC, p.ID DESC");
+            case "price-desc" -> sql.append("ORDER BY p.Selling_price DESC, p.ID DESC");
+            default -> sql.append("ORDER BY p.Created_at DESC, p.ID DESC");
+        }
+
+        List<ProductModel> products = new ArrayList<>();
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setString(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    products.add(mapProduct(rs));
+                }
+            }
+        }
+        return products;
+    }
+
+    public ProductModel findById(int id) throws SQLException {
+        String sql = PRODUCT_SELECT + "WHERE p.ID = ? AND p.Status = 'ACTIVE'";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapProduct(rs);
+                }
+            }
+        }
+        return null;
     }
 
     public List<CategoryModel> findActiveCategories() throws SQLException {
@@ -78,8 +126,7 @@ public class ProductDAO {
     }
 
     public int countAvailableProducts() throws SQLException {
-        return count("SELECT COUNT(*) FROM Inventory i JOIN Product p ON i.ProductID = p.ID "
-                + "WHERE p.Status = 'ACTIVE' AND i.Amount > 0");
+        return countActiveProducts();
     }
 
     private int count(String sql) throws SQLException {

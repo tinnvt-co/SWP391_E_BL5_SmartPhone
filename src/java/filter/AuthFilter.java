@@ -11,6 +11,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Locale;
 import java.util.List;
 
 @WebFilter(filterName = "AuthFilter", urlPatterns = {"/*"})
@@ -21,9 +23,56 @@ public class AuthFilter implements Filter {
             "/",
             "/index.html",
             "/home",
+            "/products",
+            "/ProductController",
             "/login",
             "/register",
-            "/logout"
+            "/logout",
+            "/forgot-password",
+            "/login-google",
+            "/google-login",
+            "/oauth2callback",
+            "/brands",
+            "/brand"
+    );
+
+    private static final List<AccessRule> ACCESS_RULES = List.of(
+            rule("/admin/users", "USER_VIEW_LIST", "USER_TOGGLE_STATUS", roles("ADMIN")),
+            rule("/admin/roles", "ROLE_VIEW_LIST", "ROLE_VIEW_PERMISSIONS", "ROLE_UPDATE",
+                    "ROLE_TOGGLE_STATUS", "ROLE_EDIT_PERMISSIONS", roles("ADMIN")),
+            rule("/manager/products", "PRODUCT_MANAGE", roles("MANAGER")),
+            rule("/manager/categories", "CATEGORY_MANAGE", roles("MANAGER")),
+            rule("/manager/brands", "BRAND_MANAGE", roles("MANAGER")),
+            rule("/manager/inventory", "INVENTORY_MANAGE", roles("MANAGER")),
+            rule("/manager/discounts", "DISCOUNT_MANAGE", roles("MANAGER")),
+            rule("/manager/sales", "SALES_STATS_VIEW", roles("MANAGER")),
+            rule("/manager/sales-stats", "SALES_STATS_VIEW", roles("MANAGER")),
+            rule("/manager/revenue", "REVENUE_VIEW", roles("MANAGER")),
+            rule("/manager/order-statistics", "ORDER_STATS_VIEW", roles("MANAGER")),
+            rule("/manager/statistics", "SALES_STATS_VIEW", "REVENUE_VIEW", "ORDER_STATS_VIEW", roles("MANAGER")),
+            rule("/manager/suppliers", "SUPPLIER_MANAGE", roles("MANAGER")),
+            rule("/manager/refunds", "REFUND_MANAGE", roles("MANAGER")),
+            rule("/manager/feedback", "FEEDBACK_REPLY", roles("MANAGER")),
+            rule("/manager/orders", "ORDER_VIEW", roles("MANAGER", "STAFF")),
+            rule("/staff/orders", "ORDER_VIEW", "ORDER_UPDATE_STATUS", roles("STAFF", "MANAGER")),
+            rule("/orders/manage", "ORDER_VIEW", "ORDER_UPDATE_STATUS", roles("STAFF", "MANAGER")),
+            rule("/shipper/orders", "DELIVERY_ORDER_VIEW", "DELIVERY_STATUS_UPDATE", roles("SHIPPER")),
+            rule("/shipper/deliveries", "DELIVERY_ORDER_VIEW", "DELIVERY_STATUS_UPDATE", roles("SHIPPER")),
+            rule("/wishlist", "WISHLIST_MANAGE", roles("CUSTOMER")),
+            rule("/feedback", "FEEDBACK_SEND", "FEEDBACK_VIEW", roles("CUSTOMER", "MANAGER")),
+            rule("/checkout", "CHECKOUT", roles("CUSTOMER")),
+            rule("/order-history", "ORDER_HISTORY_VIEW", roles("CUSTOMER")),
+            rule("/customer/orders", "ORDER_HISTORY_VIEW", "ORDER_CANCEL", roles("CUSTOMER")),
+            rule("/customer/delivery-status", "DELIVERY_STATUS_VIEW", roles("CUSTOMER")),
+            rule("/delivery-status", "DELIVERY_STATUS_VIEW", roles("CUSTOMER")),
+            rule("/profile", "PROFILE_UPDATE", roles("ADMIN", "MANAGER", "STAFF", "CUSTOMER", "SHIPPER")),
+            rule("/my-profile", "PROFILE_UPDATE", roles("ADMIN", "MANAGER", "STAFF", "CUSTOMER", "SHIPPER")),
+            rule("/change-password", "PROFILE_UPDATE", roles("CUSTOMER")),
+            rule("/admin", roles("ADMIN")),
+            rule("/manager", roles("MANAGER")),
+            rule("/staff", roles("STAFF", "MANAGER")),
+            rule("/shipper", roles("SHIPPER")),
+            rule("/customer", roles("CUSTOMER"))
     );
 
     @Override
@@ -47,11 +96,17 @@ public class AuthFilter implements Filter {
 
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("currentUser") == null) {
-            response.sendRedirect(contextPath + "/login");
+            response.sendRedirect(contextPath + "/login?redirect=" + response.encodeURL(path));
             return;
         }
 
         exposeSession(request);
+        if (!isAllowed(path, session)) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            request.getRequestDispatcher("/views/error/403.jsp").forward(request, response);
+            return;
+        }
+
         chain.doFilter(request, response);
     }
 
@@ -70,6 +125,35 @@ public class AuthFilter implements Filter {
                 || path.startsWith("/js/")
                 || path.startsWith("/images/")
                 || path.startsWith("/favicon");
+    }
+
+    private boolean isAllowed(String path, HttpSession session) {
+        AccessRule rule = findRule(path);
+        if (rule == null) {
+            return true;
+        }
+
+        String role = normalizeRole(session.getAttribute("currentRole"));
+        return rule.roles.contains(role);
+    }
+
+    private AccessRule findRule(String path) {
+        AccessRule bestMatch = null;
+        for (AccessRule rule : ACCESS_RULES) {
+            if (matches(path, rule.pathPrefix)
+                    && (bestMatch == null || rule.pathPrefix.length() > bestMatch.pathPrefix.length())) {
+                bestMatch = rule;
+            }
+        }
+        return bestMatch;
+    }
+
+    private boolean matches(String path, String prefix) {
+        return path.equals(prefix) || path.startsWith(prefix + "/");
+    }
+
+    private String normalizeRole(Object value) {
+        return value == null ? "" : value.toString().trim().toUpperCase(Locale.ROOT);
     }
 
     private void exposeSession(HttpServletRequest request) {
@@ -96,6 +180,49 @@ public class AuthFilter implements Filter {
         response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
         response.setHeader("Pragma", "no-cache");
         response.setDateHeader("Expires", 0);
+    }
+
+    private static AccessRule rule(String pathPrefix, List<String> roles) {
+        return new AccessRule(pathPrefix, List.of(), roles);
+    }
+
+    private static AccessRule rule(String pathPrefix, String permission, List<String> roles) {
+        return new AccessRule(pathPrefix, List.of(permission), roles);
+    }
+
+    private static AccessRule rule(String pathPrefix, String permission1, String permission2, List<String> roles) {
+        return new AccessRule(pathPrefix, List.of(permission1, permission2), roles);
+    }
+
+    private static AccessRule rule(String pathPrefix, String permission1, String permission2, String permission3,
+            List<String> roles) {
+        return new AccessRule(pathPrefix, List.of(permission1, permission2, permission3), roles);
+    }
+
+    private static AccessRule rule(String pathPrefix, String permission1, String permission2, String permission3,
+            String permission4, String permission5, List<String> roles) {
+        return new AccessRule(pathPrefix, List.of(permission1, permission2, permission3, permission4, permission5),
+                roles);
+    }
+
+    private static List<String> roles(String... roles) {
+        List<String> normalized = new ArrayList<>();
+        for (String role : roles) {
+            normalized.add(role.toUpperCase(Locale.ROOT));
+        }
+        return normalized;
+    }
+
+    private static final class AccessRule {
+        private final String pathPrefix;
+        private final List<String> permissions;
+        private final List<String> roles;
+
+        private AccessRule(String pathPrefix, List<String> permissions, List<String> roles) {
+            this.pathPrefix = pathPrefix;
+            this.permissions = permissions;
+            this.roles = roles;
+        }
     }
 
 }

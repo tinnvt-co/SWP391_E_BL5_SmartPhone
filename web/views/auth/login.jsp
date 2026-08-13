@@ -106,6 +106,39 @@
             color: #fff;
         }
 
+        .google-action {
+            min-height: 46px;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+            background: #ffffff;
+            color: var(--ink);
+            font-weight: 800;
+        }
+
+        .google-action:hover {
+            border-color: #b8c4d2;
+            background: #f8fafc;
+            color: var(--ink);
+        }
+
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 1rem 0;
+            color: var(--muted);
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .auth-divider::before,
+        .auth-divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: var(--line);
+        }
+
         .quick-login {
             border-top: 1px solid var(--line);
             margin-top: 1.2rem;
@@ -204,6 +237,14 @@
                     <i class="bi bi-box-arrow-in-right me-1"></i> Login
                 </button>
             </form>
+
+            <div class="auth-divider">or</div>
+
+            <a class="btn google-action w-100 d-inline-flex align-items-center justify-content-center gap-2"
+               href="${pageContext.request.contextPath}/login-google">
+                <i class="bi bi-google"></i>
+                Continue with Google
+            </a>
 
             <div class="quick-login small text-muted">
                 Demo accounts use password <code>123456</code>: admin, manager, staff, customer, shipper.
