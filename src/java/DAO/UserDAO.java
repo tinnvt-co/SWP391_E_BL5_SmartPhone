@@ -278,6 +278,16 @@ public class UserDAO {
         return list;
     }
 
+    public boolean updateStatus(int userId, String status) throws SQLException {
+        String sql = "UPDATE `User` SET Status = ? WHERE ID = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setInt(2, userId);
+            return ps.executeUpdate() > 0;
+        }
+    }
+
     private boolean exists(String sql, String value) throws SQLException {
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {

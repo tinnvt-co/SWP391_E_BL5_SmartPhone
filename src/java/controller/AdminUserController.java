@@ -27,4 +27,25 @@ public class AdminUserController extends HttpServlet {
             throw new ServletException(ex);
         }
     }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String action = request.getParameter("action");
+        String idStr = request.getParameter("id");
+        
+        if (action != null && idStr != null) {
+            try {
+                int id = Integer.parseInt(idStr);
+                if ("activate".equals(action)) {
+                    userDAO.updateStatus(id, "ACTIVE");
+                } else if ("deactivate".equals(action)) {
+                    userDAO.updateStatus(id, "INACTIVE");
+                }
+            } catch (Exception ex) {
+                // handle parsing or sql exception silently or add error message
+            }
+        }
+        response.sendRedirect(request.getContextPath() + "/admin/users");
+    }
 }

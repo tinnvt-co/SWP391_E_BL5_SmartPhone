@@ -59,6 +59,18 @@
             font-weight: 600;
             padding: 0.4em 0.75em;
         }
+        .badge-soft-primary {
+            background-color: #eff6ff !important;
+            color: #3b82f6 !important;
+            font-weight: 600;
+            padding: 0.4em 0.75em;
+        }
+        .badge-soft-info {
+            background-color: #f0fdfa !important;
+            color: #0d9488 !important;
+            font-weight: 600;
+            padding: 0.4em 0.75em;
+        }
         .badge-soft-danger {
             background-color: #fef2f2 !important;
             color: #ef4444 !important;
@@ -101,6 +113,7 @@
                         <th>Email</th>
                         <th>Phone</th>
                         <th>Status</th>
+                        <th class="text-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -125,7 +138,22 @@
                                     </div>
                                 </div>
                             </td>
-                            <td><span class="badge rounded-pill badge-soft-secondary"><c:out value="${u.roleName}"/></span></td>
+                            <td>
+                                <c:choose>
+                                    <c:when test="${u.roleName == 'Admin'}">
+                                        <span class="badge rounded-pill badge-soft-danger"><c:out value="${u.roleName}"/></span>
+                                    </c:when>
+                                    <c:when test="${u.roleName == 'Manager'}">
+                                        <span class="badge rounded-pill badge-soft-primary"><c:out value="${u.roleName}"/></span>
+                                    </c:when>
+                                    <c:when test="${u.roleName == 'Staff'}">
+                                        <span class="badge rounded-pill badge-soft-info"><c:out value="${u.roleName}"/></span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="badge rounded-pill badge-soft-secondary"><c:out value="${u.roleName}"/></span>
+                                    </c:otherwise>
+                                </c:choose>
+                            </td>
                             <td class="text-secondary"><c:out value="${u.email}"/></td>
                             <td class="text-secondary"><c:out value="${u.phone}"/></td>
                             <td>
@@ -133,10 +161,24 @@
                                     ${u.active ? 'Active' : 'Inactive'}
                                 </span>
                             </td>
+                            <td class="text-end">
+                                <c:choose>
+                                    <c:when test="${u.active}">
+                                        <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="showConfirmModal(${u.id}, 'deactivate', 'Lock')" title="Lock">
+                                            <i class="bi bi-lock-fill"></i>
+                                        </button>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <button type="button" class="btn btn-sm btn-outline-success border-0" onclick="showConfirmModal(${u.id}, 'activate', 'Unlock')" title="Unlock">
+                                            <i class="bi bi-unlock-fill"></i>
+                                        </button>
+                                    </c:otherwise>
+                                </c:choose>
+                            </td>
                         </tr>
                     </c:forEach>
                     <c:if test="${empty users}">
-                        <tr><td colspan="6" class="text-center py-4 text-muted">No users found.</td></tr>
+                        <tr><td colspan="7" class="text-center py-4 text-muted">No users found.</td></tr>
                     </c:if>
                 </tbody>
             </table>
@@ -145,5 +187,48 @@
 </main>
 <%@ include file="/views/common/footer.jsp" %>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Confirm Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content border-0 shadow rounded-4">
+      <div class="modal-body p-4 text-center">
+        <div class="mb-3 text-warning">
+            <i class="bi bi-exclamation-circle" style="font-size: 3rem;"></i>
+        </div>
+        <h5 class="modal-title mb-2" id="confirmModalLabel">Confirm Action</h5>
+        <p class="text-muted mb-4" id="confirmModalText">Are you sure?</p>
+        <form method="post" action="${pageContext.request.contextPath}/admin/users">
+            <input type="hidden" name="id" id="modalUserId">
+            <input type="hidden" name="action" id="modalUserAction">
+            <div class="d-flex justify-content-center gap-2">
+                <button type="button" class="btn btn-light px-4 rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary px-4 rounded-pill" id="modalConfirmBtn">Confirm</button>
+            </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showConfirmModal(id, action, actionText) {
+    document.getElementById('modalUserId').value = id;
+    document.getElementById('modalUserAction').value = action;
+    document.getElementById('confirmModalText').innerText = 'Are you sure you want to ' + actionText.toLowerCase() + ' this user?';
+    
+    let confirmBtn = document.getElementById('modalConfirmBtn');
+    if(action === 'deactivate') {
+        confirmBtn.className = 'btn btn-danger px-4 rounded-pill';
+        confirmBtn.innerText = 'Lock User';
+    } else {
+        confirmBtn.className = 'btn btn-success px-4 rounded-pill';
+        confirmBtn.innerText = 'Unlock User';
+    }
+    
+    var myModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    myModal.show();
+}
+</script>
 </body>
 </html>
