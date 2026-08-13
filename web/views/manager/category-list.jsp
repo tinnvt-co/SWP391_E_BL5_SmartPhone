@@ -17,10 +17,13 @@
                 <h1>Category Management</h1>
                 <p>Manage phone price segments</p>
             </div>
-            <a class="btn primary large"
-               href="${pageContext.request.contextPath}/manager/categories?action=form">
-                + Add Category
-            </a>
+            <div class="page-heading-actions">
+                <a class="btn subtle" href="${pageContext.request.contextPath}/manager">← Back to dashboard</a>
+                <a class="btn primary large"
+                   href="${pageContext.request.contextPath}/manager/categories?action=form">
+                    + Add Category
+                </a>
+            </div>
         </div>
 
         <c:if test="${not empty param.message}">

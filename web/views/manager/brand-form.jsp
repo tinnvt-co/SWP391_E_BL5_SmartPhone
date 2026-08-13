@@ -17,6 +17,10 @@
                 <h1>${brand.id == 0 ? 'Add Brand' : 'Edit Brand'}</h1>
                 <p>Brand information</p>
             </div>
+            <div class="page-heading-actions">
+                <a class="btn subtle" href="${pageContext.request.contextPath}/manager">← Dashboard</a>
+                <a class="btn subtle" href="${pageContext.request.contextPath}/manager/brands">Back to brands</a>
+            </div>
         </div>
 
         <c:if test="${not empty error}">

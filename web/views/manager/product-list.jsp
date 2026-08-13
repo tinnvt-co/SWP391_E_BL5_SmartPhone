@@ -18,10 +18,13 @@
                 <h1>Product Management</h1>
                 <p>${total} products listed</p>
             </div>
-            <a class="btn primary large"
-               href="${pageContext.request.contextPath}/manager/products?action=form">
-                + Add Product
-            </a>
+            <div class="page-heading-actions">
+                <a class="btn subtle" href="${pageContext.request.contextPath}/manager">← Back to dashboard</a>
+                <a class="btn primary large"
+                   href="${pageContext.request.contextPath}/manager/products?action=form">
+                    + Add Product
+                </a>
+            </div>
         </div>
 
         <c:if test="${not empty param.message}">
@@ -40,8 +43,8 @@
                 <i class="green"></i>
             </article>
             <article>
-                <span>OUT OF STOCK</span>
-                <strong>${outOfStock}</strong>
+                <span>BRANDS</span>
+                <strong>${brands.size()}</strong>
                 <i class="pink"></i>
             </article>
             <article>
@@ -76,7 +79,7 @@
                     </c:forEach>
                 </select>
 
-                <button class="btn primary">Search</button>
+                <button class="btn primary search-submit">Search</button>
             </form>
 
             <div class="table-wrap">
@@ -96,7 +99,7 @@
                     <tbody>
                         <c:forEach items="${products}" var="product">
                             <tr>
-                                <td class="mono">${product.code}</td>
+                                <td class="mono">${product.id}</td>
                                 <td>
                                     <strong><c:out value="${product.name}"/></strong>
                                     <small><c:out value="${product.sku}"/></small>

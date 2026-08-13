@@ -7,7 +7,6 @@
     <div class="manager-nav-brand"><span>S</span><div><strong>SmartPhone</strong><small>Management Center</small></div></div>
     <p class="manager-nav-label">YOUR WORKSPACE</p>
     <a class="${pageName == 'Dashboard' ? 'active' : ''}" href="${pageContext.request.contextPath}/manager">Dashboard</a>
-    <a href="${pageContext.request.contextPath}/products">View Products</a>
     <a class="${pageName == 'Manage Products' ? 'active' : ''}" href="${pageContext.request.contextPath}/manager/products">Manage Products</a>
     <a class="${pageName == 'Manage Category' ? 'active' : ''}" href="${pageContext.request.contextPath}/manager/categories">Manage Category</a>
     <a class="${pageName == 'Manage Brand' ? 'active' : ''}" href="${pageContext.request.contextPath}/manager/brands">Manage Brand</a>

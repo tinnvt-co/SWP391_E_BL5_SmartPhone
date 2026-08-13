@@ -17,6 +17,10 @@
                 <h1>${category.id == 0 ? 'Add Category' : 'Edit Category'}</h1>
                 <p>Use a price segment such as High-end, Upper mid-range, Mid-range or Budget</p>
             </div>
+            <div class="page-heading-actions">
+                <a class="btn subtle" href="${pageContext.request.contextPath}/manager">← Dashboard</a>
+                <a class="btn subtle" href="${pageContext.request.contextPath}/manager/categories">Back to categories</a>
+            </div>
         </div>
 
         <c:if test="${not empty error}">

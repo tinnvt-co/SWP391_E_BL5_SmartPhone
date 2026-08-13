@@ -17,10 +17,10 @@
                 <h1>${product.id == 0 ? 'Add Product' : 'Edit Product'}</h1>
                 <p>Fields marked * are required</p>
             </div>
-            <a class="btn subtle"
-               href="${pageContext.request.contextPath}/manager/products">
-                ← Back
-            </a>
+            <div class="page-heading-actions">
+                <a class="btn subtle" href="${pageContext.request.contextPath}/manager">← Dashboard</a>
+                <a class="btn subtle" href="${pageContext.request.contextPath}/manager/products">Back to products</a>
+            </div>
         </div>
 
         <c:if test="${not empty error}">

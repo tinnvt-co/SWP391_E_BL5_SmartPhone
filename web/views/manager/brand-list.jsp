@@ -17,10 +17,13 @@
                 <h1>Brand Management</h1>
                 <p>${brands.size()} brands listed</p>
             </div>
-            <a class="btn primary large"
-               href="${pageContext.request.contextPath}/manager/brands?action=form">
-                + Add Brand
-            </a>
+            <div class="page-heading-actions">
+                <a class="btn subtle" href="${pageContext.request.contextPath}/manager">← Back to dashboard</a>
+                <a class="btn primary large"
+                   href="${pageContext.request.contextPath}/manager/brands?action=form">
+                    + Add Brand
+                </a>
+            </div>
         </div>
 
         <c:if test="${not empty param.message}">
