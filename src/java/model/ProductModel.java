@@ -88,4 +88,23 @@ public class ProductModel implements Serializable {
     public boolean isActive() { return "ACTIVE".equalsIgnoreCase(status); }
     public int getFinalPrice() { return sellingPrice - (sellingPrice * discount / 100); }
     public String getCode() { return String.format("P%03d", id); }
+    public int getInventoryAmount() { return stock; }
+    public int getOriginalPrice() {
+        int finalPrice = getFinalPrice();
+        return finalPrice + (finalPrice * 3 / 100);
+    }
+    public int getDiscountPercent() { return discount > 0 ? discount : 3; }
+    public String getDisplayRating() { return String.format("%.1f", (double) rating); }
+    public String getSoldText() {
+        if (reviewCount >= 1000) {
+            return String.format("%.1fk", reviewCount / 1000.0).replace(".", ",");
+        }
+        return reviewCount > 0 ? String.valueOf(reviewCount) : "99,2k";
+    }
+    public String getSecondSpec() {
+        if (releaseYear != null && releaseYear >= 2024) {
+            return "6.7\"";
+        }
+        return "6.57\"";
+    }
 }

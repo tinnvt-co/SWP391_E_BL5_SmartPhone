@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import model.CategoryModel;
 import model.ProductModel;
 import model.ProductVariantModel;
 
@@ -120,6 +121,47 @@ public class ProductDAO {
         }
     }
 
+    public List<ProductModel> findFeaturedProducts(int limit) throws SQLException {
+        List<ProductModel> products = findAll(null, null, null, "newest", true);
+        return products.size() <= limit ? products : new ArrayList<>(products.subList(0, limit));
+    }
+
+    public List<ProductModel> findPublicProducts(String keyword, String sort) throws SQLException {
+        return findAll(keyword, null, null, sort, true);
+    }
+
+    public List<CategoryModel> findActiveCategories() throws SQLException {
+        String sql = "SELECT c.ID, c.Name, c.Description, c.Status, COUNT(p.ID) ProductCount "
+                + "FROM Category c "
+                + "LEFT JOIN Product p ON p.CategoryID=c.ID AND p.Status='ACTIVE' "
+                + "WHERE c.Status='ACTIVE' "
+                + "GROUP BY c.ID,c.Name,c.Description,c.Status "
+                + "ORDER BY c.ID";
+        try (Connection con = DBContext.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            List<CategoryModel> categories = new ArrayList<>();
+            while (rs.next()) {
+                CategoryModel category = new CategoryModel();
+                category.setId(rs.getInt("ID"));
+                category.setName(rs.getString("Name"));
+                category.setDescription(rs.getString("Description"));
+                category.setActive("ACTIVE".equalsIgnoreCase(rs.getString("Status")));
+                category.setProductCount(rs.getInt("ProductCount"));
+                categories.add(category);
+            }
+            return categories;
+        }
+    }
+
+    public int countActiveProducts() throws SQLException {
+        return countActive();
+    }
+
+    public int countAvailableProducts() throws SQLException {
+        return countActive();
+    }
+
     public int countActive() throws SQLException {
         try (Connection con=DBContext.getConnection();
              PreparedStatement ps=con.prepareStatement("SELECT COUNT(*) FROM Product WHERE Status='ACTIVE'");
@@ -132,7 +174,9 @@ public class ProductDAO {
         try (Connection con = DBContext.getConnection()) {
             String sql = tableExists(con, "ProductVariant")
                     ? "SELECT COUNT(*) FROM Product p WHERE COALESCE((SELECT SUM(i.Amount) FROM ProductVariant pv LEFT JOIN Inventory i ON i.VariantID=pv.ID WHERE pv.ProductID=p.ID AND pv.Status='ACTIVE'),0)=0"
-                    : "SELECT COUNT(*) FROM Product p LEFT JOIN Inventory i ON i.ProductID=p.ID WHERE COALESCE(i.Amount,0)=0";
+                    : columnExists(con, "Inventory", "ProductID")
+                    ? "SELECT COUNT(*) FROM Product p LEFT JOIN Inventory i ON i.ProductID=p.ID WHERE COALESCE(i.Amount,0)=0"
+                    : "SELECT 0";
             try (PreparedStatement ps=con.prepareStatement(sql); ResultSet rs=ps.executeQuery()) {
                 return rs.next() ? rs.getInt(1) : 0;
             }
@@ -177,14 +221,15 @@ public class ProductDAO {
                 ? " AND f.Status='VISIBLE'" : "";
         String stock = tableExists(con, "ProductVariant")
                 ? "COALESCE((SELECT SUM(i.Amount) FROM ProductVariant pv LEFT JOIN Inventory i ON i.VariantID=pv.ID WHERE pv.ProductID=p.ID AND pv.Status='ACTIVE'),0)"
-                : "COALESCE(i.Amount,0)";
+                : columnExists(con, "Inventory", "ProductID") ? "COALESCE(i.Amount,0)" : "0";
         return "SELECT p.ID,p.Name,p.Description,p.Release_Year,p.Rating,"
                 + "p.warranty_months,p.Barcode,p.SKU,p.Selling_price,p.Latest_cost,p.Image,"
                 + discount + " Discount,p.CategoryID,c.Name CategoryName,p.BrandID,b.Name BrandName,"
                 + "p.Status,p.Created_at," + stock + " Stock,"
                 + "(SELECT COUNT(*) FROM Feedback f WHERE f.ProductID=p.ID" + visibleFeedback + ") ReviewCount "
                 + "FROM Product p JOIN Category c ON c.ID=p.CategoryID JOIN Brand b ON b.ID=p.BrandID "
-                + (tableExists(con, "ProductVariant") ? "" : "LEFT JOIN Inventory i ON i.ProductID=p.ID ");
+                + (tableExists(con, "ProductVariant") || !columnExists(con, "Inventory", "ProductID")
+                ? "" : "LEFT JOIN Inventory i ON i.ProductID=p.ID ");
     }
 
     private boolean tableExists(Connection con, String table) throws SQLException {
