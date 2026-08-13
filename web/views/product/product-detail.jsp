@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <!DOCTYPE html>
@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${product.name} | SWP Mobile</title>
+    <title>${product.name} | SmartPhone store</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css">
@@ -38,7 +38,7 @@
                 </div>
             </div>
             <div class="col-lg-6">
-                <div class="meta mb-2">${product.brandName} • ${product.categoryName}</div>
+                <div class="meta mb-2">${product.brandName} â€¢ ${product.categoryName}</div>
                 <h1 class="product-title mb-3">${product.name}</h1>
                 <p class="text-muted">${product.description}</p>
                 <div class="mb-3">
@@ -47,17 +47,17 @@
                     <span class="spec">${product.warrantyMonths} month warranty</span>
                 </div>
                 <div class="price mb-1">
-                    <fmt:formatNumber value="${product.sellingPrice}" type="number" maxFractionDigits="0"/>đ
+                    <fmt:formatNumber value="${product.sellingPrice}" type="number" maxFractionDigits="0"/>Ä‘
                 </div>
                 <div class="mb-3">
-                    <span class="old-price"><fmt:formatNumber value="${product.originalPrice}" type="number" maxFractionDigits="0"/>đ</span>
+                    <span class="old-price"><fmt:formatNumber value="${product.originalPrice}" type="number" maxFractionDigits="0"/>Ä‘</span>
                     <span class="text-danger fw-bold">-${product.discountPercent}%</span>
                 </div>
                 <div class="mb-4 text-muted">
                     <i class="bi bi-star-fill text-warning"></i> ${product.displayRating}
-                    <span class="mx-2">•</span>
-                    Đã bán ${product.soldText}
-                    <span class="mx-2">•</span>
+                    <span class="mx-2">â€¢</span>
+                    ÄÃ£ bÃ¡n ${product.soldText}
+                    <span class="mx-2">â€¢</span>
                     Stock: ${product.inventoryAmount}
                 </div>
                 <div class="d-flex gap-2 flex-wrap">
@@ -72,3 +72,4 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+

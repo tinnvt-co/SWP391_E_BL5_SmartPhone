@@ -1,6 +1,16 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%><%@taglib prefix="c" uri="jakarta.tags.core"%><%@taglib prefix="fmt" uri="jakarta.tags.fmt"%>
-<!DOCTYPE html><html><head><title>${product.name}</title><%@include file="../common/head.jsp"%></head><body>
-<c:set var="pageRole" value="Public"/><c:set var="pageName" value="Product Details"/><%@include file="../common/topbar.jsp"%>
+<!DOCTYPE html>
+<html>
+<head>
+ <title>${product.name}</title>
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+ <%@include file="../common/head.jsp"%>
+ <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css">
+</head>
+<body>
+<c:set var="activePage" value="products" scope="request"/>
+<%@ include file="/views/common/header.jsp" %>
 <main class="page-shell detail-page" data-variant-picker><section class="detail-hero">
  <div class="gallery"><div class="main-photo"><img id="mainProductImage" data-variant-image src="${pageContext.request.contextPath}${product.image}" alt="${product.name}" onerror="this.src='https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=1200&q=85'"></div><div class="thumb-row"><button class="thumb active"><img src="${pageContext.request.contextPath}${product.image}" onerror="this.src='https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=300&q=70'"></button><button class="thumb"><span>Front</span></button><button class="thumb"><span>Back</span></button></div></div>
  <div class="detail-summary"><span class="brand-tag"><c:out value="${product.brandName}"/></span><h1><c:out value="${product.name}"/></h1><div class="detail-rating"><span>★★★★★</span> ${product.rating}.0 (${product.reviewCount} reviews) <b data-stock-label class="stock ${product.stock==0?'danger':''}">${product.stock>0?'In stock ('.concat(product.stock).concat(')'):'Out of stock'}</b></div>
@@ -12,4 +22,9 @@
  <section class="spec-section"><div class="tabs"><button class="active">Specifications</button><button>Reviews (${product.reviewCount})</button><button>Shipping & Returns</button></div><div class="spec-grid">
   <div class="spec"><span>Brand</span><b><c:out value="${product.brandName}"/></b></div><div class="spec"><span>Category</span><b><c:out value="${product.categoryName}"/></b></div><div class="spec"><span>Release year</span><b>${product.releaseYear}</b></div><div class="spec"><span>Rating</span><b>${product.rating}/5</b></div><div class="spec"><span>SKU</span><b><c:out value="${product.sku}"/></b></div><div class="spec"><span>Barcode</span><b><c:out value="${product.barcode}"/></b></div><div class="spec"><span>Stock</span><b>${product.stock} units</b></div><div class="spec"><span>Warranty</span><b>${product.warrantyMonths} months</b></div>
  </div><c:if test="${not empty product.description}"><p class="description"><c:out value="${product.description}"/></p></c:if></section>
-</main><script src="${pageContext.request.contextPath}/assets/js/store.js"></script></body></html>
+</main>
+<%@ include file="/views/common/footer.jsp" %>
+<script src="${pageContext.request.contextPath}/assets/js/store.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

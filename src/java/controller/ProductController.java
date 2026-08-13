@@ -4,7 +4,6 @@ import DAO.BrandDAO;
 import DAO.CategoryDAO;
 import DAO.ProductDAO;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -13,8 +12,6 @@ import java.sql.SQLException;
 import java.util.Set;
 import model.ProductModel;
 
-
-@WebServlet(name = "ProductController", urlPatterns = {"/products"})
 public class ProductController extends HttpServlet {
     private static final int MAX_SEARCH_LENGTH = 100;
     private static final Set<String> VALID_SORTS = Set.of(
