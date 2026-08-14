@@ -110,7 +110,7 @@ if ($lines.Count -gt 1 -and $lines[1] -match '^\(' -eq $false) {
     $header += $lines[1]
 }
 
-$rowPattern = "^\((\d+), (\d+), (\d+), (\d+), '([^']+)', '([^']+)', '([^']+)', '([^']+)', (\d+), (\d+), '([^']+)'(?:, '[^']*')?, 'ACTIVE'\)[,;]$"
+$rowPattern = "^\((\d+), (\d+), (\d+), (\d+), '([^']+)', '([^']+)', '([^']+)', (\d+), (\d+), '([^']+)'(?:, '[^']*')?, 'ACTIVE'\)[,;]$"
 $keptRows = @()
 $removedImages = @()
 
@@ -120,11 +120,11 @@ foreach ($line in $lines) {
     }
     $key = "$($Matches[2])|$($Matches[5])"
     if (-not $selectedKeys.ContainsKey($key)) {
-        $removedImages += $Matches[11]
+        $removedImages += $Matches[10]
         continue
     }
     $backImage = $selectedKeys[$key].Replace("'", "''")
-    $keptRows += "($($Matches[1]), $($Matches[2]), $($Matches[3]), $($Matches[4]), '$($Matches[5])', '$($Matches[6])', '$($Matches[7])', '$($Matches[8])', $($Matches[9]), $($Matches[10]), '$($Matches[11])', '$backImage', 'ACTIVE')"
+    $keptRows += "($($Matches[1]), $($Matches[2]), $($Matches[3]), $($Matches[4]), '$($Matches[5])', '$($Matches[6])', '$($Matches[7])', $($Matches[8]), $($Matches[9]), '$($Matches[10])', '$backImage', 'ACTIVE')"
 }
 
 if ($keptRows.Count -eq 0) {

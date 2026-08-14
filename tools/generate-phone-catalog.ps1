@@ -312,7 +312,7 @@ foreach ($brand in $brandData) {
                 $sellingPrice = $product.BasePrice + ($memoryIndex * 2500000)
                 $variants += [PSCustomObject]@{
                     Id = $variantId; ProductId = $productId; RAM = $ram; Storage = $storage
-                    ColorName = $colorName; ColorHex = [string]$colors[$colorIndex][1]
+                    ColorName = $colorName
                     Barcode = '89' + $variantId.ToString('D11')
                     SKU = "$($brand.Code)-$($productId.ToString('D3'))-${ram}R-${storage}G-C$($colorIndex + 1)"
                     SellingPrice = $sellingPrice; LatestCost = [math]::Floor($sellingPrice * 0.82)
@@ -356,11 +356,11 @@ for ($i = 0; $i -lt $products.Count; $i++) {
 }
 
 [void]$builder.AppendLine()
-[void]$builder.AppendLine('INSERT INTO `ProductVariant` (`ID`, `ProductID`, `RAM_GB`, `Storage_GB`, `ColorName`, `ColorHex`, `Barcode`, `SKU`, `Selling_price`, `Latest_cost`, `Image`, `Status`) VALUES')
+[void]$builder.AppendLine('INSERT INTO `ProductVariant` (`ID`, `ProductID`, `RAM_GB`, `Storage_GB`, `ColorName`, `Barcode`, `SKU`, `Selling_price`, `Latest_cost`, `Image`, `Status`) VALUES')
 for ($i = 0; $i -lt $variants.Count; $i++) {
     $v = $variants[$i]
     $ending = if ($i -eq $variants.Count - 1) { ';' } else { ',' }
-    [void]$builder.AppendLine("($($v.Id), $($v.ProductId), $($v.RAM), $($v.Storage), $(Sql-Text $v.ColorName), $(Sql-Text $v.ColorHex), $(Sql-Text $v.Barcode), $(Sql-Text $v.SKU), $($v.SellingPrice), $($v.LatestCost), $(Sql-Text $v.Image), 'ACTIVE')$ending")
+    [void]$builder.AppendLine("($($v.Id), $($v.ProductId), $($v.RAM), $($v.Storage), $(Sql-Text $v.ColorName), $(Sql-Text $v.Barcode), $(Sql-Text $v.SKU), $($v.SellingPrice), $($v.LatestCost), $(Sql-Text $v.Image), 'ACTIVE')$ending")
 }
 
 $firstApple = $variants | Where-Object ProductId -eq 1 | Select-Object -First 1

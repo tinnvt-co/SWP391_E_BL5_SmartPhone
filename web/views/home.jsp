@@ -914,7 +914,7 @@
                                         <div class="home-color-options">
                                             <c:forEach items="${product.colorOptions}" var="color" varStatus="loop">
                                                 <c:if test="${loop.index < 4}">
-                                                    <span class="home-color-dot" title="${color.colorName}" style="--variant-color:${color.colorHex}"></span>
+                                                    <span class="home-memory-chip"><c:out value="${color.colorName}"/></span>
                                                 </c:if>
                                             </c:forEach>
                                         </div>

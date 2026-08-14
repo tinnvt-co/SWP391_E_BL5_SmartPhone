@@ -11,7 +11,7 @@
     <c:set var="pageName" value="${product.id == 0 ? 'Add Product' : 'Edit Product'}"/>
     <%@include file="../common/topbar.jsp"%>
 
-    <main class="page-shell narrow">
+    <main class="page-shell product-form-page">
         <div class="page-heading">
             <div>
                 <h1>${product.id == 0 ? 'Add Product' : 'Edit Product'}</h1>
@@ -27,7 +27,7 @@
             <div class="alert error"><c:out value="${error}"/></div>
         </c:if>
 
-        <form class="entity-form" method="post">
+        <form class="entity-form product-form" method="post">
             <input type="hidden" name="action" value="save">
             <input type="hidden" name="id" value="${product.id}">
 
@@ -65,36 +65,6 @@
                 </label>
 
                 <label>
-                    SKU *
-                    <input name="sku" maxlength="100"
-                           value="<c:out value='${product.sku}'/>" required>
-                </label>
-
-                <label>
-                    Barcode *
-                    <input name="barcode" maxlength="100"
-                           value="<c:out value='${product.barcode}'/>" required>
-                </label>
-
-                <label>
-                    Selling price *
-                    <input type="number" name="sellingPrice" min="0"
-                           value="${product.sellingPrice}" required>
-                </label>
-
-                <label>
-                    Latest cost *
-                    <input type="number" name="latestCost" min="0"
-                           value="${product.latestCost}" required>
-                </label>
-
-                <label>
-                    Stock for each variant *
-                    <input type="number" name="stock" min="0"
-                           value="${product.stock}" required>
-                </label>
-
-                <label>
                     Release year
                     <input type="number" name="releaseYear" min="2000" max="2100"
                            value="${product.releaseYear}">
@@ -127,19 +97,61 @@
                 </label>
 
                 <label class="span-2">
-                    Image file name *
-                    <input name="image" maxlength="255" required
-                           pattern="[A-Za-z0-9][A-Za-z0-9._-]*\.(webp|png|jpg|jpeg|WEBP|PNG|JPG|JPEG)"
-                           value="<c:out value='${product.image}'/>"
-                           placeholder="iphone-15-pro-max.webp">
-                    <small>Enter a file name only. Do not enter a folder or URL.</small>
-                </label>
-
-                <label class="span-2">
                     Description
                     <textarea name="description" maxlength="255" rows="4"><c:out value="${product.description}"/></textarea>
                 </label>
             </div>
+
+            <section class="variant-editor" data-variant-editor>
+                <div class="variant-editor-heading">
+                    <div>
+                        <h2>Product variants</h2>
+                        <p>Add only the RAM, storage and colors that this phone actually has.</p>
+                    </div>
+                    <button class="btn subtle" type="button" data-add-variant>+ Add variant</button>
+                </div>
+
+                <div class="variant-table-wrap">
+                    <table class="variant-table">
+                        <thead>
+                            <tr>
+                                <th>Memory and color</th>
+                                <th>Identification</th>
+                                <th>Price and stock</th>
+                                <th>Images</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody data-variant-rows>
+                            <c:forEach items="${product.variants}" var="variant">
+                                <tr class="variant-row">
+                                    <td>
+                                        <input type="hidden" name="variantId" value="${variant.id}">
+                                        <label>RAM (GB) *<input type="number" name="variantRam" min="1" value="${variant.ramGb}" required></label>
+                                        <label>Storage (GB) *<input type="number" name="variantStorage" min="1" value="${variant.storageGb}" required></label>
+                                        <label>Color name *<input name="variantColorName" maxlength="50" value="<c:out value='${variant.colorName}'/>" placeholder="Black Titanium" required></label>
+                                    </td>
+                                    <td>
+                                        <label>SKU *<input name="variantSku" maxlength="255" value="<c:out value='${variant.sku}'/>" required></label>
+                                        <label>Barcode *<input name="variantBarcode" maxlength="255" value="<c:out value='${variant.barcode}'/>" required></label>
+                                    </td>
+                                    <td>
+                                        <label>Selling price *<input type="number" name="variantSellingPrice" min="0" value="${variant.sellingPrice}" required></label>
+                                        <label>Latest cost *<input type="number" name="variantLatestCost" min="0" value="${variant.latestCost}" required></label>
+                                        <label>Stock *<input type="number" name="variantStock" min="0" value="${variant.stock}" required></label>
+                                    </td>
+                                    <td>
+                                        <label>Front image *<input name="variantImage" maxlength="255" value="<c:out value='${variant.image}'/>" pattern="[A-Za-z0-9][A-Za-z0-9._-]*\.(webp|png|jpg|jpeg|WEBP|PNG|JPG|JPEG)" required></label>
+                                        <label>Back image *<input name="variantBackImage" maxlength="255" value="<c:out value='${variant.backImage}'/>" pattern="[A-Za-z0-9][A-Za-z0-9._-]*\.(webp|png|jpg|jpeg|WEBP|PNG|JPG|JPEG)" required></label>
+                                        <small>File names inside assets/images/products</small>
+                                    </td>
+                                    <td><button class="variant-remove" type="button" data-remove-variant aria-label="Remove variant">Remove</button></td>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
             <div class="form-actions">
                 <a class="btn subtle"
@@ -150,5 +162,31 @@
             </div>
         </form>
     </main>
+    <template id="variantRowTemplate">
+        <tr class="variant-row">
+            <td>
+                <input type="hidden" name="variantId" value="0">
+                <label>RAM (GB) *<input type="number" name="variantRam" min="1" required></label>
+                <label>Storage (GB) *<input type="number" name="variantStorage" min="1" required></label>
+                <label>Color name *<input name="variantColorName" maxlength="50" placeholder="Black Titanium" required></label>
+            </td>
+            <td>
+                <label>SKU *<input name="variantSku" maxlength="255" required></label>
+                <label>Barcode *<input name="variantBarcode" maxlength="255" required></label>
+            </td>
+            <td>
+                <label>Selling price *<input type="number" name="variantSellingPrice" min="0" required></label>
+                <label>Latest cost *<input type="number" name="variantLatestCost" min="0" required></label>
+                <label>Stock *<input type="number" name="variantStock" min="0" required></label>
+            </td>
+            <td>
+                <label>Front image *<input name="variantImage" maxlength="255" pattern="[A-Za-z0-9][A-Za-z0-9._-]*\.(webp|png|jpg|jpeg|WEBP|PNG|JPG|JPEG)" required></label>
+                <label>Back image *<input name="variantBackImage" maxlength="255" pattern="[A-Za-z0-9][A-Za-z0-9._-]*\.(webp|png|jpg|jpeg|WEBP|PNG|JPG|JPEG)" required></label>
+                <small>File names inside assets/images/products</small>
+            </td>
+            <td><button class="variant-remove" type="button" data-remove-variant aria-label="Remove variant">Remove</button></td>
+        </tr>
+    </template>
+    <script src="${pageContext.request.contextPath}/assets/js/manager-product-form.js"></script>
 </body>
 </html>
