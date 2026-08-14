@@ -8,6 +8,59 @@ document.querySelectorAll('[data-qty]').forEach(function(button){
 });
 
 document.addEventListener('click',function(event){
+    var cartButton=event.target.closest('[data-cart-button]');
+    if(cartButton){
+        event.preventDefault();
+        if(cartButton.disabled)return;
+        var picker=cartButton.closest('[data-variant-picker]');
+        var variantId=cartButton.dataset.variantId;
+        if(!variantId)return;
+        var qtyInput=picker?picker.querySelector('#qty'):null;
+        var amount=qtyInput?qtyInput.value:'1';
+        var form=document.createElement('form');
+        form.method='post';
+        var cartLink=document.querySelector('a[href$="/cart"]');
+        form.action=cartLink?cartLink.href:'/cart';
+        [
+            ['action','add'],
+            ['variantId',variantId],
+            ['amount',amount],
+            ['redirect',window.location.href]
+        ].forEach(function(pair){
+            var input=document.createElement('input');
+            input.type='hidden';
+            input.name=pair[0];
+            input.value=pair[1];
+            form.appendChild(input);
+        });
+        document.body.appendChild(form);
+        form.submit();
+        return;
+    }
+    var wishlistButton=event.target.closest('[data-wishlist-button]');
+    if(wishlistButton){
+        event.preventDefault();
+        var wishlistVariantId=wishlistButton.dataset.variantId;
+        if(!wishlistVariantId)return;
+        var wishlistForm=document.createElement('form');
+        wishlistForm.method='post';
+        var wishlistLink=document.querySelector('a[href$="/wishlist"]');
+        wishlistForm.action=wishlistLink?wishlistLink.href:'/wishlist';
+        [
+            ['action','add'],
+            ['variantId',wishlistVariantId],
+            ['redirect',window.location.href]
+        ].forEach(function(pair){
+            var input=document.createElement('input');
+            input.type='hidden';
+            input.name=pair[0];
+            input.value=pair[1];
+            wishlistForm.appendChild(input);
+        });
+        document.body.appendChild(wishlistForm);
+        wishlistForm.submit();
+        return;
+    }
     var card=event.target.closest('[data-detail-url]');
     if(!card)return;
     if(event.target.closest('a,button,input,select,textarea,label'))return;
@@ -87,13 +140,17 @@ document.addEventListener('click',function(event){
         gridEl.innerHTML='';
         STATUS_CODES.forEach(function(code){
             var option=document.createElement('label');
-            option.className='order-status-option';
+            option.className='order-status-option'+(code===current?' is-selected':'');
             option.innerHTML='<input type="radio" name="status" value="'+code+'"'+(code===current?' checked':'')+'><span class="order-status-option-dot"></span><div class="order-status-option-info"><span class="order-status-option-code">'+code.replace(/_/g,' ')+'</span><span class="order-status-option-desc">'+STATUS_DESCS[code]+'</span></div>';
             gridEl.appendChild(option);
         });
         submitBtn.disabled=true;
         gridEl.querySelectorAll('input[type=radio]').forEach(function(radio){
             radio.addEventListener('change',function(){
+                gridEl.querySelectorAll('.order-status-option').forEach(function(option){
+                    var input=option.querySelector('input[type=radio]');
+                    option.classList.toggle('is-selected',input&&input.checked);
+                });
                 submitBtn.disabled=radio.value===current;
                 submitBtn.textContent=radio.value===current?'No Changes':'Confirm Update';
             });
@@ -168,7 +225,14 @@ document.addEventListener('click',function(event){
             var quantityPlus=picker.querySelector('[data-qty="plus"]');
             if(quantityPlus)quantityPlus.dataset.max=String(stock);
             var cartButton=picker.querySelector('[data-cart-button]');
-            if(cartButton)cartButton.disabled=stock===0;
+            if(cartButton){
+                cartButton.dataset.variantId=variant.dataset.variantId||'';
+                cartButton.disabled=stock===0;
+            }
+            var wishlistButton=picker.querySelector('[data-wishlist-button]');
+            if(wishlistButton){
+                wishlistButton.dataset.variantId=variant.dataset.variantId||'';
+            }
         }
         picker.querySelectorAll('[data-memory]').forEach(function(button){button.addEventListener('click',function(){selectedMemory=button.dataset.memory;picker.querySelectorAll('[data-memory]').forEach(function(item){item.classList.toggle('active',item===button);});chooseVariant();});});
         if(colorSelect)colorSelect.addEventListener('change',function(){selectedColor=colorSelect.value;chooseVariant();});

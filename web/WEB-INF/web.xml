@@ -56,6 +56,26 @@
         <servlet-class>controller.ProductController</servlet-class>
     </servlet>
     <servlet>
+        <servlet-name>CartController</servlet-name>
+        <servlet-class>controller.CartController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>WishlistController</servlet-name>
+        <servlet-class>controller.WishlistController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>CheckoutController</servlet-name>
+        <servlet-class>controller.CheckoutController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>VnpayReturnController</servlet-name>
+        <servlet-class>controller.VnpayReturnController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>VnpayIpnController</servlet-name>
+        <servlet-class>controller.VnpayIpnController</servlet-class>
+    </servlet>
+    <servlet>
         <servlet-name>ManagerProductController</servlet-name>
         <servlet-class>controller.ManagerProductController</servlet-class>
     </servlet>
@@ -160,6 +180,26 @@
     <servlet-mapping>
         <servlet-name>ProductController</servlet-name>
         <url-pattern>/ProductController</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CartController</servlet-name>
+        <url-pattern>/cart</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>WishlistController</servlet-name>
+        <url-pattern>/wishlist</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CheckoutController</servlet-name>
+        <url-pattern>/checkout</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>VnpayReturnController</servlet-name>
+        <url-pattern>/vnpay-return</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>VnpayIpnController</servlet-name>
+        <url-pattern>/vnpay-ipn</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>ManagerProductController</servlet-name>

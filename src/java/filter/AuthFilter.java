@@ -36,6 +36,8 @@ public class AuthFilter implements Filter {
             "/login-google",
             "/google-login",
             "/oauth2callback",
+            "/vnpay-return",
+            "/vnpay-ipn",
             "/brands",
             "/brand"
     );
@@ -62,6 +64,7 @@ public class AuthFilter implements Filter {
             rule("/shipper/orders", roles("SHIPPER")),
             rule("/shipper/deliveries", roles("SHIPPER")),
             rule("/wishlist", roles("CUSTOMER")),
+            rule("/cart", roles("CUSTOMER")),
             rule("/feedback", roles("CUSTOMER", "MANAGER")),
             rule("/checkout", roles("CUSTOMER")),
             rule("/order-history", roles("CUSTOMER")),
