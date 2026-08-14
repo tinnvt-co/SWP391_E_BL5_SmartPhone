@@ -13,6 +13,7 @@ import model.OrderModel;
 
 @WebServlet(name = "OrderController", urlPatterns = {"/staff/orders"})
 public class OrderController extends HttpServlet {
+
     private static final int MAX_SEARCH_LENGTH = 100;
     private static final Set<String> VALID_STATUSES = Set.of(
             "PENDING", "CONFIRMED", "PROCESSING", "PAID", "SHIPPING", "DELIVERED",
@@ -107,7 +108,7 @@ public class OrderController extends HttpServlet {
     }
 
     private void redirectBack(HttpServletRequest request, HttpServletResponse response,
-                              String message) throws IOException {
+            String message) throws IOException {
         String referer = request.getHeader("Referer");
         String base = referer != null && !referer.isBlank()
                 ? referer
@@ -120,14 +121,20 @@ public class OrderController extends HttpServlet {
             for (String pair : query.split("&")) {
                 int eq = pair.indexOf('=');
                 String key = eq >= 0 ? pair.substring(0, eq) : pair;
-                if (key.equals("status") || key.equals("message")) continue;
-                if (cleaned.length() > 0) cleaned.append('&');
+                if (key.equals("status") || key.equals("message")) {
+                    continue;
+                }
+                if (cleaned.length() > 0) {
+                    cleaned.append('&');
+                }
                 cleaned.append(pair);
             }
         }
         StringBuilder target = new StringBuilder(path);
         target.append("?");
-        if (cleaned.length() > 0) target.append(cleaned).append('&');
+        if (cleaned.length() > 0) {
+            target.append(cleaned).append('&');
+        }
         target.append("message=").append(java.net.URLEncoder.encode(message, java.nio.charset.StandardCharsets.UTF_8));
         response.sendRedirect(target.toString());
     }
@@ -150,22 +157,30 @@ public class OrderController extends HttpServlet {
     }
 
     private String normalizeKeyword(String input) {
-        if (input == null) return "";
+        if (input == null) {
+            return "";
+        }
         return input.trim().replaceAll("\\s+", " ");
     }
 
     private String normalizeStatus(String input) {
-        if (input == null || input.isBlank()) return "";
+        if (input == null || input.isBlank()) {
+            return "";
+        }
         return VALID_STATUSES.contains(input) ? input : "";
     }
 
     private String normalizeType(String input) {
-        if (input == null || input.isBlank()) return "ALL";
+        if (input == null || input.isBlank()) {
+            return "ALL";
+        }
         return VALID_TYPES.contains(input) ? input : "ALL";
     }
 
     private String normalizeSort(String input) {
-        if (input == null || input.isBlank()) return "newest";
+        if (input == null || input.isBlank()) {
+            return "newest";
+        }
         return Set.of("newest", "oldest", "total-desc", "total-asc").contains(input) ? input : "newest";
     }
 

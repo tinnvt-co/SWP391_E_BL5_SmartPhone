@@ -10,12 +10,11 @@ import java.util.List;
 import model.Role;
 
 public class RoleDAO {
+
     public List<Role> findAll() throws SQLException {
         String sql = "SELECT * FROM `Role` ORDER BY ID ASC";
         List<Role> list = new ArrayList<>();
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 Role role = new Role();
                 role.setId(rs.getInt("ID"));

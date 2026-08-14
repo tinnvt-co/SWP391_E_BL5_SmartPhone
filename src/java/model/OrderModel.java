@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class OrderModel implements Serializable {
+
     private int id;
     private int userId;
     private String username;
@@ -32,87 +33,219 @@ public class OrderModel implements Serializable {
     private int itemCount;
     private List<OrderItemModel> items = new ArrayList<>();
 
-    public OrderModel() {}
+    public OrderModel() {
+    }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public int getId() {
+        return id;
+    }
 
-    public int getUserId() { return userId; }
-    public void setUserId(int userId) { this.userId = userId; }
+    public void setId(int id) {
+        this.id = id;
+    }
 
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
+    public int getUserId() {
+        return userId;
+    }
 
-    public String getUserName() { return userName; }
-    public void setUserName(String userName) { this.userName = userName; }
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
 
-    public String getUserPhone() { return userPhone; }
-    public void setUserPhone(String userPhone) { this.userPhone = userPhone; }
+    public String getUsername() {
+        return username;
+    }
 
-    public String getUserEmail() { return userEmail; }
-    public void setUserEmail(String userEmail) { this.userEmail = userEmail; }
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
-    public BigDecimal getTotalPrice() { return totalPrice; }
-    public void setTotalPrice(BigDecimal totalPrice) { this.totalPrice = totalPrice; }
+    public String getUserName() {
+        return userName;
+    }
 
-    public BigDecimal getPaidAmount() { return paidAmount; }
-    public void setPaidAmount(BigDecimal paidAmount) { this.paidAmount = paidAmount; }
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
 
-    public BigDecimal getChangeAmount() { return changeAmount; }
-    public void setChangeAmount(BigDecimal changeAmount) { this.changeAmount = changeAmount; }
+    public String getUserPhone() {
+        return userPhone;
+    }
 
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
+    public void setUserPhone(String userPhone) {
+        this.userPhone = userPhone;
+    }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public String getUserEmail() {
+        return userEmail;
+    }
 
-    public String getMethod() { return method; }
-    public void setMethod(String method) { this.method = method; }
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
+    }
 
-    public Integer getSupplierId() { return supplierId; }
-    public void setSupplierId(Integer supplierId) { this.supplierId = supplierId; }
+    public BigDecimal getTotalPrice() {
+        return totalPrice;
+    }
 
-    public Integer getUpdatedBy() { return updatedBy; }
-    public void setUpdatedBy(Integer updatedBy) { this.updatedBy = updatedBy; }
+    public void setTotalPrice(BigDecimal totalPrice) {
+        this.totalPrice = totalPrice;
+    }
 
-    public String getUpdatedByName() { return updatedByName; }
-    public void setUpdatedByName(String updatedByName) { this.updatedByName = updatedByName; }
+    public BigDecimal getPaidAmount() {
+        return paidAmount;
+    }
 
-    public Timestamp getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(Timestamp updatedAt) { this.updatedAt = updatedAt; }
+    public void setPaidAmount(BigDecimal paidAmount) {
+        this.paidAmount = paidAmount;
+    }
 
-    public Timestamp getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
+    public BigDecimal getChangeAmount() {
+        return changeAmount;
+    }
 
-    public Integer getReferenceTransactionId() { return referenceTransactionId; }
-    public void setReferenceTransactionId(Integer referenceTransactionId) { this.referenceTransactionId = referenceTransactionId; }
+    public void setChangeAmount(BigDecimal changeAmount) {
+        this.changeAmount = changeAmount;
+    }
 
-    public Integer getDeliveryInfoId() { return deliveryInfoId; }
-    public void setDeliveryInfoId(Integer deliveryInfoId) { this.deliveryInfoId = deliveryInfoId; }
+    public String getType() {
+        return type;
+    }
 
-    public String getRecipientName() { return recipientName; }
-    public void setRecipientName(String recipientName) { this.recipientName = recipientName; }
+    public void setType(String type) {
+        this.type = type;
+    }
 
-    public String getRecipientPhone() { return recipientPhone; }
-    public void setRecipientPhone(String recipientPhone) { this.recipientPhone = recipientPhone; }
+    public String getStatus() {
+        return status;
+    }
 
-    public String getDeliveryAddress() { return deliveryAddress; }
-    public void setDeliveryAddress(String deliveryAddress) { this.deliveryAddress = deliveryAddress; }
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
-    public int getItemCount() { return itemCount; }
-    public void setItemCount(int itemCount) { this.itemCount = itemCount; }
+    public String getMethod() {
+        return method;
+    }
 
-    public List<OrderItemModel> getItems() { return items; }
-    public void setItems(List<OrderItemModel> items) { this.items = items; }
+    public void setMethod(String method) {
+        this.method = method;
+    }
 
-    public BigDecimal getShippingFee() { return BigDecimal.ZERO; }
-    public void setShippingFee(BigDecimal shippingFee) { }
+    public Integer getSupplierId() {
+        return supplierId;
+    }
 
-    public String getCode() { return String.format("ORD%04d", id); }
+    public void setSupplierId(Integer supplierId) {
+        this.supplierId = supplierId;
+    }
 
-    public boolean isImport() { return "IMPORT".equalsIgnoreCase(type); }
-    public boolean isOrder() { return "ORDER".equalsIgnoreCase(type); }
+    public Integer getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(Integer updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public String getUpdatedByName() {
+        return updatedByName;
+    }
+
+    public void setUpdatedByName(String updatedByName) {
+        this.updatedByName = updatedByName;
+    }
+
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Integer getReferenceTransactionId() {
+        return referenceTransactionId;
+    }
+
+    public void setReferenceTransactionId(Integer referenceTransactionId) {
+        this.referenceTransactionId = referenceTransactionId;
+    }
+
+    public Integer getDeliveryInfoId() {
+        return deliveryInfoId;
+    }
+
+    public void setDeliveryInfoId(Integer deliveryInfoId) {
+        this.deliveryInfoId = deliveryInfoId;
+    }
+
+    public String getRecipientName() {
+        return recipientName;
+    }
+
+    public void setRecipientName(String recipientName) {
+        this.recipientName = recipientName;
+    }
+
+    public String getRecipientPhone() {
+        return recipientPhone;
+    }
+
+    public void setRecipientPhone(String recipientPhone) {
+        this.recipientPhone = recipientPhone;
+    }
+
+    public String getDeliveryAddress() {
+        return deliveryAddress;
+    }
+
+    public void setDeliveryAddress(String deliveryAddress) {
+        this.deliveryAddress = deliveryAddress;
+    }
+
+    public int getItemCount() {
+        return itemCount;
+    }
+
+    public void setItemCount(int itemCount) {
+        this.itemCount = itemCount;
+    }
+
+    public List<OrderItemModel> getItems() {
+        return items;
+    }
+
+    public void setItems(List<OrderItemModel> items) {
+        this.items = items;
+    }
+
+    public BigDecimal getShippingFee() {
+        return BigDecimal.ZERO;
+    }
+
+    public void setShippingFee(BigDecimal shippingFee) {
+    }
+
+    public String getCode() {
+        return String.format("ORD%04d", id);
+    }
+
+    public boolean isImport() {
+        return "IMPORT".equalsIgnoreCase(type);
+    }
+
+    public boolean isOrder() {
+        return "ORDER".equalsIgnoreCase(type);
+    }
 
     public BigDecimal getTotalDiscount() {
         BigDecimal total = BigDecimal.ZERO;

@@ -25,7 +25,7 @@ public class OrderDAO {
     private static final int MAX_SEARCH_LENGTH = 100;
 
     public List<OrderModel> findOrders(String keyword, String status, String type,
-                                        String sort, boolean excludeImport)
+            String sort, boolean excludeImport)
             throws SQLException {
 
         StringBuilder sql = new StringBuilder()
@@ -78,8 +78,7 @@ public class OrderDAO {
         }
 
         List<OrderModel> orders = new ArrayList<>();
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql.toString())) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql.toString())) {
             for (int i = 0; i < params.size(); i++) {
                 statement.setObject(i + 1, params.get(i));
             }
@@ -107,8 +106,7 @@ public class OrderDAO {
                 + "LEFT JOIN DeliveryInfo d ON t.DeliveryInfoID = d.ID "
                 + "WHERE t.ID = ?";
 
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, id);
             try (ResultSet rs = statement.executeQuery()) {
                 if (rs.next()) {
@@ -135,8 +133,7 @@ public class OrderDAO {
                 + "ORDER BY tp.ProductVariantID";
 
         List<OrderItemModel> items = new ArrayList<>();
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, transactionId);
             try (ResultSet rs = statement.executeQuery()) {
                 while (rs.next()) {
@@ -157,8 +154,7 @@ public class OrderDAO {
             return 0;
         }
         String sql = "SELECT COUNT(*) FROM `Transaction` WHERE Status = ? AND Type = 'ORDER'";
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, status);
             try (ResultSet rs = statement.executeQuery()) {
                 return rs.next() ? rs.getInt(1) : 0;
@@ -169,9 +165,7 @@ public class OrderDAO {
     public int countTodaysOrders() throws SQLException {
         String sql = "SELECT COUNT(*) FROM `Transaction` "
                 + "WHERE Type = 'ORDER' AND DATE(Created_at) = CURDATE()";
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet rs = statement.executeQuery()) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql); ResultSet rs = statement.executeQuery()) {
             return rs.next() ? rs.getInt(1) : 0;
         }
     }
@@ -179,9 +173,7 @@ public class OrderDAO {
     public int countProcessing() throws SQLException {
         String sql = "SELECT COUNT(*) FROM `Transaction` "
                 + "WHERE Type = 'ORDER' AND Status IN ('PENDING','CONFIRMED','PAID','SHIPPING')";
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet rs = statement.executeQuery()) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql); ResultSet rs = statement.executeQuery()) {
             return rs.next() ? rs.getInt(1) : 0;
         }
     }
@@ -189,9 +181,7 @@ public class OrderDAO {
     public int countDelivered() throws SQLException {
         String sql = "SELECT COUNT(*) FROM `Transaction` "
                 + "WHERE Type = 'ORDER' AND Status IN ('DELIVERED','COMPLETED')";
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet rs = statement.executeQuery()) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql); ResultSet rs = statement.executeQuery()) {
             return rs.next() ? rs.getInt(1) : 0;
         }
     }
@@ -199,9 +189,7 @@ public class OrderDAO {
     public int countCancelled() throws SQLException {
         String sql = "SELECT COUNT(*) FROM `Transaction` "
                 + "WHERE Type = 'ORDER' AND Status IN ('CANCEL_REQUESTED','CANCELLED')";
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet rs = statement.executeQuery()) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql); ResultSet rs = statement.executeQuery()) {
             return rs.next() ? rs.getInt(1) : 0;
         }
     }
@@ -209,9 +197,7 @@ public class OrderDAO {
     public BigDecimal totalRevenue() throws SQLException {
         String sql = "SELECT COALESCE(SUM(Total_price), 0) FROM `Transaction` "
                 + "WHERE Type = 'ORDER' AND Status IN ('PAID','SHIPPING','DELIVERED','COMPLETED')";
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet rs = statement.executeQuery()) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql); ResultSet rs = statement.executeQuery()) {
             return rs.next() ? rs.getBigDecimal(1) : BigDecimal.ZERO;
         }
     }
@@ -226,8 +212,7 @@ public class OrderDAO {
         }
         String sql = "UPDATE `Transaction` SET Status = ?, Updated_by = ?, Updated_at = CURRENT_TIMESTAMP "
                 + "WHERE ID = ?";
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, status);
             statement.setInt(2, updatedBy);
             statement.setInt(3, orderId);
@@ -237,9 +222,7 @@ public class OrderDAO {
 
     private Integer resolveFallbackUpdater() throws SQLException {
         String sql = "SELECT u.ID FROM `User` u JOIN `Role` r ON u.RoleID = r.ID WHERE r.Name IN ('STAFF','ADMIN') AND u.Status='ACTIVE' ORDER BY (r.Name='ADMIN') DESC, u.ID ASC LIMIT 1";
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet rs = statement.executeQuery()) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql); ResultSet rs = statement.executeQuery()) {
             if (rs.next()) {
                 return rs.getInt(1);
             }
@@ -263,8 +246,7 @@ public class OrderDAO {
                 + "ORDER BY t.Created_at DESC, t.ID DESC";
 
         List<OrderModel> orders = new ArrayList<>();
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, userId);
             try (ResultSet rs = statement.executeQuery()) {
                 while (rs.next()) {
@@ -282,8 +264,7 @@ public class OrderDAO {
         }
         String sql = "UPDATE `Transaction` SET Status = ?, Note = ?, Updated_by = ?, Updated_at = CURRENT_TIMESTAMP "
                 + "WHERE ID = ?";
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, status);
             statement.setString(2, note);
             if (updatedBy == null) {
@@ -353,7 +334,9 @@ public class OrderDAO {
     }
 
     private String normalizeKeyword(String input) {
-        if (input == null) return "";
+        if (input == null) {
+            return "";
+        }
         String trimmed = input.trim().replaceAll("\\s+", " ");
         if (trimmed.length() > MAX_SEARCH_LENGTH) {
             trimmed = trimmed.substring(0, MAX_SEARCH_LENGTH);
@@ -362,7 +345,9 @@ public class OrderDAO {
     }
 
     private String normalizeSort(String input) {
-        if (input == null || input.isBlank()) return "newest";
+        if (input == null || input.isBlank()) {
+            return "newest";
+        }
         return VALID_SORTS.contains(input) ? input : "newest";
     }
 }

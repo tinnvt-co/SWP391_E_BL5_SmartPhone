@@ -3,6 +3,7 @@ package model;
 import java.io.Serializable;
 
 public class CartItemModel implements Serializable {
+
     private int userId;
     private int productVariantId;
     private int productId;
@@ -18,39 +19,128 @@ public class CartItemModel implements Serializable {
     private int amount;
     private int stock;
 
-    public int getUserId() { return userId; }
-    public void setUserId(int userId) { this.userId = userId; }
-    public int getProductVariantId() { return productVariantId; }
-    public void setProductVariantId(int productVariantId) { this.productVariantId = productVariantId; }
-    public int getProductId() { return productId; }
-    public void setProductId(int productId) { this.productId = productId; }
-    public String getProductName() { return productName; }
-    public void setProductName(String productName) { this.productName = productName; }
-    public String getBrandName() { return brandName; }
-    public void setBrandName(String brandName) { this.brandName = brandName; }
-    public String getImage() { return image; }
-    public void setImage(String image) { this.image = image; }
-    public int getRamGb() { return ramGb; }
-    public void setRamGb(int ramGb) { this.ramGb = ramGb; }
-    public int getStorageGb() { return storageGb; }
-    public void setStorageGb(int storageGb) { this.storageGb = storageGb; }
-    public String getColorName() { return colorName; }
-    public void setColorName(String colorName) { this.colorName = colorName; }
-    public int getSellingPrice() { return sellingPrice; }
-    public void setSellingPrice(int sellingPrice) { this.sellingPrice = sellingPrice; }
-    public int getDiscount() { return discount; }
-    public void setDiscount(int discount) { this.discount = discount; }
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+
+    public int getProductVariantId() {
+        return productVariantId;
+    }
+
+    public void setProductVariantId(int productVariantId) {
+        this.productVariantId = productVariantId;
+    }
+
+    public int getProductId() {
+        return productId;
+    }
+
+    public void setProductId(int productId) {
+        this.productId = productId;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public String getBrandName() {
+        return brandName;
+    }
+
+    public void setBrandName(String brandName) {
+        this.brandName = brandName;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public int getRamGb() {
+        return ramGb;
+    }
+
+    public void setRamGb(int ramGb) {
+        this.ramGb = ramGb;
+    }
+
+    public int getStorageGb() {
+        return storageGb;
+    }
+
+    public void setStorageGb(int storageGb) {
+        this.storageGb = storageGb;
+    }
+
+    public String getColorName() {
+        return colorName;
+    }
+
+    public void setColorName(String colorName) {
+        this.colorName = colorName;
+    }
+
+    public int getSellingPrice() {
+        return sellingPrice;
+    }
+
+    public void setSellingPrice(int sellingPrice) {
+        this.sellingPrice = sellingPrice;
+    }
+
+    public int getDiscount() {
+        return discount;
+    }
+
+    public void setDiscount(int discount) {
+        this.discount = discount;
+    }
+
     public int getFinalPrice() {
-        if (finalPrice > 0) return finalPrice;
+        if (finalPrice > 0) {
+            return finalPrice;
+        }
         return sellingPrice - (sellingPrice * discount / 100);
     }
-    public void setFinalPrice(int finalPrice) { this.finalPrice = finalPrice; }
-    public int getAmount() { return amount; }
-    public void setAmount(int amount) { this.amount = amount; }
-    public int getStock() { return stock; }
-    public void setStock(int stock) { this.stock = stock; }
-    public boolean hasDiscount() { return discount > 0; }
-    public int getDiscountPercent() { return discount; }
+
+    public void setFinalPrice(int finalPrice) {
+        this.finalPrice = finalPrice;
+    }
+
+    public int getAmount() {
+        return amount;
+    }
+
+    public void setAmount(int amount) {
+        this.amount = amount;
+    }
+
+    public int getStock() {
+        return stock;
+    }
+
+    public void setStock(int stock) {
+        this.stock = stock;
+    }
+
+    public boolean hasDiscount() {
+        return discount > 0;
+    }
+
+    public int getDiscountPercent() {
+        return discount;
+    }
 
     public String getImageUrl() {
         if (image == null || image.isBlank()) {

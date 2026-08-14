@@ -227,6 +227,7 @@ public class GoogleLoginController extends HttpServlet {
     }
 
     private static final class GoogleConfig {
+
         private final String clientId;
         private final String clientSecret;
 
@@ -241,6 +242,7 @@ public class GoogleLoginController extends HttpServlet {
     }
 
     private static final class GoogleProfile {
+
         private final String email;
         private final String name;
         private final String picture;

@@ -91,8 +91,7 @@ public class CheckoutDAO {
         String sql = "UPDATE `Transaction` "
                 + "SET Status = 'CANCELLED', Paid_amount = 0, Updated_at = CURRENT_TIMESTAMP "
                 + "WHERE ID = ? AND Method = 'VNPAY' AND Status = 'PENDING'";
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, transactionId);
             statement.executeUpdate();
         }
@@ -246,8 +245,7 @@ public class CheckoutDAO {
     private int nextId(Connection connection, String table) throws SQLException {
         String safeTable = "`" + table.replace("`", "") + "`";
         try (PreparedStatement statement = connection.prepareStatement(
-                "SELECT COALESCE(MAX(ID), 0) + 1 FROM " + safeTable);
-             ResultSet resultSet = statement.executeQuery()) {
+                "SELECT COALESCE(MAX(ID), 0) + 1 FROM " + safeTable); ResultSet resultSet = statement.executeQuery()) {
             resultSet.next();
             return resultSet.getInt(1);
         }

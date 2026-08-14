@@ -12,6 +12,7 @@ import java.util.Set;
 
 @WebServlet(name = "ManageOrderController", urlPatterns = {"/manager/orders"})
 public class ManageOrderController extends HttpServlet {
+
     private static final int MAX_SEARCH_LENGTH = 100;
     private static final Set<String> VALID_STATUSES = Set.of(
             "PENDING", "CONFIRMED", "PROCESSING", "PAID", "SHIPPING", "DELIVERED",
@@ -90,22 +91,30 @@ public class ManageOrderController extends HttpServlet {
     }
 
     private String normalizeKeyword(String input) {
-        if (input == null) return "";
+        if (input == null) {
+            return "";
+        }
         return input.trim().replaceAll("\\s+", " ");
     }
 
     private String normalizeStatus(String input) {
-        if (input == null || input.isBlank()) return "";
+        if (input == null || input.isBlank()) {
+            return "";
+        }
         return VALID_STATUSES.contains(input) ? input : "";
     }
 
     private String normalizeType(String input) {
-        if (input == null || input.isBlank()) return "ALL";
+        if (input == null || input.isBlank()) {
+            return "ALL";
+        }
         return VALID_TYPES.contains(input) ? input : "ALL";
     }
 
     private String normalizeSort(String input) {
-        if (input == null || input.isBlank()) return "newest";
+        if (input == null || input.isBlank()) {
+            return "newest";
+        }
         return Set.of("newest", "oldest", "total-desc", "total-asc").contains(input) ? input : "newest";
     }
 

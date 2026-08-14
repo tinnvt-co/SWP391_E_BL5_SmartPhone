@@ -3,12 +3,14 @@ package model;
 import java.math.BigDecimal;
 
 public class ChannelSlice {
+
     private String channel;
     private BigDecimal revenue;
     private int orderCount;
     private double percentage;
 
-    public ChannelSlice() {}
+    public ChannelSlice() {
+    }
 
     public ChannelSlice(String channel, BigDecimal revenue, int orderCount) {
         this.channel = channel;
@@ -16,15 +18,35 @@ public class ChannelSlice {
         this.orderCount = orderCount;
     }
 
-    public String getChannel() { return channel; }
-    public void setChannel(String channel) { this.channel = channel; }
+    public String getChannel() {
+        return channel;
+    }
 
-    public BigDecimal getRevenue() { return revenue; }
-    public void setRevenue(BigDecimal revenue) { this.revenue = revenue; }
+    public void setChannel(String channel) {
+        this.channel = channel;
+    }
 
-    public int getOrderCount() { return orderCount; }
-    public void setOrderCount(int orderCount) { this.orderCount = orderCount; }
+    public BigDecimal getRevenue() {
+        return revenue;
+    }
 
-    public double getPercentage() { return percentage; }
-    public void setPercentage(double percentage) { this.percentage = percentage; }
+    public void setRevenue(BigDecimal revenue) {
+        this.revenue = revenue;
+    }
+
+    public int getOrderCount() {
+        return orderCount;
+    }
+
+    public void setOrderCount(int orderCount) {
+        this.orderCount = orderCount;
+    }
+
+    public double getPercentage() {
+        return percentage;
+    }
+
+    public void setPercentage(double percentage) {
+        this.percentage = percentage;
+    }
 }

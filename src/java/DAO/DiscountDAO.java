@@ -22,13 +22,13 @@ public class DiscountDAO {
                 + "ORDER BY d.Created_at DESC";
 
         List<DiscountModel> discounts = new ArrayList<>();
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet resultSet = statement.executeQuery()) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql); ResultSet resultSet = statement.executeQuery()) {
 
             while (resultSet.next()) {
                 DiscountModel d = mapRow(resultSet);
-                if (activeOnly && !d.isLiveNow()) continue;
+                if (activeOnly && !d.isLiveNow()) {
+                    continue;
+                }
                 discounts.add(d);
             }
         }
@@ -41,8 +41,7 @@ public class DiscountDAO {
                 + "(SELECT COUNT(*) FROM Discount_Product dp WHERE dp.DiscountID = d.ID) AS ProductCount "
                 + "FROM Discount d WHERE d.ID = ?";
 
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, id);
             try (ResultSet rs = statement.executeQuery()) {
                 if (rs.next()) {
@@ -62,10 +61,10 @@ public class DiscountDAO {
     }
 
     /**
-     * Return every ProductID that is already attached to a discount whose
-     * time window covers "now" — i.e. active right now OR scheduled in the
-     * future and not yet expired. Used by the manager form to hide products
-     * that would double-discount.
+     * Return every ProductID that is already attached to a discount whose time
+     * window covers "now" — i.e. active right now OR scheduled in the future
+     * and not yet expired. Used by the manager form to hide products that would
+     * double-discount.
      */
     public Set<Integer> findLiveOrScheduledProductIds(Integer excludeDiscountId) throws SQLException {
         String sql = "SELECT DISTINCT dp.ProductID FROM Discount_Product dp "
@@ -73,11 +72,14 @@ public class DiscountDAO {
                 + "WHERE d.End >= CURRENT_TIMESTAMP "
                 + (excludeDiscountId != null ? "AND d.ID <> ? " : "");
         Set<Integer> ids = new HashSet<>();
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement ps = connection.prepareStatement(sql)) {
-            if (excludeDiscountId != null) ps.setInt(1, excludeDiscountId);
+        try (Connection connection = DBContext.getConnection(); PreparedStatement ps = connection.prepareStatement(sql)) {
+            if (excludeDiscountId != null) {
+                ps.setInt(1, excludeDiscountId);
+            }
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) ids.add(rs.getInt(1));
+                while (rs.next()) {
+                    ids.add(rs.getInt(1));
+                }
             }
         }
         return ids;
@@ -89,15 +91,17 @@ public class DiscountDAO {
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, discountId);
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) ids.add(rs.getInt(1));
+                while (rs.next()) {
+                    ids.add(rs.getInt(1));
+                }
             }
         }
         return ids;
     }
 
     /**
-     * Save a discount and sync the Discount_Product relation.
-     * Uses a single transaction so the discount and its product list are atomic.
+     * Save a discount and sync the Discount_Product relation. Uses a single
+     * transaction so the discount and its product list are atomic.
      *
      * Insert path computes the next ID in Java (MAX(ID) + 1) inside a row-level
      * lock, so the table does NOT need AUTO_INCREMENT. Safe even if the column
@@ -147,12 +151,16 @@ public class DiscountDAO {
                             "INSERT INTO Discount_Product(DiscountID, ProductID) VALUES(?, ?)")) {
                         Set<Integer> seen = new HashSet<>();
                         for (Integer pid : d.getProductIds()) {
-                            if (pid == null || !seen.add(pid)) continue;
+                            if (pid == null || !seen.add(pid)) {
+                                continue;
+                            }
                             ins.setInt(1, id);
                             ins.setInt(2, pid);
                             ins.addBatch();
                         }
-                        if (!seen.isEmpty()) ins.executeBatch();
+                        if (!seen.isEmpty()) {
+                            ins.executeBatch();
+                        }
                     }
                 }
 
@@ -191,8 +199,7 @@ public class DiscountDAO {
         try (Statement lock = connection.createStatement()) {
             lock.executeUpdate("LOCK TABLES `Discount` WRITE");
         }
-        try (Statement read = connection.createStatement();
-             ResultSet rs = read.executeQuery("SELECT COALESCE(MAX(ID), 0) FROM `Discount`")) {
+        try (Statement read = connection.createStatement(); ResultSet rs = read.executeQuery("SELECT COALESCE(MAX(ID), 0) FROM `Discount`")) {
             int currentMax = rs.next() ? rs.getInt(1) : 0;
             return currentMax + 1;
         } finally {

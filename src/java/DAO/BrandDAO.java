@@ -10,6 +10,7 @@ import java.util.List;
 import model.BrandModel;
 
 public class BrandDAO {
+
     public List<BrandModel> findAll(boolean activeOnly) throws SQLException {
         String sql = "SELECT b.ID, b.Name, b.Description, b.Status, "
                 + "COUNT(p.ID) AS ProductCount "
@@ -18,9 +19,7 @@ public class BrandDAO {
                 + "GROUP BY b.ID, b.Name, b.Description, b.Status ORDER BY b.Name";
 
         List<BrandModel> brands = new ArrayList<>();
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet resultSet = statement.executeQuery()) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql); ResultSet resultSet = statement.executeQuery()) {
 
             while (resultSet.next()) {
                 BrandModel brand = new BrandModel(
@@ -40,8 +39,7 @@ public class BrandDAO {
         String sql = "SELECT ID, Name, Description, Status "
                 + "FROM Brand WHERE ID = ?";
 
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, id);
 
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -65,8 +63,7 @@ public class BrandDAO {
                 ? "INSERT INTO Brand(Name, Description, Status) VALUES(?, ?, ?)"
                 : "UPDATE Brand SET Name = ?, Description = ?, Status = ? WHERE ID = ?";
 
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, brand.getName());
             statement.setString(2, brand.getDescription());
             statement.setString(3, brand.isActive() ? "ACTIVE" : "INACTIVE");
@@ -79,8 +76,7 @@ public class BrandDAO {
 
     public void deactivate(int id) throws SQLException {
         String sql = "UPDATE Brand SET Status = 'INACTIVE' WHERE ID = ?";
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, id);
             statement.executeUpdate();
         }

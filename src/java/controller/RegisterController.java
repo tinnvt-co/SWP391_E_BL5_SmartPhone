@@ -138,7 +138,7 @@ public class RegisterController extends HttpServlet {
     }
 
     private void forwardWithError(HttpServletRequest request, HttpServletResponse response,
-                                  UserModel form, String error)
+            UserModel form, String error)
             throws ServletException, IOException {
         request.setAttribute("error", error);
         request.setAttribute("form", form);

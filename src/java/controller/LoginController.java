@@ -78,8 +78,8 @@ public class LoginController extends HttpServlet {
     }
 
     private void forwardWithError(HttpServletRequest request, HttpServletResponse response,
-                                  String username, String remember, String redirect,
-                                  String requiredRole, String error)
+            String username, String remember, String redirect,
+            String requiredRole, String error)
             throws ServletException, IOException {
         request.setAttribute("error", error);
         request.setAttribute("username", username);

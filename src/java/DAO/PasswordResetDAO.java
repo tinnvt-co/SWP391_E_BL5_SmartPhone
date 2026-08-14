@@ -20,8 +20,7 @@ public class PasswordResetDAO {
         String sql = "INSERT INTO PasswordResetToken "
                 + "(UserID, Token, Expires_at, Created_at) VALUES (?, ?, ?, NOW())";
 
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
             ps.setString(2, token);
             ps.setTimestamp(3, Timestamp.valueOf(LocalDateTime.now().plusMinutes(validMinutes)));
@@ -35,8 +34,7 @@ public class PasswordResetDAO {
         String sql = "SELECT UserID FROM PasswordResetToken "
                 + "WHERE Token = ? AND Used_at IS NULL AND Expires_at > NOW()";
 
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, token);
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next() ? rs.getInt("UserID") : null;
@@ -48,8 +46,7 @@ public class PasswordResetDAO {
         ensureTable();
         String sql = "UPDATE PasswordResetToken SET Used_at = NOW() WHERE Token = ?";
 
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, token);
             ps.executeUpdate();
         }
@@ -70,8 +67,7 @@ public class PasswordResetDAO {
                 + "REFERENCES `User` (ID) ON DELETE CASCADE ON UPDATE CASCADE"
                 + ")";
 
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.executeUpdate();
         }
     }

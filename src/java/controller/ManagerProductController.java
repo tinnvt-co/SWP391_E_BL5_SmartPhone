@@ -17,9 +17,9 @@ import java.util.Set;
 import model.ProductModel;
 import model.ProductVariantModel;
 
-
 @WebServlet(name = "ManagerProductController", urlPatterns = {"/manager/products"})
 public class ManagerProductController extends HttpServlet {
+
     private final ProductDAO productDAO = new ProductDAO();
     private final BrandDAO brandDAO = new BrandDAO();
     private final CategoryDAO categoryDAO = new CategoryDAO();

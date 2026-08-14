@@ -17,8 +17,9 @@ import model.ProductModel;
 import model.ProductVariantModel;
 
 public class ProductDAO {
-    private static final String SELECT_PRODUCTS =
-            "SELECT p.ID, p.Name, p.Description, p.Release_Year, p.Rating, "
+
+    private static final String SELECT_PRODUCTS
+            = "SELECT p.ID, p.Name, p.Description, p.Release_Year, p.Rating, "
             + "p.warranty_months, p.CategoryID, c.Name AS CategoryName, "
             + "p.BrandID, b.Name AS BrandName, p.Status, p.Created_at, "
             + "COALESCE((SELECT MIN(pv.Selling_price) FROM ProductVariant pv "
@@ -111,8 +112,7 @@ public class ProductDAO {
             parameters.add(Math.max(0, offset));
         }
 
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql.toString())) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql.toString())) {
 
             for (int index = 0; index < parameters.size(); index++) {
                 statement.setObject(index + 1, parameters.get(index));
@@ -161,8 +161,7 @@ public class ProductDAO {
             parameters.add(categoryId);
         }
 
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql.toString())) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql.toString())) {
             for (int index = 0; index < parameters.size(); index++) {
                 statement.setObject(index + 1, parameters.get(index));
             }
@@ -177,8 +176,7 @@ public class ProductDAO {
     public ProductModel findById(int id) throws SQLException {
         String sql = SELECT_PRODUCTS + "WHERE p.ID = ?";
 
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setInt(1, id);
 
@@ -214,9 +212,7 @@ public class ProductDAO {
                 + "AND p.Status = 'ACTIVE' WHERE c.Status = 'ACTIVE' "
                 + "GROUP BY c.ID, c.Name, c.Description, c.Status ORDER BY c.ID";
 
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet resultSet = statement.executeQuery()) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql); ResultSet resultSet = statement.executeQuery()) {
             List<CategoryModel> categories = new ArrayList<>();
             while (resultSet.next()) {
                 CategoryModel category = new CategoryModel();
@@ -324,8 +320,7 @@ public class ProductDAO {
     public void deactivate(int id) throws SQLException {
         String sql = "UPDATE Product SET Status = 'INACTIVE' WHERE ID = ?";
 
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, id);
             statement.executeUpdate();
         }
@@ -357,9 +352,7 @@ public class ProductDAO {
     }
 
     private int count(String sql) throws SQLException {
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet resultSet = statement.executeQuery()) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql); ResultSet resultSet = statement.executeQuery()) {
             resultSet.next();
             return resultSet.getInt(1);
         }
