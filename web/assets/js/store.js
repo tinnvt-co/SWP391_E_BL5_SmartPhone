@@ -113,8 +113,8 @@ document.addEventListener('click',function(event){
 (function(){
     var STEP_LABELS=['CONFIRMED','PROCESSING','SHIPPING','DELIVERED'];
     var STEP_DESCS=['Confirmed','Processing','Shipping','Delivered'];
-    var STATUS_CODES=['CONFIRMED','PROCESSING','SHIPPING','DELIVERED'];
-    var STATUS_DESCS={CONFIRMED:'Confirmed by staff',PROCESSING:'Preparing your order',SHIPPING:'In transit to customer',DELIVERED:'Delivered successfully'};
+    var STATUS_CODES=['CONFIRMED','PROCESSING','SHIPPING','DELIVERED','CANCELLED'];
+    var STATUS_DESCS={CONFIRMED:'Confirmed by staff',PROCESSING:'Preparing your order',SHIPPING:'In transit to customer',DELIVERED:'Delivered successfully',CANCELLED:'Cancel this order'};
     var modal=document.getElementById('orderUpdateModal');
     if(!modal)return;
     var codeEl=document.getElementById('modalOrderCode');

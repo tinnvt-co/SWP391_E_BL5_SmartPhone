@@ -13,6 +13,8 @@ public class CartItemModel implements Serializable {
     private int storageGb;
     private String colorName;
     private int sellingPrice;
+    private int discount;
+    private int finalPrice;
     private int amount;
     private int stock;
 
@@ -36,10 +38,19 @@ public class CartItemModel implements Serializable {
     public void setColorName(String colorName) { this.colorName = colorName; }
     public int getSellingPrice() { return sellingPrice; }
     public void setSellingPrice(int sellingPrice) { this.sellingPrice = sellingPrice; }
+    public int getDiscount() { return discount; }
+    public void setDiscount(int discount) { this.discount = discount; }
+    public int getFinalPrice() {
+        if (finalPrice > 0) return finalPrice;
+        return sellingPrice - (sellingPrice * discount / 100);
+    }
+    public void setFinalPrice(int finalPrice) { this.finalPrice = finalPrice; }
     public int getAmount() { return amount; }
     public void setAmount(int amount) { this.amount = amount; }
     public int getStock() { return stock; }
     public void setStock(int stock) { this.stock = stock; }
+    public boolean hasDiscount() { return discount > 0; }
+    public int getDiscountPercent() { return discount; }
 
     public String getImageUrl() {
         if (image == null || image.isBlank()) {
@@ -57,6 +68,6 @@ public class CartItemModel implements Serializable {
     }
 
     public int getLineTotal() {
-        return sellingPrice * amount;
+        return getFinalPrice() * amount;
     }
 }

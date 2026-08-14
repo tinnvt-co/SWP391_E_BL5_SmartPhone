@@ -92,8 +92,8 @@
                                     <span class="spec">${product.secondSpec}</span>
                                 </div>
                                 <p class="promo">Online giÃ¡ ráº» quÃ¡</p>
-                                <div class="price"><fmt:formatNumber value="${product.sellingPrice}" type="number" maxFractionDigits="0"/>Ä‘</div>
-                                <div><span class="old-price"><fmt:formatNumber value="${product.originalPrice}" type="number" maxFractionDigits="0"/>Ä‘</span><span class="discount">-${product.discountPercent}%</span></div>
+                                <div class="price"><fmt:formatNumber value="${product.finalPrice}" type="number" maxFractionDigits="0"/>Ä‘</div>
+                                <div><span class="old-price"><fmt:formatNumber value="${product.sellingPrice}" type="number" maxFractionDigits="0"/>Ä‘</span><span class="discount">-${product.discountPercent}%</span></div>
                                 <div class="rating-row"><i class="bi bi-star-fill"></i><span>${product.displayRating}</span><span>â€¢</span><span>ÄÃ£ bÃ¡n ${product.soldText}</span></div>
                             </div>
                         </a>

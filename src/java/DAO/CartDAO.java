@@ -66,7 +66,11 @@ public class CartDAO {
         String sql = "SELECT c.UserID, c.ProductVariantID, c.Amount, "
                 + "pv.ProductID, pv.RAM_GB, pv.Storage_GB, pv.ColorName, "
                 + "pv.Selling_price, pv.Image, p.Name AS ProductName, "
-                + "b.Name AS BrandName, COALESCE(i.Amount, 0) AS Stock "
+                + "b.Name AS BrandName, COALESCE(i.Amount, 0) AS Stock, "
+                + "COALESCE((SELECT MAX(d.Rate) FROM Discount_Product dp "
+                + "  JOIN Discount d ON d.ID = dp.DiscountID "
+                + "  WHERE dp.ProductID = p.ID "
+                + "  AND CURRENT_TIMESTAMP BETWEEN d.Start AND d.End), 0) AS Discount "
                 + "FROM Cart c "
                 + "JOIN ProductVariant pv ON pv.ID = c.ProductVariantID "
                 + "JOIN Product p ON p.ID = pv.ProductID "
@@ -129,6 +133,7 @@ public class CartDAO {
         item.setColorName(resultSet.getString("ColorName"));
         item.setSellingPrice(resultSet.getInt("Selling_price"));
         item.setImage(resultSet.getString("Image"));
+        item.setDiscount(resultSet.getInt("Discount"));
         item.setProductName(resultSet.getString("ProductName"));
         item.setBrandName(resultSet.getString("BrandName"));
         item.setStock(resultSet.getInt("Stock"));

@@ -50,6 +50,11 @@ public class OrderController extends HttpServlet {
                     redirectBack(request, response, "Invalid request");
                     return;
                 }
+                OrderModel existing = orderDAO.findOrderDetail(orderId);
+                if (existing == null || "IMPORT".equalsIgnoreCase(existing.getType())) {
+                    redirectBack(request, response, "Cannot update import orders");
+                    return;
+                }
                 boolean ok = orderDAO.updateStatus(orderId, status, updatedBy);
                 redirectBack(request, response, ok ? "Order status updated" : "Cannot update order");
             }

@@ -485,6 +485,40 @@
 
         .product-rating-row .bi-star-fill { color: #ffb400; }
 
+        .home-feature-card .home-discount-badge {
+            position: absolute !important;
+            left: 12px !important;
+            top: 12px !important;
+            z-index: 5 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            background: #d70018 !important;
+            color: #ffffff !important;
+            border-radius: 14px !important;
+            padding: 6px 12px !important;
+            font-size: 18px !important;
+            line-height: 1.1 !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.2px !important;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important;
+        }
+        .home-feature-card .home-discount-badge::after {
+            content: "" !important;
+            position: absolute !important;
+            right: -5px !important;
+            bottom: -5px !important;
+            width: 14px !important;
+            height: 14px !important;
+            background: #d70018 !important;
+            clip-path: polygon(0 0, 100% 100%, 0 100%) !important;
+            border-bottom-right-radius: 4px !important;
+        }
+        .home-feature-card .home-discount-row,
+        .home-feature-card .home-discount-pill {
+            display: none !important;
+        }
+
         .home-feature-card {
             min-height: 520px;
             border-color: #dde2e8;
@@ -498,6 +532,7 @@
             height: 235px;
             aspect-ratio: auto;
             padding: 18px 36px 12px;
+            overflow: visible !important;
         }
 
         .home-feature-card .product-visual img {
@@ -872,6 +907,9 @@
                         <div class="product-visual">
                             <span class="product-heart"><i class="bi bi-heart"></i></span>
                             <span class="product-label">H&agrave;ng ch&iacute;nh h&atilde;ng</span>
+                            <c:if test="${product.hasDiscount()}">
+                                <span class="home-discount-badge">-${product.discountPercent}%</span>
+                            </c:if>
                             <img src="${pageContext.request.contextPath}${product.imageUrl}" alt="${product.name}"
                                  onerror="this.src='${pageContext.request.contextPath}/assets/images/product-placeholder.svg'">
                         </div>
@@ -911,10 +949,16 @@
                                 </c:choose>
                                 <div class="home-price-row">
                                     <div class="price">
-                                        <fmt:formatNumber value="${not empty product.variants ? product.variants[0].sellingPrice : product.finalPrice}" type="number" maxFractionDigits="0"/> &#273;
+                                        <fmt:formatNumber value="${not empty product.variants ? (product.variants[0].sellingPrice - (product.variants[0].sellingPrice * product.discount / 100)) : product.finalPrice}" type="number" maxFractionDigits="0"/> &#273;
                                     </div>
                                     <span class="home-cart-icon"><i class="bi bi-cart3"></i><span>+</span></span>
                                 </div>
+                                <c:if test="${product.hasDiscount()}">
+                                    <div class="home-discount-row">
+                                        <span class="home-old-price"><fmt:formatNumber value="${not empty product.variants ? product.variants[0].sellingPrice : product.sellingPrice}" type="number" maxFractionDigits="0"/> &#273;</span>
+                                        <span class="home-discount-pill">-${product.discountPercent}%</span>
+                                    </div>
+                                </c:if>
                                 <div class="home-warranty">B&#7843;o h&agrave;nh ch&iacute;nh h&atilde;ng ${product.warrantyMonths} th&aacute;ng</div>
                                 <div class="product-rating-row">
                                     <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
@@ -928,15 +972,17 @@
                             <p class="product-promo">Online giÃ¡ ráº» quÃ¡</p>
                             <div class="price-row">
                                 <div class="price">
-                                    <fmt:formatNumber value="${product.sellingPrice}" type="number" maxFractionDigits="0"/>Ä‘
+                                    <fmt:formatNumber value="${not empty product.variants ? (product.variants[0].sellingPrice - (product.variants[0].sellingPrice * product.discount / 100)) : product.finalPrice}" type="number" maxFractionDigits="0"/>&#273;
                                 </div>
                             </div>
-                            <div class="old-price-row">
-                                <span class="old-price">
-                                    <fmt:formatNumber value="${product.originalPrice}" type="number" maxFractionDigits="0"/>Ä‘
-                                </span>
-                                <span class="discount-rate">-${product.discountPercent}%</span>
-                            </div>
+                            <c:if test="${product.hasDiscount()}">
+                                <div class="old-price-row">
+                                    <span class="old-price">
+                                        <fmt:formatNumber value="${not empty product.variants ? product.variants[0].sellingPrice : product.sellingPrice}" type="number" maxFractionDigits="0"/>&#273;
+                                    </span>
+                                    <span class="discount-rate">-${product.discountPercent}%</span>
+                                </div>
+                            </c:if>
                             <div class="product-rating-row">
                                 <i class="bi bi-star-fill"></i>
                                 <span>${product.displayRating}</span>

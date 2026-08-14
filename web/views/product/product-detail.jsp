@@ -33,6 +33,9 @@
         <div class="row g-4 align-items-start">
             <div class="col-lg-6">
                 <div class="product-media">
+                    <c:if test="${product.hasDiscount()}">
+                        <span class="detail-discount-badge">-${product.discountPercent}%</span>
+                    </c:if>
                     <img src="${pageContext.request.contextPath}${product.image}" alt="${product.name}"
                          onerror="this.src='${pageContext.request.contextPath}/assets/images/home/smartphone-hero.png'">
                 </div>
@@ -47,12 +50,14 @@
                     <span class="spec">${product.warrantyMonths} month warranty</span>
                 </div>
                 <div class="price mb-1">
-                    <fmt:formatNumber value="${product.sellingPrice}" type="number" maxFractionDigits="0"/>Ä‘
+                    <fmt:formatNumber value="${product.finalPrice}" type="number" maxFractionDigits="0"/>&#273;
                 </div>
-                <div class="mb-3">
-                    <span class="old-price"><fmt:formatNumber value="${product.originalPrice}" type="number" maxFractionDigits="0"/>Ä‘</span>
-                    <span class="text-danger fw-bold">-${product.discountPercent}%</span>
-                </div>
+                <c:if test="${product.hasDiscount()}">
+                    <div class="mb-3">
+                        <span class="old-price"><fmt:formatNumber value="${product.sellingPrice}" type="number" maxFractionDigits="0"/>&#273;</span>
+                        <span class="text-danger fw-bold">-${product.discountPercent}%</span>
+                    </div>
+                </c:if>
                 <div class="mb-4 text-muted">
                     <i class="bi bi-star-fill text-warning"></i> ${product.displayRating}
                     <span class="mx-2">â€¢</span>

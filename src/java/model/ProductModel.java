@@ -126,6 +126,7 @@ public class ProductModel implements Serializable {
         return finalPrice + (finalPrice * 3 / 100);
     }
     public int getDiscountPercent() { return discount > 0 ? discount : 3; }
+    public boolean hasDiscount() { return discount > 0; }
     public String getDisplayRating() { return String.format("%.1f", (double) rating); }
     public String getSoldText() {
         if (reviewCount >= 1000) {

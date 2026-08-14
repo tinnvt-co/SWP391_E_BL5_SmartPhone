@@ -29,6 +29,9 @@
         .cart-qty-btn:hover { background:#eaf2ff; color:#1665d8; }
         .cart-qty { width:58px; min-height:38px; border:0; border-inline:1px solid #dbe3ec; padding:0 8px; text-align:center; outline:0; }
         .cart-price { min-width:130px; text-align:right; color:#b91c1c; font-weight:900; }
+        .cart-price-discount { margin-top:6px; display:flex; align-items:center; gap:8px; }
+        .cart-price-discount del { color:#8b97aa; font-weight:600; font-size:.92rem; }
+        .cart-discount-pill { background:#fdecec; color:#d90000; border-radius:6px; padding:3px 8px; font-size:.82rem; font-weight:700; }
         .cart-summary { padding:22px 24px; display:flex; align-items:center; justify-content:flex-end; gap:22px; flex-wrap:wrap; }
         .cart-summary-info { margin-right:auto; color:#64748b; font-weight:700; }
         .cart-total { font-size:1.35rem; font-weight:900; color:#111827; }
@@ -112,7 +115,7 @@
                     </div>
                     <form id="cartCheckoutForm" action="${pageContext.request.contextPath}/checkout" method="get"></form>
                     <c:forEach items="${cartItems}" var="item">
-                        <div class="cart-item" data-cart-row data-unit-price="${item.sellingPrice}">
+                        <div class="cart-item" data-cart-row data-unit-price="${item.finalPrice}" data-original-price="${item.sellingPrice}" data-discount="${item.discount}">
                             <input class="cart-check cart-item-check" type="checkbox" name="variantId" value="${item.productVariantId}" checked form="cartCheckoutForm" aria-label="Select ${item.productName}">
                             <a href="${pageContext.request.contextPath}/products?action=detail&id=${item.productId}">
                                 <img src="${pageContext.request.contextPath}${item.imageUrl}" alt="${item.productName}"
@@ -122,6 +125,12 @@
                                 <div class="cart-meta"><c:out value="${item.brandName}"/></div>
                                 <h3><c:out value="${item.productName}"/></h3>
                                 <div class="cart-meta"><c:out value="${item.variantLabel}"/> · Stock ${item.stock}</div>
+                                <c:if test="${item.hasDiscount()}">
+                                    <div class="cart-price-discount">
+                                        <del><fmt:formatNumber value="${item.sellingPrice}" pattern="#,##0"/> &#273;</del>
+                                        <span class="cart-discount-pill">-${item.discountPercent}%</span>
+                                    </div>
+                                </c:if>
                             </div>
                             <div class="cart-actions">
                                 <form method="post" action="${pageContext.request.contextPath}/cart" class="d-flex align-items-center gap-2" data-cart-update-form>

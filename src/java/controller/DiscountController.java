@@ -34,7 +34,8 @@ public class DiscountController extends HttpServlet {
                 int id = ProductController.integer(req.getParameter("id"), 0);
                 DiscountModel discount = id > 0 ? dao.findById(id) : new DiscountModel();
                 req.setAttribute("discount", discount);
-                req.setAttribute("products", productDao.findAll(null, null, null, null, false));
+                Set<Integer> exclude = dao.findLiveOrScheduledProductIds(id > 0 ? id : null);
+                req.setAttribute("products", productDao.findAll(null, null, null, null, false, exclude));
                 req.setAttribute("selectedIds", discount == null ? Set.of() : new HashSet<>(discount.getProductIds()));
                 req.getRequestDispatcher("/views/manager/discount-form.jsp").forward(req, resp);
                 return;
@@ -62,7 +63,8 @@ public class DiscountController extends HttpServlet {
             if (error != null) {
                 req.setAttribute("error", error);
                 req.setAttribute("discount", d);
-                req.setAttribute("products", productDao.findAll(null, null, null, null, false));
+                Set<Integer> exclude = dao.findLiveOrScheduledProductIds(d.getId() > 0 ? d.getId() : null);
+                req.setAttribute("products", productDao.findAll(null, null, null, null, false, exclude));
                 req.setAttribute("selectedIds", new HashSet<>(d.getProductIds()));
                 req.getRequestDispatcher("/views/manager/discount-form.jsp").forward(req, resp);
                 return;
@@ -71,11 +73,13 @@ public class DiscountController extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + "/manager/discounts?message=Saved");
         } catch (SQLException ex) {
             req.setAttribute("error", ex.getMessage());
-            req.setAttribute("discount", read(req));
+            DiscountModel d = read(req);
+            req.setAttribute("discount", d);
             try {
-                req.setAttribute("products", productDao.findAll(null, null, null, null, false));
+                Set<Integer> exclude = dao.findLiveOrScheduledProductIds(d.getId() > 0 ? d.getId() : null);
+                req.setAttribute("products", productDao.findAll(null, null, null, null, false, exclude));
             } catch (SQLException ignored) { }
-            req.setAttribute("selectedIds", new HashSet<>(read(req).getProductIds()));
+            req.setAttribute("selectedIds", new HashSet<>(d.getProductIds()));
             req.getRequestDispatcher("/views/manager/discount-form.jsp").forward(req, resp);
         }
     }

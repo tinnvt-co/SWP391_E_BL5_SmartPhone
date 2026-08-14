@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +36,7 @@ public class ProductDAO {
             + "ORDER BY pv.ID LIMIT 1), '') AS SKU, "
             + "COALESCE((SELECT MAX(d.Rate) FROM Discount_Product dp "
             + "JOIN Discount d ON d.ID = dp.DiscountID "
-            + "WHERE dp.ProductID = p.ID AND d.Status = 'ACTIVE' "
+            + "WHERE dp.ProductID = p.ID "
             + "AND CURRENT_TIMESTAMP BETWEEN d.Start AND d.End), 0) AS Discount, "
             + "COALESCE((SELECT SUM(i.Amount) FROM ProductVariant pv "
             + "LEFT JOIN Inventory i ON i.ProductVariantID = pv.ID "
@@ -54,6 +55,19 @@ public class ProductDAO {
 
     public List<ProductModel> findAll(String keyword, Integer brandId,
             Integer categoryId, String sort, boolean publicOnly, int limit, int offset)
+            throws SQLException {
+        return findAll(keyword, brandId, categoryId, sort, publicOnly, null, limit, offset);
+    }
+
+    public List<ProductModel> findAll(String keyword, Integer brandId,
+            Integer categoryId, String sort, boolean publicOnly,
+            Collection<Integer> excludeIds) throws SQLException {
+        return findAll(keyword, brandId, categoryId, sort, publicOnly, excludeIds, 0, 0);
+    }
+
+    public List<ProductModel> findAll(String keyword, Integer brandId,
+            Integer categoryId, String sort, boolean publicOnly,
+            Collection<Integer> excludeIds, int limit, int offset)
             throws SQLException {
         StringBuilder sql = new StringBuilder(SELECT_PRODUCTS);
         sql.append("WHERE 1 = 1 ");
@@ -79,6 +93,15 @@ public class ProductDAO {
         if (categoryId != null) {
             sql.append("AND p.CategoryID = ? ");
             parameters.add(categoryId);
+        }
+
+        if (excludeIds != null && !excludeIds.isEmpty()) {
+            sql.append("AND p.ID NOT IN (");
+            for (int i = 0; i < excludeIds.size(); i++) {
+                sql.append(i == 0 ? "?" : ",?");
+            }
+            sql.append(") ");
+            parameters.addAll(excludeIds);
         }
 
         sql.append(getOrderBy(sort));

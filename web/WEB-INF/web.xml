@@ -121,6 +121,19 @@
     </servlet>
 
     <servlet>
+        <servlet-name>OrderHistoryController</servlet-name>
+        <servlet-class>controller.OrderHistoryController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>CustomerOrderDetailController</servlet-name>
+        <servlet-class>controller.CustomerOrderDetailController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>FeedbackController</servlet-name>
+        <servlet-class>controller.FeedbackController</servlet-class>
+    </servlet>
+
+    <servlet>
         <servlet-name>AdminUserController</servlet-name>
         <servlet-class>controller.AdminUserController</servlet-class>
     </servlet>
@@ -244,6 +257,19 @@
     <servlet-mapping>
         <servlet-name>StaffDashboardController</servlet-name>
         <url-pattern>/staff</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>OrderHistoryController</servlet-name>
+        <url-pattern>/order-history</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CustomerOrderDetailController</servlet-name>
+        <url-pattern>/order-detail</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>FeedbackController</servlet-name>
+        <url-pattern>/feedback</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>
