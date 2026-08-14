@@ -6,14 +6,22 @@ import java.sql.SQLException;
 
 public final class DBContext {
 
-    private static final String URL =
+    private static final String URL = firstNonBlank(
+            System.getProperty("smartphone.db.url"),
+            System.getenv("SMARTPHONE_DB_URL"),
             "jdbc:mysql://localhost:3306/database_swp391"
             + "?useSSL=false"
             + "&allowPublicKeyRetrieval=true"
             + "&serverTimezone=Asia/Bangkok"
-            + "&characterEncoding=UTF-8";
-    private static final String USERNAME = "root";
-    private static final String PASSWORD = "Duc@123456";
+            + "&characterEncoding=UTF-8");
+    private static final String USERNAME = firstNonBlank(
+            System.getProperty("smartphone.db.user"),
+            System.getenv("SMARTPHONE_DB_USER"),
+            "root");
+    private static final String PASSWORD = firstNonBlank(
+            System.getProperty("smartphone.db.password"),
+            System.getenv("SMARTPHONE_DB_PASSWORD"),
+            "123456");
 
     static {
         try {
@@ -25,6 +33,15 @@ public final class DBContext {
 
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(URL, USERNAME, PASSWORD);
+    }
+
+    private static String firstNonBlank(String... values) {
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value.trim();
+            }
+        }
+        return "";
     }
 
     private DBContext() {}

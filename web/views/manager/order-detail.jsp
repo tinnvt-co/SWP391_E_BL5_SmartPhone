@@ -1,5 +1,8 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%><%@taglib prefix="c" uri="jakarta.tags.core"%><%@taglib prefix="fmt" uri="jakarta.tags.fmt"%>
-<!DOCTYPE html><html><head><title>Order #${order.code}</title><%@include file="../common/head.jsp"%>
+<!DOCTYPE html><html><head><title>Order #${order.code}</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <%@include file="../common/head.jsp"%>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css">
 <style>
 .order-detail{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:18px;color:#fff}
 .order-detail *{color:inherit}
@@ -68,8 +71,8 @@
 .order-detail .address-box{background:#1a2030;border-radius:10px;padding:14px 16px;font-size:14px;line-height:1.6;color:#cbd2e5}
 @media(max-width:680px){.order-detail .grid2{grid-template-columns:1fr}.order-detail .hero{flex-direction:column;align-items:flex-start}.order-detail .hero .right{text-align:left}.order-detail .hero .badge-row{justify-content:flex-start}}
 </style>
-</head><body>
-<c:set var="pageRole" value="Manager"/><c:set var="pageName" value="Order Detail"/><%@include file="../common/topbar.jsp"%>
+</head><body><c:set var="activePage" value="manager" scope="request"/>
+    <%@ include file="/views/common/header.jsp" %>
 <main class="page-shell">
  <div class="order-detail">
 
@@ -157,4 +160,6 @@
 
  </div>
 </main>
-<script src="${pageContext.request.contextPath}/assets/js/store.js"></script></body></html>
+<script src="${pageContext.request.contextPath}/assets/js/store.js"></script><%@ include file="/views/common/footer.jsp" %>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body></html>

@@ -4,12 +4,14 @@
 <html>
 <head>
     <title>${category.id == 0 ? 'Add' : 'Edit'} Category</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <%@include file="../common/head.jsp"%>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css">
 </head>
 <body>
-    <c:set var="pageRole" value="Manager"/>
-    <c:set var="pageName" value="${category.id == 0 ? 'Add Category' : 'Edit Category'}"/>
-    <%@include file="../common/topbar.jsp"%>
+    <c:set var="activePage" value="manager" scope="request"/>
+    <%@ include file="/views/common/header.jsp" %>
 
     <main class="page-shell form-small">
         <div class="page-heading">
@@ -55,5 +57,7 @@
             </div>
         </form>
     </main>
+<%@ include file="/views/common/footer.jsp" %>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

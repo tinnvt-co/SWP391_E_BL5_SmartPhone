@@ -4,12 +4,14 @@
 <html>
 <head>
     <title>${product.id == 0 ? 'Add' : 'Edit'} Product</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <%@include file="../common/head.jsp"%>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css">
 </head>
 <body>
-    <c:set var="pageRole" value="Manager"/>
-    <c:set var="pageName" value="${product.id == 0 ? 'Add Product' : 'Edit Product'}"/>
-    <%@include file="../common/topbar.jsp"%>
+    <c:set var="activePage" value="manager" scope="request"/>
+    <%@ include file="/views/common/header.jsp" %>
 
     <main class="page-shell product-form-page">
         <div class="page-heading">
@@ -188,5 +190,7 @@
         </tr>
     </template>
     <script src="${pageContext.request.contextPath}/assets/js/manager-product-form.js"></script>
+<%@ include file="/views/common/footer.jsp" %>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

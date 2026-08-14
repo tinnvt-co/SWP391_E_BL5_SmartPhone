@@ -1,5 +1,9 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%><%@taglib prefix="c" uri="jakarta.tags.core"%><%@taglib prefix="fmt" uri="jakarta.tags.fmt"%>
-<!DOCTYPE html><html><head><title>Discount Management</title><%@include file="../common/head.jsp"%></head><body><c:set var="pageRole" value="Manager"/><c:set var="pageName" value="Manage Discount"/><%@include file="../common/topbar.jsp"%>
+<!DOCTYPE html><html><head><title>Discount Management</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <%@include file="../common/head.jsp"%>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css"></head><body><c:set var="activePage" value="manager" scope="request"/>
+    <%@ include file="/views/common/header.jsp" %>
 <main class="page-shell">
  <div class="page-heading"><div><h1>Discount Management</h1><p>${discounts.size()} discounts listed</p></div><a class="btn primary large" href="${pageContext.request.contextPath}/manager/discounts?action=form">+ Add Discount</a></div>
  <c:if test="${not empty param.message}"><div class="alert success">Discount ${param.message}.</div></c:if>
@@ -85,4 +89,6 @@
     setInterval(refresh, 30000);
 })();
 </script>
+<%@ include file="/views/common/footer.jsp" %>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body></html>

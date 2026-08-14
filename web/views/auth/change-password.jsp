@@ -224,18 +224,28 @@
                     <a href="${pageContext.request.contextPath}/profile">
                         <i class="bi bi-person"></i> My Profile
                     </a>
+                    <c:if test="${fn:toLowerCase(currentRole) == 'admin'}">
+                        <a href="${pageContext.request.contextPath}/admin/users">
+                            <i class="bi bi-people"></i> User Management
+                        </a>
+                        <a href="${pageContext.request.contextPath}/admin/roles">
+                            <i class="bi bi-shield-lock"></i> Roles
+                        </a>
+                    </c:if>
                     <a class="active" href="${pageContext.request.contextPath}/change-password">
                         <i class="bi bi-shield-lock"></i> Change Password
                     </a>
-                    <a href="${pageContext.request.contextPath}/order-history">
-                        <i class="bi bi-receipt"></i> Order History
-                    </a>
-                    <a href="${pageContext.request.contextPath}/wishlist">
-                        <i class="bi bi-heart"></i> Wishlist
-                    </a>
-                    <a href="${pageContext.request.contextPath}/checkout">
-                        <i class="bi bi-bag-check"></i> Checkout
-                    </a>
+                    <c:if test="${fn:toLowerCase(currentRole) == 'customer'}">
+                        <a href="${pageContext.request.contextPath}/order-history">
+                            <i class="bi bi-receipt"></i> Order History
+                        </a>
+                        <a href="${pageContext.request.contextPath}/wishlist">
+                            <i class="bi bi-heart"></i> Wishlist
+                        </a>
+                        <a href="${pageContext.request.contextPath}/checkout">
+                            <i class="bi bi-bag-check"></i> Checkout
+                        </a>
+                    </c:if>
                     <a href="${pageContext.request.contextPath}/logout">
                         <i class="bi bi-box-arrow-right"></i> Logout
                     </a>

@@ -14,6 +14,7 @@ import model.ProductModel;
 
 public class ProductController extends HttpServlet {
     private static final int MAX_SEARCH_LENGTH = 100;
+    private static final int PAGE_SIZE = 12;
     private static final Set<String> VALID_SORTS = Set.of(
             "newest", "price-asc", "price-desc");
     private final ProductDAO productDAO = new ProductDAO();
@@ -37,14 +38,32 @@ public class ProductController extends HttpServlet {
             Integer categoryId = integerOrNull(request.getParameter("category"));
             String keyword = normalizeKeyword(request.getParameter("q"));
             String sort = normalizeSort(request.getParameter("sort"));
+            int requestedPage = Math.max(1, integer(request.getParameter("page"), 1));
 
             String validationError = validateSearch(keyword);
             if (validationError != null) {
                 request.setAttribute("products", java.util.Collections.emptyList());
                 request.setAttribute("validationError", validationError);
+                request.setAttribute("totalProducts", 0);
+                request.setAttribute("currentPage", 1);
+                request.setAttribute("totalPages", 1);
             } else {
+                int totalProducts = productDAO.countAll(keyword, brandId, categoryId, true);
+                int totalPages = Math.max(1,
+                        (int) Math.ceil(totalProducts / (double) PAGE_SIZE));
+                int currentPage = Math.min(requestedPage, totalPages);
+                int offset = (currentPage - 1) * PAGE_SIZE;
+                int startPage = Math.max(1, currentPage - 2);
+                int endPage = Math.min(totalPages, currentPage + 2);
+
                 request.setAttribute("products",
-                        productDAO.findAll(keyword, brandId, categoryId, sort, true));
+                        productDAO.findAll(keyword, brandId, categoryId, sort, true,
+                                PAGE_SIZE, offset));
+                request.setAttribute("totalProducts", totalProducts);
+                request.setAttribute("currentPage", currentPage);
+                request.setAttribute("totalPages", totalPages);
+                request.setAttribute("startPage", startPage);
+                request.setAttribute("endPage", endPage);
             }
 
             request.setAttribute("brands", brandDAO.findAll(true));
@@ -53,6 +72,7 @@ public class ProductController extends HttpServlet {
             request.setAttribute("selectedCategory", categoryId);
             request.setAttribute("keyword", keyword);
             request.setAttribute("selectedSort", sort);
+            request.setAttribute("pageSize", PAGE_SIZE);
             request.getRequestDispatcher("/views/public/product-list.jsp")
                     .forward(request, response);
         } catch (SQLException exception) {

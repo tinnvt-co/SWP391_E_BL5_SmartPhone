@@ -486,7 +486,7 @@
         .product-rating-row .bi-star-fill { color: #ffb400; }
 
         .home-feature-card {
-            min-height: 650px;
+            min-height: 520px;
             border-color: #dde2e8;
             border-radius: 12px;
             box-shadow: 0 5px 18px rgba(25, 35, 50, 0.12);
@@ -495,9 +495,9 @@
         }
 
         .home-feature-card .product-visual {
-            height: 360px;
+            height: 235px;
             aspect-ratio: auto;
-            padding: 30px 48px 22px;
+            padding: 18px 36px 12px;
         }
 
         .home-feature-card .product-visual img {
@@ -506,28 +506,28 @@
 
         .product-heart {
             position: absolute;
-            right: 28px;
-            top: 26px;
+            right: 22px;
+            top: 22px;
             z-index: 4;
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             color: #111;
-            font-size: 31px;
+            font-size: 30px;
         }
 
         .product-label {
             position: absolute;
-            left: 20px;
+            left: 16px;
             bottom: 0;
             z-index: 3;
             background: #d90000;
             color: #fff;
             border-radius: 999px;
-            padding: 12px 20px;
-            font-size: 18px;
+            padding: 9px 16px;
+            font-size: 15px;
             line-height: 1;
             font-weight: 500;
         }
@@ -536,7 +536,7 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding: 28px 20px 24px;
+            padding: 18px 18px 18px;
         }
 
         .home-feature-content {
@@ -548,17 +548,17 @@
         .home-feature-card .eyebrow {
             display: block;
             color: #697386;
-            font-size: 19px;
+            font-size: 15px;
             letter-spacing: 0;
-            margin-bottom: 16px;
+            margin-bottom: 8px;
         }
 
         .home-title {
-            min-height: 62px;
-            margin-bottom: 22px;
+            min-height: 52px;
+            margin-bottom: 12px;
             color: #111827;
-            font-size: 24px;
-            line-height: 1.28;
+            font-size: 19px;
+            line-height: 1.35;
             font-weight: 500;
         }
 
@@ -574,21 +574,21 @@
         .home-memory-options {
             display: flex;
             flex-wrap: wrap;
-            gap: 11px;
-            margin-bottom: 12px;
+            gap: 9px;
+            margin-bottom: 10px;
         }
 
         .home-memory-chip {
-            min-width: 120px;
-            min-height: 50px;
+            min-width: 96px;
+            min-height: 38px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             border: 1px solid #d8dee7;
-            border-radius: 12px;
+            border-radius: 10px;
             color: #333a45;
             background: #fff;
-            font-size: 17px;
+            font-size: 14px;
             font-weight: 500;
         }
 
@@ -602,12 +602,12 @@
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
-            margin: 2px 0 26px;
+            margin: 2px 0 14px;
         }
 
         .home-color-dot {
-            width: 42px;
-            height: 42px;
+            width: 34px;
+            height: 34px;
             border: 4px solid #fff;
             border-radius: 50%;
             background: var(--variant-color, #d1d5db);
@@ -622,60 +622,60 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 16px;
-            margin: 0 0 22px;
+            gap: 14px;
+            margin: 0 0 14px;
         }
 
         .home-price-row .price {
             color: #b40000;
             font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            font-size: 31px;
+            font-size: 25px;
             font-weight: 850;
         }
 
         .home-cart-icon {
             position: relative;
-            min-width: 62px;
-            height: 56px;
+            min-width: 58px;
+            height: 52px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             color: #91858f;
-            font-size: 38px;
+            font-size: 34px;
         }
 
         .home-cart-icon span {
             position: absolute;
             right: 0;
             top: 0;
-            width: 28px;
-            height: 28px;
+            width: 26px;
+            height: 26px;
             border-radius: 50%;
             background: #5543c9;
             color: #fff;
-            font-size: 22px;
-            line-height: 27px;
+            font-size: 21px;
+            line-height: 24px;
             text-align: center;
         }
 
         .home-warranty {
             margin-top: auto;
-            min-height: 74px;
+            min-height: 56px;
             display: flex;
             align-items: center;
             border-radius: 10px;
             background: #f0f1f4;
             color: #555d69;
-            padding: 16px;
-            font-size: 19px;
+            padding: 12px 14px;
+            font-size: 15px;
             line-height: 1.35;
         }
 
         .home-feature-card .product-rating-row {
-            margin-top: 22px;
+            margin-top: 14px;
             gap: 6px;
             color: #ff7900;
-            font-size: 17px;
+            font-size: 16px;
         }
 
         .mini-action {
@@ -869,34 +869,11 @@
             <div class="product-grid">
                 <c:forEach var="product" items="${featuredProducts}">
                     <a class="product-card home-feature-card" href="${pageContext.request.contextPath}/products?action=detail&id=${product.id}">
-                        <div class="product-visual image-missing">
+                        <div class="product-visual">
                             <span class="product-heart"><i class="bi bi-heart"></i></span>
                             <span class="product-label">H&agrave;ng ch&iacute;nh h&atilde;ng</span>
-                            <div class="mock-phone-stage" aria-hidden="true">
-                                <div class="mock-phone-back">
-                                    <div class="mock-camera"></div>
-                                </div>
-                                <div class="mock-phone-front">
-                                    <div class="mock-phone-screen">
-                                        <div class="mock-product-name">${product.name}</div>
-                                        <div class="mock-model"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <c:if test="${not empty product.image}">
-                                <c:choose>
-                                    <c:when test="${fn:startsWith(product.image, '/')}">
-                                        <img src="${pageContext.request.contextPath}${product.image}" alt="${product.name}"
-                                             onload="this.closest('.product-visual').classList.remove('image-missing')"
-                                             onerror="this.remove()">
-                                    </c:when>
-                                    <c:otherwise>
-                                        <img src="${pageContext.request.contextPath}/${product.image}" alt="${product.name}"
-                                             onload="this.closest('.product-visual').classList.remove('image-missing')"
-                                             onerror="this.remove()">
-                                    </c:otherwise>
-                                </c:choose>
-                            </c:if>
+                            <img src="${pageContext.request.contextPath}${product.imageUrl}" alt="${product.name}"
+                                 onerror="this.src='${pageContext.request.contextPath}/assets/images/product-placeholder.svg'">
                         </div>
                         <div class="product-body">
                             <div class="home-feature-content">

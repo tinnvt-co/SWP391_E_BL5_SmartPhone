@@ -176,6 +176,28 @@
             color: #64748b;
         }
 
+        .primary-action {
+            min-height: 46px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0 18px;
+            border: 1px solid #16a34a;
+            border-radius: 8px;
+            background: #16a34a;
+            color: #ffffff;
+            font-weight: 800;
+            text-decoration: none;
+        }
+
+        .primary-action:hover,
+        .primary-action:focus {
+            background: #15803d;
+            border-color: #15803d;
+            color: #ffffff;
+        }
+
         @media (max-width: 991.98px) {
             .dashboard-grid {
                 grid-template-columns: 1fr;
@@ -231,17 +253,27 @@
                     <a class="active" href="${pageContext.request.contextPath}/profile">
                         <i class="bi bi-person"></i> My Profile
                     </a>
+                    <c:if test="${fn:toLowerCase(profile.roleName) == 'admin'}">
+                        <a href="${pageContext.request.contextPath}/admin/users">
+                            <i class="bi bi-people"></i> User Management
+                        </a>
+                        <a href="${pageContext.request.contextPath}/admin/roles">
+                            <i class="bi bi-shield-lock"></i> Roles
+                        </a>
+                    </c:if>
+                    <c:if test="${fn:toLowerCase(profile.roleName) == 'customer'}">
+                        <a href="${pageContext.request.contextPath}/order-history">
+                            <i class="bi bi-receipt"></i> Order History
+                        </a>
+                        <a href="${pageContext.request.contextPath}/wishlist">
+                            <i class="bi bi-heart"></i> Wishlist
+                        </a>
+                        <a href="${pageContext.request.contextPath}/checkout">
+                            <i class="bi bi-bag-check"></i> Checkout
+                        </a>
+                    </c:if>
                     <a href="${pageContext.request.contextPath}/change-password">
                         <i class="bi bi-shield-lock"></i> Change Password
-                    </a>
-                    <a href="${pageContext.request.contextPath}/order-history">
-                        <i class="bi bi-receipt"></i> Order History
-                    </a>
-                    <a href="${pageContext.request.contextPath}/wishlist">
-                        <i class="bi bi-heart"></i> Wishlist
-                    </a>
-                    <a href="${pageContext.request.contextPath}/checkout">
-                        <i class="bi bi-bag-check"></i> Checkout
                     </a>
                     <a href="${pageContext.request.contextPath}/logout">
                         <i class="bi bi-box-arrow-right"></i> Logout
@@ -333,9 +365,6 @@
                         </div>
 
                         <div class="d-flex align-items-center justify-content-end gap-2 mt-4">
-                            <a class="btn secondary-action" href="${pageContext.request.contextPath}/home">
-                                <i class="bi bi-arrow-left"></i> Back
-                            </a>
                             <button class="btn primary-action" type="submit">
                                 <i class="bi bi-save"></i> Save changes
                             </button>

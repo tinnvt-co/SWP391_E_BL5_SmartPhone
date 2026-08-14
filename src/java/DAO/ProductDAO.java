@@ -49,6 +49,12 @@ public class ProductDAO {
 
     public List<ProductModel> findAll(String keyword, Integer brandId,
             Integer categoryId, String sort, boolean publicOnly) throws SQLException {
+        return findAll(keyword, brandId, categoryId, sort, publicOnly, 0, 0);
+    }
+
+    public List<ProductModel> findAll(String keyword, Integer brandId,
+            Integer categoryId, String sort, boolean publicOnly, int limit, int offset)
+            throws SQLException {
         StringBuilder sql = new StringBuilder(SELECT_PRODUCTS);
         sql.append("WHERE 1 = 1 ");
 
@@ -76,6 +82,11 @@ public class ProductDAO {
         }
 
         sql.append(getOrderBy(sort));
+        if (limit > 0) {
+            sql.append(" LIMIT ? OFFSET ?");
+            parameters.add(limit);
+            parameters.add(Math.max(0, offset));
+        }
 
         try (Connection connection = DBContext.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql.toString())) {
@@ -93,6 +104,50 @@ public class ProductDAO {
 
             loadVariants(connection, products);
             return products;
+        }
+    }
+
+    public int countAll(String keyword, Integer brandId,
+            Integer categoryId, boolean publicOnly) throws SQLException {
+        StringBuilder sql = new StringBuilder(
+                "SELECT COUNT(*) FROM Product p "
+                + "JOIN Category c ON c.ID = p.CategoryID "
+                + "JOIN Brand b ON b.ID = p.BrandID "
+                + "WHERE 1 = 1 ");
+
+        List<Object> parameters = new ArrayList<>();
+
+        if (publicOnly) {
+            sql.append("AND p.Status = 'ACTIVE' ");
+            sql.append("AND c.Status = 'ACTIVE' ");
+            sql.append("AND b.Status = 'ACTIVE' ");
+        }
+
+        if (keyword != null && !keyword.isBlank()) {
+            sql.append("AND p.Name LIKE ? ESCAPE '\\\\' ");
+            parameters.add("%" + escapeLike(keyword.trim()) + "%");
+        }
+
+        if (brandId != null) {
+            sql.append("AND p.BrandID = ? ");
+            parameters.add(brandId);
+        }
+
+        if (categoryId != null) {
+            sql.append("AND p.CategoryID = ? ");
+            parameters.add(categoryId);
+        }
+
+        try (Connection connection = DBContext.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql.toString())) {
+            for (int index = 0; index < parameters.size(); index++) {
+                statement.setObject(index + 1, parameters.get(index));
+            }
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                resultSet.next();
+                return resultSet.getInt(1);
+            }
         }
     }
 

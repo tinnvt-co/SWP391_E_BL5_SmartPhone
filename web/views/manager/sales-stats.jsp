@@ -1,5 +1,8 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%><%@taglib prefix="c" uri="jakarta.tags.core"%><%@taglib prefix="fmt" uri="jakarta.tags.fmt"%>
-<!DOCTYPE html><html><head><title>Sales Statistics</title><%@include file="../common/head.jsp"%>
+<!DOCTYPE html><html><head><title>Sales Statistics</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <%@include file="../common/head.jsp"%>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css">
 <style>
 .chart-row{display:flex;align-items:flex-end;gap:6px;height:280px;padding:20px 16px 0;border-bottom:1px solid var(--line)}
 .chart-row .bar{flex:1;background:linear-gradient(180deg,var(--blue),#2b5db8);border-radius:6px 6px 0 0;position:relative;min-height:4px;transition:.2s}
@@ -40,8 +43,8 @@
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px}
 @media(max-width:1100px){.two-col{grid-template-columns:1fr}}
 </style>
-</head><body>
-<c:set var="pageRole" value="Manager"/><c:set var="pageName" value="Sales Statistics"/><%@include file="../common/topbar.jsp"%>
+</head><body><c:set var="activePage" value="manager" scope="request"/>
+    <%@ include file="/views/common/header.jsp" %>
 <main class="page-shell">
 
  <div class="page-heading">
@@ -181,4 +184,6 @@
 
 </main>
 <script src="${pageContext.request.contextPath}/assets/js/store.js"></script>
+<%@ include file="/views/common/footer.jsp" %>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body></html>

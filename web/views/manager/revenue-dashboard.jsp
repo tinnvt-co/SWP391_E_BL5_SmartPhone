@@ -1,5 +1,8 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%><%@taglib prefix="c" uri="jakarta.tags.core"%><%@taglib prefix="fmt" uri="jakarta.tags.fmt"%>
-<!DOCTYPE html><html><head><title>Revenue Dashboard</title><%@include file="../common/head.jsp"%>
+<!DOCTYPE html><html><head><title>Revenue Dashboard</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <%@include file="../common/head.jsp"%>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css">
 <style>
 body{background:#f5f6fa}
 .dash-shell{display:grid;grid-template-columns:280px 1fr;gap:24px;padding:24px;max-width:1600px;margin:0 auto}
@@ -71,8 +74,8 @@ body{background:#f5f6fa}
 .tp .rev{font-weight:700;font-size:13px;color:#4361ee;font-family:'Roboto Slab',serif}
 @media(max-width:900px){.dash-shell{grid-template-columns:1fr}.sidebar{position:static}}
 </style>
-</head><body>
-<c:set var="pageRole" value="Manager"/><c:set var="pageName" value="Revenue"/><%@include file="../common/topbar.jsp"%>
+</head><body><c:set var="activePage" value="manager" scope="request"/>
+    <%@ include file="/views/common/header.jsp" %>
 
 <div class="dash-shell">
 
@@ -276,4 +279,6 @@ function setChartView(btn,mode){
  }
 }
 </script>
+<%@ include file="/views/common/footer.jsp" %>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body></html>
