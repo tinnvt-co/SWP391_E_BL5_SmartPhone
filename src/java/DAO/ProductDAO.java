@@ -185,7 +185,10 @@ public class ProductDAO {
                     }
                 }
 
-                createDefaultVariants(connection, product);
+                for (ProductVariantModel variant : product.getVariants()) {
+                    int variantId = insertVariant(connection, product.getId(), variant);
+                    saveInventory(connection, variantId, variant.getStock());
+                }
                 connection.commit();
             } catch (SQLException exception) {
                 connection.rollback();
@@ -211,7 +214,25 @@ public class ProductDAO {
                     statement.executeUpdate();
                 }
 
-                updateVariantStock(connection, product.getId(), product.getStock());
+                List<Integer> savedVariantIds = new ArrayList<>();
+                for (ProductVariantModel variant : product.getVariants()) {
+                    if (variant.getId() == 0) {
+                        int existingId = findVariantIdByOption(
+                                connection, product.getId(), variant);
+                        if (existingId == 0) {
+                            variant.setId(insertVariant(
+                                    connection, product.getId(), variant));
+                        } else {
+                            variant.setId(existingId);
+                            updateVariant(connection, product.getId(), variant);
+                        }
+                    } else {
+                        updateVariant(connection, product.getId(), variant);
+                    }
+                    saveInventory(connection, variant.getId(), variant.getStock());
+                    savedVariantIds.add(variant.getId());
+                }
+                deactivateMissingVariants(connection, product.getId(), savedVariantIds);
                 connection.commit();
             } catch (SQLException exception) {
                 connection.rollback();
@@ -317,7 +338,7 @@ public class ProductDAO {
                 java.util.Collections.nCopies(products.size(), "?"));
 
         String sql = "SELECT pv.ID, pv.ProductID, pv.RAM_GB, pv.Storage_GB, "
-                + "pv.ColorName, pv.ColorHex, pv.Barcode, pv.SKU, "
+                + "pv.ColorName, pv.Barcode, pv.SKU, "
                 + "pv.Selling_price, pv.Latest_cost, pv.Image, pv.BackImage, "
                 + "COALESCE(i.Amount, 0) AS Stock "
                 + "FROM ProductVariant pv "
@@ -349,7 +370,6 @@ public class ProductDAO {
         variant.setRamGb(resultSet.getInt("RAM_GB"));
         variant.setStorageGb(resultSet.getInt("Storage_GB"));
         variant.setColorName(resultSet.getString("ColorName"));
-        variant.setColorHex(resultSet.getString("ColorHex"));
         variant.setBarcode(resultSet.getString("Barcode"));
         variant.setSku(resultSet.getString("SKU"));
         variant.setSellingPrice(resultSet.getInt("Selling_price"));
@@ -360,51 +380,17 @@ public class ProductDAO {
         return variant;
     }
 
-    private void createDefaultVariants(Connection connection,
-            ProductModel product) throws SQLException {
-        int[][] memoryOptions = {
-            {8, 128, 0},
-            {12, 256, 2500000},
-            {12, 512, 5000000}
-        };
-
-        String[][] colorOptions = {
-            {"Black", "#24262B"},
-            {"Silver", "#D7D8DA"},
-            {"Blue", "#6F89A8"},
-            {"Pink", "#D8A7B1"}
-        };
-
-        for (int[] memory : memoryOptions) {
-            for (String[] color : colorOptions) {
-                int variantId = insertVariant(connection, product, memory, color);
-                insertInventory(connection, variantId, product.getStock());
-            }
-        }
-    }
-
-    private int insertVariant(Connection connection, ProductModel product,
-            int[] memory, String[] color) throws SQLException {
+    private int insertVariant(Connection connection, int productId,
+            ProductVariantModel variant) throws SQLException {
         String sql = "INSERT INTO ProductVariant "
-                + "(ProductID, RAM_GB, Storage_GB, ColorName, ColorHex, Barcode, "
-                + "SKU, Selling_price, Latest_cost, Image, Status) "
+                + "(ProductID, RAM_GB, Storage_GB, ColorName, Barcode, "
+                + "SKU, Selling_price, Latest_cost, Image, BackImage, Status) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE')";
 
         try (PreparedStatement statement = connection.prepareStatement(
                 sql, Statement.RETURN_GENERATED_KEYS)) {
-            statement.setInt(1, product.getId());
-            statement.setInt(2, memory[0]);
-            statement.setInt(3, memory[1]);
-            statement.setString(4, color[0]);
-            statement.setString(5, color[1]);
-            statement.setString(6, product.getBarcode() + "-" + memory[0]
-                    + "-" + memory[1] + "-" + color[0]);
-            statement.setString(7, product.getSku() + "-" + memory[0]
-                    + "-" + memory[1] + "-" + color[0]);
-            statement.setInt(8, product.getSellingPrice() + memory[2]);
-            statement.setInt(9, product.getLatestCost());
-            statement.setString(10, variantImageName(
-                    product.getImage(), color[0], memory[1]));
+            statement.setInt(1, productId);
+            setVariantParameters(statement, variant, 2);
             statement.executeUpdate();
 
             try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
@@ -414,23 +400,58 @@ public class ProductDAO {
         }
     }
 
-    private String variantImageName(String imageName, String color, int storageGb) {
-        if (imageName == null || imageName.isBlank()) {
-            return null;
-        }
+    private void updateVariant(Connection connection, int productId,
+            ProductVariantModel variant) throws SQLException {
+        String sql = "UPDATE ProductVariant SET RAM_GB = ?, Storage_GB = ?, "
+                + "ColorName = ?, Barcode = ?, SKU = ?, "
+                + "Selling_price = ?, Latest_cost = ?, Image = ?, BackImage = ?, "
+                + "Status = 'ACTIVE' WHERE ID = ? AND ProductID = ?";
 
-        int extensionIndex = imageName.lastIndexOf('.');
-        String baseName = imageName.substring(0, extensionIndex);
-        String extension = imageName.substring(extensionIndex).toLowerCase();
-        String colorName = color.toLowerCase().replaceAll("[^a-z0-9]+", "-");
-        return baseName + "-" + colorName + "-" + storageGb + "gb" + extension;
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            setVariantParameters(statement, variant, 1);
+            statement.setInt(10, variant.getId());
+            statement.setInt(11, productId);
+            if (statement.executeUpdate() == 0) {
+                throw new SQLException("Product variant does not exist");
+            }
+        }
     }
 
-    private void insertInventory(Connection connection, int variantId, int stock)
+    private int findVariantIdByOption(Connection connection, int productId,
+            ProductVariantModel variant) throws SQLException {
+        String sql = "SELECT ID FROM ProductVariant WHERE ProductID = ? "
+                + "AND RAM_GB = ? AND Storage_GB = ? AND ColorName = ? LIMIT 1";
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, productId);
+            statement.setInt(2, variant.getRamGb());
+            statement.setInt(3, variant.getStorageGb());
+            statement.setString(4, variant.getColorName().trim());
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next() ? resultSet.getInt("ID") : 0;
+            }
+        }
+    }
+
+    private void setVariantParameters(PreparedStatement statement,
+            ProductVariantModel variant, int startIndex) throws SQLException {
+        statement.setInt(startIndex, variant.getRamGb());
+        statement.setInt(startIndex + 1, variant.getStorageGb());
+        statement.setString(startIndex + 2, variant.getColorName().trim());
+        statement.setString(startIndex + 3, variant.getBarcode().trim());
+        statement.setString(startIndex + 4, variant.getSku().trim());
+        statement.setInt(startIndex + 5, variant.getSellingPrice());
+        statement.setInt(startIndex + 6, variant.getLatestCost());
+        statement.setString(startIndex + 7, variant.getImage().trim());
+        statement.setString(startIndex + 8, variant.getBackImage().trim());
+    }
+
+    private void saveInventory(Connection connection, int variantId, int stock)
             throws SQLException {
         String sql = "INSERT INTO Inventory "
                 + "(ProductVariantID, Amount, Min_amount, Max_amount, Status) "
-                + "VALUES (?, ?, 0, 100, 'ACTIVE')";
+                + "VALUES (?, ?, 0, 100, 'ACTIVE') "
+                + "ON DUPLICATE KEY UPDATE Amount = VALUES(Amount), Status = 'ACTIVE'";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, variantId);
@@ -439,15 +460,22 @@ public class ProductDAO {
         }
     }
 
-    private void updateVariantStock(Connection connection, int productId, int stock)
-            throws SQLException {
-        String sql = "UPDATE Inventory i "
-                + "JOIN ProductVariant pv ON pv.ID = i.ProductVariantID "
-                + "SET i.Amount = ? WHERE pv.ProductID = ?";
+    private void deactivateMissingVariants(Connection connection, int productId,
+            List<Integer> savedVariantIds) throws SQLException {
+        StringBuilder sql = new StringBuilder(
+                "UPDATE ProductVariant SET Status = 'INACTIVE' WHERE ProductID = ?");
+        if (!savedVariantIds.isEmpty()) {
+            sql.append(" AND ID NOT IN (")
+                    .append(String.join(",", java.util.Collections.nCopies(
+                            savedVariantIds.size(), "?")))
+                    .append(")");
+        }
 
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, stock);
-            statement.setInt(2, productId);
+        try (PreparedStatement statement = connection.prepareStatement(sql.toString())) {
+            statement.setInt(1, productId);
+            for (int index = 0; index < savedVariantIds.size(); index++) {
+                statement.setInt(index + 2, savedVariantIds.get(index));
+            }
             statement.executeUpdate();
         }
     }

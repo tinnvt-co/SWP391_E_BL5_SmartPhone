@@ -12,7 +12,7 @@ public class InventoryDAO {
     public List<StockModel> getAllStock(String keyword, String brand, String status) {
         List<StockModel> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
-            "SELECT v.ID AS variant_id, v.ProductID, v.RAM_GB, v.Storage_GB, v.ColorName, v.ColorHex, "
+            "SELECT v.ID AS variant_id, v.ProductID, v.RAM_GB, v.Storage_GB, v.ColorName, "
           + "v.Selling_price, v.Image AS product_image, v.Status AS variant_status, "
           + "p.Name AS product_name, p.Status AS product_status, "
           + "v.Latest_cost, b.Name AS brand_name, c.Name AS category_name, "
@@ -54,7 +54,6 @@ public class InventoryDAO {
                     int ram = rs.getInt("RAM_GB"), storage = rs.getInt("Storage_GB");
                     s.setMemoryLabel(ram + "GB - " + (storage == 1024 ? "1TB" : storage + "GB"));
                     s.setColorName(rs.getString("ColorName"));
-                    s.setColorHex(rs.getString("ColorHex"));
                     s.setProductImage(rs.getString("product_image"));
                     s.setStock(rs.getInt("stock"));
                     s.setSellingPrice(rs.getInt("Selling_price"));

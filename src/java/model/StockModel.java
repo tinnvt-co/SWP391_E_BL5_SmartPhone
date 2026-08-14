@@ -10,7 +10,6 @@ public class StockModel implements Serializable {
     private String categoryName;
     private String memoryLabel;
     private String colorName;
-    private String colorHex;
     private String productImage;
     private int stock;
     private int sellingPrice;
@@ -32,8 +31,6 @@ public class StockModel implements Serializable {
     public void setMemoryLabel(String memoryLabel) { this.memoryLabel = memoryLabel; }
     public String getColorName() { return colorName; }
     public void setColorName(String colorName) { this.colorName = colorName; }
-    public String getColorHex() { return colorHex; }
-    public void setColorHex(String colorHex) { this.colorHex = colorHex; }
     public String getProductImage() { return productImage; }
     public void setProductImage(String productImage) { this.productImage = productImage; }
     public int getStock() { return stock; }
