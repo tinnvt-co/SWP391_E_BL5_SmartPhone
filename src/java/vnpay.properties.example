@@ -1,0 +1,8 @@
+# Copy this file to src/java/vnpay.properties and fill your VNPay sandbox keys locally.
+vnpay.payUrl=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+vnpay.returnUrl=https://your-ngrok-domain.ngrok-free.dev/SWP391_E_BL5_SmartPhone/vnpay-return
+vnpay.ipnUrl=https://your-ngrok-domain.ngrok-free.dev/SWP391_E_BL5_SmartPhone/vnpay-ipn
+vnpay.tmnCode=YOUR_TMN_CODE
+vnpay.hashSecret=YOUR_HASH_SECRET
+vnpay.locale=vn
+vnpay.orderType=other
