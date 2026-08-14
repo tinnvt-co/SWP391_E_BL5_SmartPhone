@@ -8,7 +8,6 @@ public class ProductVariantModel implements Serializable {
     private int ramGb;
     private int storageGb;
     private String colorName;
-    private String colorHex;
     private String barcode;
     private String sku;
     private int sellingPrice;
@@ -27,8 +26,6 @@ public class ProductVariantModel implements Serializable {
     public void setStorageGb(int storageGb) { this.storageGb = storageGb; }
     public String getColorName() { return colorName; }
     public void setColorName(String colorName) { this.colorName = colorName; }
-    public String getColorHex() { return colorHex; }
-    public void setColorHex(String colorHex) { this.colorHex = colorHex; }
     public String getBarcode() { return barcode; }
     public void setBarcode(String barcode) { this.barcode = barcode; }
     public String getSku() { return sku; }

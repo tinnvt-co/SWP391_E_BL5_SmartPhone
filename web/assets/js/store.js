@@ -129,14 +129,22 @@ document.addEventListener('click',function(event){
 (function(){
     document.querySelectorAll('[data-variant-picker]').forEach(function(picker){
         var selectedMemory=(picker.querySelector('[data-memory].active')||{}).dataset?.memory;
-        var selectedColor=(picker.querySelector('[data-color].active')||{}).dataset?.color;
+        var colorSelect=picker.querySelector('[data-color-select]');
+        var selectedColor=colorSelect?colorSelect.value:undefined;
         var variants=Array.from(picker.querySelectorAll('[data-variant]'));
+        function updateColorOptions(){
+            if(!colorSelect)return;
+            Array.from(colorSelect.options).forEach(function(option){
+                option.disabled=!variants.some(function(item){return item.dataset.memory===selectedMemory&&item.dataset.color===option.value;});
+            });
+        }
         function chooseVariant(){
+            updateColorOptions();
             var variant=variants.find(function(item){return item.dataset.memory===selectedMemory&&item.dataset.color===selectedColor;});
             if(!variant){variant=variants.find(function(item){return item.dataset.memory===selectedMemory;});}
             if(!variant)return;
             selectedColor=variant.dataset.color;
-            picker.querySelectorAll('[data-color]').forEach(function(button){button.classList.toggle('active',button.dataset.color===selectedColor);});
+            if(colorSelect)colorSelect.value=selectedColor;
             var price=picker.querySelector('[data-variant-price]');
             if(price)price.textContent=new Intl.NumberFormat('vi-VN').format(Number(variant.dataset.price))+' đ';
             var image=picker.querySelector('[data-variant-image]');
@@ -154,8 +162,6 @@ document.addEventListener('click',function(event){
             if(frontButton){picker.querySelectorAll('[data-gallery-view]').forEach(function(button){button.classList.toggle('active',button===frontButton);});}
             var galleryCaption=picker.querySelector('[data-gallery-caption]');
             if(galleryCaption)galleryCaption.textContent='Front view';
-            var colorName=picker.querySelector('[data-color-name]');
-            if(colorName)colorName.textContent=selectedColor;
             var stock=Number(variant.dataset.stock||0);
             var stockLabel=picker.querySelector('[data-stock-label]');
             if(stockLabel){stockLabel.textContent=stock>0?'In stock ('+stock+')':'Out of stock';stockLabel.classList.toggle('danger',stock===0);}
@@ -165,7 +171,7 @@ document.addEventListener('click',function(event){
             if(cartButton)cartButton.disabled=stock===0;
         }
         picker.querySelectorAll('[data-memory]').forEach(function(button){button.addEventListener('click',function(){selectedMemory=button.dataset.memory;picker.querySelectorAll('[data-memory]').forEach(function(item){item.classList.toggle('active',item===button);});chooseVariant();});});
-        picker.querySelectorAll('[data-color]').forEach(function(button){button.addEventListener('click',function(){selectedColor=button.dataset.color;chooseVariant();});});
+        if(colorSelect)colorSelect.addEventListener('change',function(){selectedColor=colorSelect.value;chooseVariant();});
         picker.querySelectorAll('[data-gallery-view]').forEach(function(button){button.addEventListener('click',function(){
             var image=picker.querySelector('[data-variant-image]');
             if(image&&button.dataset.galleryImage)image.src=button.dataset.galleryImage;
