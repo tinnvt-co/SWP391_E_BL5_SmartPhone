@@ -5,5 +5,3 @@
 *.iml
 /src/java/mail.properties
 /src/java/db.properties
-
-/src/java/config/DBContext.java
