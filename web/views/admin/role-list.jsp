@@ -191,8 +191,8 @@
 
         <section class="profile-hero">
             <div class="container">
-                <h1>Profile Dashboard</h1>
-                <p>Manage your account, security settings, and administration tools from one place.</p>
+                <h1>Role Management</h1>
+                <p>Manage system roles, permissions, and security access levels.</p>
             </div>
         </section>
 
@@ -255,27 +255,34 @@
                             <table class="table table-hover align-middle">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>ID</th>
-                                        <th>Role Name</th>
-                                        <th>Created At</th>
-                                        <th>Updated At</th>
-                                        <th>Status</th>
+                                        <th class="text-nowrap">Role Name</th>
+                                        <th>Permissions</th>
+                                        <th class="text-nowrap">Created At</th>
+                                        <th class="text-nowrap">Updated At</th>
+                                        <th class="text-nowrap">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <c:forEach items="${roles}" var="r">
                                         <tr>
-                                            <td class="role-id">#${r.id}</td>
-                                            <td>
+                                            <td class="text-nowrap">
                                                 <div class="fw-bold text-dark"><c:out value="${r.name}"/></div>
                                             </td>
-                                            <td class="text-secondary">
+                                            <td>
+                                                <c:forEach items="${r.permissions}" var="p">
+                                                    <span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 me-1 mb-1 fw-semibold"><c:out value="${p}"/></span>
+                                                </c:forEach>
+                                                <c:if test="${empty r.permissions}">
+                                                    <span class="text-muted small fst-italic">No permissions</span>
+                                                </c:if>
+                                            </td>
+                                            <td class="text-secondary text-nowrap">
                                                 <fmt:formatDate value="${r.createdAt}" pattern="dd/MM/yyyy HH:mm"/>
                                             </td>
-                                            <td class="text-secondary">
+                                            <td class="text-secondary text-nowrap">
                                                 <fmt:formatDate value="${r.updatedAt}" pattern="dd/MM/yyyy HH:mm"/>
                                             </td>
-                                            <td>
+                                            <td class="text-nowrap">
                                                 <span class="badge rounded-pill ${r.status == 'ACTIVE' ? 'badge-soft-success' : 'badge-soft-danger'}">
                                                     <c:out value="${r.status}"/>
                                                 </span>

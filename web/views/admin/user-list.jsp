@@ -229,8 +229,8 @@
 
         <section class="profile-hero">
             <div class="container">
-                <h1>Profile Dashboard</h1>
-                <p>Manage your account, security settings, and administration tools from one place.</p>
+                <h1>User Management</h1>
+                <p>Manage system users, reset passwords, and lock/unlock accounts.</p>
             </div>
         </section>
 

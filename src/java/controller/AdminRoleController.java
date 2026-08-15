@@ -13,12 +13,16 @@ import model.Role;
 public class AdminRoleController extends HttpServlet {
 
     private final RoleDAO roleDAO = new RoleDAO();
+    private final DAO.UserDAO userDAO = new DAO.UserDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
             List<Role> roles = roleDAO.findAll();
+            for (Role role : roles) {
+                role.setPermissions(userDAO.findPermissionNamesByRoleId(role.getId()));
+            }
             request.setAttribute("roles", roles);
             request.getRequestDispatcher("/views/admin/role-list.jsp").forward(request, response);
         } catch (SQLException ex) {
