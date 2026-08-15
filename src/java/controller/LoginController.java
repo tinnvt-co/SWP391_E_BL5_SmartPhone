@@ -98,6 +98,8 @@ public class LoginController extends HttpServlet {
                 return "/manager";
             } else if (roleStr.equals("STAFF")) {
                 return "/staff";
+            } else if (roleStr.equals("SHIPPER")) {
+                return "/shipper/orders";
             }
         }
         return "/home?login=success";

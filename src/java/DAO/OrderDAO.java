@@ -104,7 +104,7 @@ public class OrderDAO {
                 + "JOIN `User` u   ON t.UserID = u.ID "
                 + "LEFT JOIN `User` upd ON t.Updated_by = upd.ID "
                 + "LEFT JOIN DeliveryInfo d ON t.DeliveryInfoID = d.ID "
-                + "WHERE t.Status = 'SHIPPING' AND t.Type = 'ORDER' "
+                + "WHERE t.Status IN ('SHIPPING', 'DELIVERED', 'COMPLETED') AND t.Type = 'ORDER' "
                 + "ORDER BY t.Created_at DESC, t.ID DESC";
 
         List<OrderModel> orders = new ArrayList<>();

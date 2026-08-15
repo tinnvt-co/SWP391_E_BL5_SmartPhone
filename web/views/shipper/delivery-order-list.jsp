@@ -273,44 +273,46 @@
                                                 <c:set var="addrLower" value="${fn:toLowerCase(order.deliveryAddress)}" />
                                                 <c:set var="isHanoi" value="${fn:contains(addrLower, 'hà nội') or fn:contains(addrLower, 'ha noi')}" />
                                                 
-                                                <div class="dropdown">
-                                                    <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                        Actions
-                                                    </button>
-                                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                                                        <c:choose>
-                                                            <c:when test="${isHanoi}">
-                                                                <li>
-                                                                    <form action="${pageContext.request.contextPath}/shipper/orders" method="post" class="m-0 p-0">
-                                                                        <input type="hidden" name="action" value="updateStatus">
-                                                                        <input type="hidden" name="orderId" value="${order.id}">
-                                                                        <input type="hidden" name="status" value="DELIVERED">
-                                                                        <button type="submit" class="dropdown-item text-success">
-                                                                            <i class="bi bi-check-circle me-2"></i> Mark as Delivered
+                                                <c:if test="${order.status eq 'SHIPPING'}">
+                                                    <div class="dropdown">
+                                                        <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                            Actions
+                                                        </button>
+                                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                                            <c:choose>
+                                                                <c:when test="${isHanoi}">
+                                                                    <li>
+                                                                        <form action="${pageContext.request.contextPath}/shipper/orders" method="post" class="m-0 p-0">
+                                                                            <input type="hidden" name="action" value="updateStatus">
+                                                                            <input type="hidden" name="orderId" value="${order.id}">
+                                                                            <input type="hidden" name="status" value="DELIVERED">
+                                                                            <button type="submit" class="dropdown-item text-success">
+                                                                                <i class="bi bi-check-circle me-2"></i> Mark as Delivered
+                                                                            </button>
+                                                                        </form>
+                                                                    </li>
+                                                                    <li>
+                                                                        <form action="${pageContext.request.contextPath}/shipper/orders" method="post" class="m-0 p-0">
+                                                                            <input type="hidden" name="action" value="updateStatus">
+                                                                            <input type="hidden" name="orderId" value="${order.id}">
+                                                                            <input type="hidden" name="status" value="COMPLETED">
+                                                                            <button type="submit" class="dropdown-item text-primary">
+                                                                                <i class="bi bi-check2-all me-2"></i> Mark as Completed
+                                                                            </button>
+                                                                        </form>
+                                                                    </li>
+                                                                </c:when>
+                                                                <c:otherwise>
+                                                                    <li>
+                                                                        <button type="button" class="dropdown-item text-warning" data-bs-toggle="modal" data-bs-target="#noteModal${order.id}">
+                                                                            <i class="bi bi-pencil-square me-2"></i> Add Note
                                                                         </button>
-                                                                    </form>
-                                                                </li>
-                                                                <li>
-                                                                    <form action="${pageContext.request.contextPath}/shipper/orders" method="post" class="m-0 p-0">
-                                                                        <input type="hidden" name="action" value="updateStatus">
-                                                                        <input type="hidden" name="orderId" value="${order.id}">
-                                                                        <input type="hidden" name="status" value="COMPLETED">
-                                                                        <button type="submit" class="dropdown-item text-primary">
-                                                                            <i class="bi bi-check2-all me-2"></i> Mark as Completed
-                                                                        </button>
-                                                                    </form>
-                                                                </li>
-                                                            </c:when>
-                                                            <c:otherwise>
-                                                                <li>
-                                                                    <button type="button" class="dropdown-item text-warning" data-bs-toggle="modal" data-bs-target="#noteModal${order.id}">
-                                                                        <i class="bi bi-pencil-square me-2"></i> Add Note
-                                                                    </button>
-                                                                </li>
-                                                            </c:otherwise>
-                                                        </c:choose>
-                                                    </ul>
-                                                </div>
+                                                                    </li>
+                                                                </c:otherwise>
+                                                            </c:choose>
+                                                        </ul>
+                                                    </div>
+                                                </c:if>
                                                 
                                                 <c:if test="${not isHanoi}">
                                                 <!-- Note Modal -->

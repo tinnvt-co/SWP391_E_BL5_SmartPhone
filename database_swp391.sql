@@ -199,6 +199,7 @@ CREATE TABLE `Transaction` (
   `Paid_amount` DECIMAL(12,2) NULL,
   `Change_amount` DECIMAL(12,2) NULL,
   `Method` VARCHAR(255) NOT NULL,
+  `Note` VARCHAR(1000) NULL,
   `Updated_by` INT NOT NULL,
   `Updated_at` TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   `Created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -425,7 +426,8 @@ INSERT INTO `User` (`ID`, `Username`, `Password`, `Name`, `Phone`, `Address`, `I
 (3, 'staff', '123456', 'Order Staff', '0900000003', 'Da Nang', NULL, 25, 'staff@swp.com', 3, 'ACTIVE'),
 (4, 'customer', '123456', 'Demo Customer', '0900000004', 'Thu Duc, Ho Chi Minh City', NULL, 22, 'customer@swp.com', 4, 'ACTIVE'),
 (5, 'shipper', '123456', 'Demo Shipper', '0900000005', 'Binh Thanh, Ho Chi Minh City', NULL, 28, 'shipper@swp.com', 5, 'ACTIVE'),
-(6, 'kimtuyen', '123456', 'Chị Kim Tuyến', '0900000303', 'Quan 7, Ho Chi Minh City', NULL, 29, 'kimtuyen@example.com', 4, 'ACTIVE');
+(6, 'kimtuyen', '123456', 'Chị Kim Tuyến', '0900000303', 'Quan 7, Ho Chi Minh City', NULL, 29, 'kimtuyen@example.com', 4, 'ACTIVE'),
+(7, 'shipper2', '123456', 'Shipper Hanoi', '0900000007', 'Cau Giay, Ha Noi', NULL, 25, 'shipper2@swp.com', 5, 'ACTIVE');
 
 INSERT INTO `Product` (`ID`, `Name`, `Description`, `Release_Year`, `Rating`, `warranty_months`, `CategoryID`, `BrandID`, `Status`) VALUES
 (1, 'iPhone 17 Pro Max', 'iPhone 17 Pro Max genuine smartphone with selectable RAM, storage and colors', 2025, 5, 12, 1, 1, 'ACTIVE'),
@@ -2841,11 +2843,19 @@ INSERT INTO Cart (UserID, ProductVariantID, Amount) VALUES
 INSERT INTO Wishlist (UserID, ProductVariantID) VALUES
 (4, 601), (4, 1201), (6, 1);
 
-INSERT INTO Transaction (ID, UserID, Total_price, Type, Status, SupplierID, Paid_amount, Change_amount, Method, Updated_by, Reference_transactionID) VALUES
-(1, 4, 66380000, 'ORDER', 'PAID', NULL, 66380000, 0, 'BANK_TRANSFER', 3, NULL),
-(2, 6, 34990000, 'ORDER', 'CANCEL_REQUESTED', NULL, 34990000, 0, 'VNPAY', 3, NULL),
-(3, 2, 206340000, 'IMPORT', 'COMPLETED', 1, 206340000, 0, 'BANK_TRANSFER', 2, NULL),
-(4, 6, 34990000, 'REFUND', 'PENDING', NULL, 0, 0, 'ORIGINAL_PAYMENT', 2, 2);
+INSERT INTO DeliveryInfo (ID, UserID, Recipient_name, Recipient_phone, Delivery_address, Status) VALUES
+(1, 4, 'Demo Customer', '0900000004', 'Thu Duc, Ho Chi Minh City', 'ACTIVE'),
+(2, 6, 'Chi Kim Tuyen', '0900000303', 'Quan 7, Ho Chi Minh City', 'ACTIVE'),
+(3, 4, 'Hanoi Customer 1', '0911111111', 'Cau Giay, Ha Noi', 'ACTIVE'),
+(4, 6, 'Hanoi Customer 2', '0922222222', 'Dong Da, Hà Nội', 'ACTIVE');
+
+INSERT INTO Transaction (ID, UserID, Total_price, Type, Status, SupplierID, Paid_amount, Change_amount, Method, Updated_by, Reference_transactionID, DeliveryInfoID) VALUES
+(1, 4, 66380000, 'ORDER', 'SHIPPING', NULL, 66380000, 0, 'BANK_TRANSFER', 3, NULL, 1),
+(2, 6, 34990000, 'ORDER', 'SHIPPING', NULL, 34990000, 0, 'VNPAY', 3, NULL, 2),
+(3, 2, 206340000, 'IMPORT', 'COMPLETED', 1, 206340000, 0, 'BANK_TRANSFER', 2, NULL, NULL),
+(4, 6, 34990000, 'REFUND', 'PENDING', NULL, 0, 0, 'ORIGINAL_PAYMENT', 2, 2, NULL),
+(5, 4, 30000000, 'ORDER', 'SHIPPING', NULL, 30000000, 0, 'COD', 3, NULL, 3),
+(6, 6, 15000000, 'ORDER', 'SHIPPING', NULL, 15000000, 0, 'VNPAY', 3, NULL, 4);
 
 INSERT INTO Transaction_ProductVariant (TransactionID, ProductVariantID, Amount, UnitPrice, Discount_rate, Discount_amount, Total) VALUES
 (1, 1, 1, 34990000, 10, 3499000, 31491000),
@@ -2853,11 +2863,10 @@ INSERT INTO Transaction_ProductVariant (TransactionID, ProductVariantID, Amount,
 (2, 601, 1, 34990000, 5, 1749500, 33240500),
 (3, 1, 5, 34990000, 0, 0, 174950000),
 (3, 49, 1, 31390000, 0, 0, 31390000),
-(4, 601, 1, 34990000, 0, 0, 34990000);
+(4, 601, 1, 34990000, 0, 0, 34990000),
+(5, 1, 1, 30000000, 0, 0, 30000000),
+(6, 49, 1, 15000000, 0, 0, 15000000);
 
-INSERT INTO DeliveryInfo (ID, UserID, Recipient_name, Recipient_phone, Delivery_address, Status) VALUES
-(1, 4, 'Demo Customer', '0900000004', 'Thu Duc, Ho Chi Minh City', 'ACTIVE'),
-(2, 6, 'Chi Kim Tuyen', '0900000303', 'Quan 7, Ho Chi Minh City', 'ACTIVE');
 
 INSERT INTO Feedback (ID, Rating, Content, UserID, ProductVariantID) VALUES
 (1, 5, 'May dep, chay muot, pin tot.', 4, 1),
