@@ -120,7 +120,18 @@ public class GoogleLoginController extends HttpServlet {
             newSession.setAttribute("permissions", permissions);
             newSession.setMaxInactiveInterval(30 * 60);
 
-            response.sendRedirect(request.getContextPath() + "/home?login=google");
+            String destination = "/home?login=google";
+            if (user.getRoleName() != null) {
+                String roleStr = user.getRoleName().toUpperCase();
+                if (roleStr.equals("ADMIN")) {
+                    destination = "/admin/dashboard";
+                } else if (roleStr.equals("MANAGER")) {
+                    destination = "/manager";
+                } else if (roleStr.equals("STAFF")) {
+                    destination = "/staff";
+                }
+            }
+            response.sendRedirect(request.getContextPath() + destination);
         } catch (SQLException e) {
             throw new ServletException(e);
         } catch (InterruptedException e) {
@@ -227,6 +238,7 @@ public class GoogleLoginController extends HttpServlet {
     }
 
     private static final class GoogleConfig {
+
         private final String clientId;
         private final String clientSecret;
 
@@ -241,6 +253,7 @@ public class GoogleLoginController extends HttpServlet {
     }
 
     private static final class GoogleProfile {
+
         private final String email;
         private final String name;
         private final String picture;

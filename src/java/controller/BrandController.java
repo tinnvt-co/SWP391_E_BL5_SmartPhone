@@ -12,6 +12,7 @@ import model.BrandModel;
 
 @WebServlet(name = "BrandController", urlPatterns = {"/manager/brands"})
 public class BrandController extends HttpServlet {
+
     private final BrandDAO brandDAO = new BrandDAO();
 
     @Override

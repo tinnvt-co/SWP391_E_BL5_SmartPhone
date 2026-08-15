@@ -3,11 +3,13 @@ package model;
 import java.sql.Timestamp;
 
 public class Role {
+
     private int id;
     private String name;
     private String status;
     private Timestamp createdAt;
     private Timestamp updatedAt;
+    private java.util.List<String> permissions;
 
     public Role() {
     }
@@ -50,5 +52,13 @@ public class Role {
 
     public void setUpdatedAt(Timestamp updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public java.util.List<String> getPermissions() {
+        return permissions;
+    }
+
+    public void setPermissions(java.util.List<String> permissions) {
+        this.permissions = permissions;
     }
 }

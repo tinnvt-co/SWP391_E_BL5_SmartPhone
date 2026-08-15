@@ -12,6 +12,7 @@ import model.CategoryModel;
 
 @WebServlet(name = "CategoryController", urlPatterns = {"/manager/categories"})
 public class CategoryController extends HttpServlet {
+
     private final CategoryDAO categoryDAO = new CategoryDAO();
 
     @Override

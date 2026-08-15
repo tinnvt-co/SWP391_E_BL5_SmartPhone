@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import model.UserModel;
+import model.Permission;
 
 public class UserDAO {
 
@@ -22,8 +23,7 @@ public class UserDAO {
                 + "WHERE u.Username = ? AND u.Password = ? "
                 + "AND u.Status = 'ACTIVE' AND r.Status = 'ACTIVE'";
 
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, username);
             ps.setString(2, password);
             try (ResultSet rs = ps.executeQuery()) {
@@ -43,8 +43,7 @@ public class UserDAO {
                 + "WHERE u.Email = ? "
                 + "AND u.Status = 'ACTIVE' AND r.Status = 'ACTIVE'";
 
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -63,8 +62,7 @@ public class UserDAO {
                 + "WHERE u.ID = ? "
                 + "AND u.Status = 'ACTIVE' AND r.Status = 'ACTIVE'";
 
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -73,6 +71,23 @@ public class UserDAO {
             }
         }
         return null;
+    }
+
+    public List<UserModel> findActiveShippers() throws SQLException {
+        String sql = "SELECT u.ID, u.Username, u.Name, u.Phone, u.Address, u.Image, u.Age, "
+                + "u.Email, u.RoleID, u.Status, r.Name AS RoleName "
+                + "FROM `User` u "
+                + "JOIN `Role` r ON u.RoleID = r.ID "
+                + "WHERE r.Name = 'SHIPPER' AND u.Status = 'ACTIVE' "
+                + "ORDER BY u.ID ASC";
+
+        List<UserModel> shippers = new ArrayList<>();
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                shippers.add(mapUser(rs));
+            }
+        }
+        return shippers;
     }
 
     public boolean existsByUsername(String username) throws SQLException {
@@ -89,8 +104,7 @@ public class UserDAO {
 
     public boolean existsByPhoneForOtherUser(String phone, int userId) throws SQLException {
         String sql = "SELECT 1 FROM `User` WHERE Phone = ? AND ID <> ?";
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, phone);
             ps.setInt(2, userId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -109,8 +123,7 @@ public class UserDAO {
             conn.setAutoCommit(false);
             try {
                 int nextId;
-                try (PreparedStatement ps = conn.prepareStatement(nextIdSql);
-                     ResultSet rs = ps.executeQuery()) {
+                try (PreparedStatement ps = conn.prepareStatement(nextIdSql); ResultSet rs = ps.executeQuery()) {
                     rs.next();
                     nextId = rs.getInt(1);
                 }
@@ -163,8 +176,7 @@ public class UserDAO {
             conn.setAutoCommit(false);
             try {
                 int nextId;
-                try (PreparedStatement ps = conn.prepareStatement(nextIdSql);
-                     ResultSet rs = ps.executeQuery()) {
+                try (PreparedStatement ps = conn.prepareStatement(nextIdSql); ResultSet rs = ps.executeQuery()) {
                     rs.next();
                     nextId = rs.getInt(1);
                 }
@@ -197,8 +209,7 @@ public class UserDAO {
                 + "SET Name = ?, Phone = ?, Address = ?, Image = ?, Age = ? "
                 + "WHERE ID = ? AND Status = 'ACTIVE'";
 
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, user.getName());
             ps.setString(2, user.getPhone());
             ps.setString(3, user.getAddress());
@@ -218,8 +229,7 @@ public class UserDAO {
         String sql = "SELECT 1 FROM `User` "
                 + "WHERE ID = ? AND Password = ? AND Status = 'ACTIVE'";
 
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
             ps.setString(2, password);
             try (ResultSet rs = ps.executeQuery()) {
@@ -232,8 +242,7 @@ public class UserDAO {
         String sql = "UPDATE `User` SET Password = ? "
                 + "WHERE ID = ? AND Status = 'ACTIVE'";
 
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, newPassword);
             ps.setInt(2, userId);
             return ps.executeUpdate() > 0;
@@ -248,8 +257,7 @@ public class UserDAO {
                 + "ORDER BY p.ID";
 
         List<String> permissions = new ArrayList<>();
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, roleId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -260,6 +268,52 @@ public class UserDAO {
         return permissions;
     }
 
+    public List<Permission> findAllPermissions() throws SQLException {
+        String sql = "SELECT ID, Name FROM Permisson ORDER BY ID";
+        List<Permission> list = new ArrayList<>();
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(new Permission(rs.getInt("ID"), rs.getString("Name")));
+            }
+        }
+        return list;
+    }
+
+    public void updateRolePermissions(int roleId, List<Integer> permissionIds) throws SQLException {
+        String deleteSql = "DELETE FROM Permisson_Role WHERE RoleID = ?";
+        String insertSql = "INSERT INTO Permisson_Role (RoleID, PermissonID) VALUES (?, ?)";
+
+        try (Connection conn = DBContext.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                // First delete existing permissions
+                try (PreparedStatement psDelete = conn.prepareStatement(deleteSql)) {
+                    psDelete.setInt(1, roleId);
+                    psDelete.executeUpdate();
+                }
+
+                // Then insert new permissions
+                if (permissionIds != null && !permissionIds.isEmpty()) {
+                    try (PreparedStatement psInsert = conn.prepareStatement(insertSql)) {
+                        for (Integer permId : permissionIds) {
+                            psInsert.setInt(1, roleId);
+                            psInsert.setInt(2, permId);
+                            psInsert.addBatch();
+                        }
+                        psInsert.executeBatch();
+                    }
+                }
+
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        }
+    }
+
     public List<UserModel> findAll() throws SQLException {
         String sql = "SELECT u.ID, u.Username, u.Name, u.Phone, u.Address, u.Image, u.Age, "
                 + "u.Email, u.RoleID, u.Status, r.Name AS RoleName "
@@ -268,9 +322,7 @@ public class UserDAO {
                 + "ORDER BY u.ID DESC";
 
         List<UserModel> list = new ArrayList<>();
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(mapUser(rs));
             }
@@ -280,8 +332,7 @@ public class UserDAO {
 
     public boolean updateStatus(int userId, String status) throws SQLException {
         String sql = "UPDATE `User` SET Status = ? WHERE ID = ?";
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, status);
             ps.setInt(2, userId);
             return ps.executeUpdate() > 0;
@@ -289,8 +340,7 @@ public class UserDAO {
     }
 
     private boolean exists(String sql, String value) throws SQLException {
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, value);
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next();

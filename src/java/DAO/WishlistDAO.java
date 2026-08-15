@@ -14,8 +14,7 @@ public class WishlistDAO {
     public void addItem(int userId, int productVariantId) throws SQLException {
         ensureVariantExists(productVariantId);
         String sql = "INSERT IGNORE INTO Wishlist (UserID, ProductVariantID) VALUES (?, ?)";
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, userId);
             statement.setInt(2, productVariantId);
             statement.executeUpdate();
@@ -24,8 +23,7 @@ public class WishlistDAO {
 
     public void removeItem(int userId, int productVariantId) throws SQLException {
         String sql = "DELETE FROM Wishlist WHERE UserID = ? AND ProductVariantID = ?";
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, userId);
             statement.setInt(2, productVariantId);
             statement.executeUpdate();
@@ -45,8 +43,7 @@ public class WishlistDAO {
                 + "WHERE w.UserID = ? "
                 + "ORDER BY p.Name, pv.Storage_GB, pv.RAM_GB, pv.ColorName";
 
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, userId);
             List<CartItemModel> items = new ArrayList<>();
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -60,8 +57,7 @@ public class WishlistDAO {
 
     public int countItems(int userId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM Wishlist WHERE UserID = ?";
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, userId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 resultSet.next();
@@ -72,8 +68,7 @@ public class WishlistDAO {
 
     private void ensureVariantExists(int productVariantId) throws SQLException {
         String sql = "SELECT ID FROM ProductVariant WHERE ID = ? AND Status = 'ACTIVE'";
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, productVariantId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (!resultSet.next()) {

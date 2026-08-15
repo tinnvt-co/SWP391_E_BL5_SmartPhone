@@ -10,12 +10,11 @@ import java.util.List;
 import model.Role;
 
 public class RoleDAO {
+
     public List<Role> findAll() throws SQLException {
         String sql = "SELECT * FROM `Role` ORDER BY ID ASC";
         List<Role> list = new ArrayList<>();
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 Role role = new Role();
                 role.setId(rs.getInt("ID"));
@@ -27,5 +26,24 @@ public class RoleDAO {
             }
         }
         return list;
+    }
+
+    public void update(Role role) throws SQLException {
+        String sql = "UPDATE `Role` SET Name = ?, Status = ? WHERE ID = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, role.getName());
+            ps.setString(2, role.getStatus());
+            ps.setInt(3, role.getId());
+            ps.executeUpdate();
+        }
+    }
+
+    public void updateStatus(int roleId, String status) throws SQLException {
+        String sql = "UPDATE `Role` SET Status = ? WHERE ID = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setInt(2, roleId);
+            ps.executeUpdate();
+        }
     }
 }

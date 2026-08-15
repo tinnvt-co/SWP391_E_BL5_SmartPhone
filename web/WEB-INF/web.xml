@@ -153,6 +153,14 @@
         <servlet-name>AdminRoleController</servlet-name>
         <servlet-class>controller.AdminRoleController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>AdminDashboardController</servlet-name>
+        <servlet-class>controller.AdminDashboardController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ShipperOrderController</servlet-name>
+        <servlet-class>controller.ShipperOrderController</servlet-class>
+    </servlet>
 
     <servlet-mapping>
         <servlet-name>HomeController</servlet-name>
@@ -303,6 +311,14 @@
     <servlet-mapping>
         <servlet-name>AdminRoleController</servlet-name>
         <url-pattern>/admin/roles</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AdminDashboardController</servlet-name>
+        <url-pattern>/admin/dashboard</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ShipperOrderController</servlet-name>
+        <url-pattern>/shipper/orders</url-pattern>
     </servlet-mapping>
 
     <welcome-file-list>

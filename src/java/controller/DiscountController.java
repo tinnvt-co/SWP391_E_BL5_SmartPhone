@@ -21,6 +21,7 @@ import model.ProductModel;
 
 @WebServlet(name = "DiscountController", urlPatterns = {"/manager/discounts"})
 public class DiscountController extends HttpServlet {
+
     private final DiscountDAO dao = new DiscountDAO();
     private final ProductDAO productDao = new ProductDAO();
     private static final SimpleDateFormat DT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
@@ -78,7 +79,8 @@ public class DiscountController extends HttpServlet {
             try {
                 Set<Integer> exclude = dao.findLiveOrScheduledProductIds(d.getId() > 0 ? d.getId() : null);
                 req.setAttribute("products", productDao.findAll(null, null, null, null, false, exclude));
-            } catch (SQLException ignored) { }
+            } catch (SQLException ignored) {
+            }
             req.setAttribute("selectedIds", new HashSet<>(d.getProductIds()));
             req.getRequestDispatcher("/views/manager/discount-form.jsp").forward(req, resp);
         }
@@ -98,19 +100,26 @@ public class DiscountController extends HttpServlet {
 
     private List<Integer> parseProductIds(String[] raw) {
         List<Integer> ids = new ArrayList<>();
-        if (raw == null) return ids;
+        if (raw == null) {
+            return ids;
+        }
         Set<Integer> seen = new HashSet<>();
         for (String s : raw) {
             try {
                 int id = Integer.parseInt(s);
-                if (seen.add(id)) ids.add(id);
-            } catch (NumberFormatException ignored) { }
+                if (seen.add(id)) {
+                    ids.add(id);
+                }
+            } catch (NumberFormatException ignored) {
+            }
         }
         return ids;
     }
 
     private Timestamp parseDate(String s) {
-        if (s == null || s.isBlank()) return null;
+        if (s == null || s.isBlank()) {
+            return null;
+        }
         try {
             return new Timestamp(DT.parse(s).getTime());
         } catch (ParseException e) {
@@ -119,12 +128,24 @@ public class DiscountController extends HttpServlet {
     }
 
     private String validate(DiscountModel d) {
-        if (d.getName() == null || d.getName().isBlank()) return "Discount name is required.";
-        if (d.getName().length() > 255) return "Discount name cannot exceed 255 characters.";
-        if (d.getRate() <= 0 || d.getRate() > 100) return "Rate must be between 0 and 100.";
-        if (d.getStart() == null) return "Start date is required.";
-        if (d.getEnd() == null) return "End date is required.";
-        if (d.getEnd().before(d.getStart())) return "End date must be after start date.";
+        if (d.getName() == null || d.getName().isBlank()) {
+            return "Discount name is required.";
+        }
+        if (d.getName().length() > 255) {
+            return "Discount name cannot exceed 255 characters.";
+        }
+        if (d.getRate() <= 0 || d.getRate() > 100) {
+            return "Rate must be between 0 and 100.";
+        }
+        if (d.getStart() == null) {
+            return "Start date is required.";
+        }
+        if (d.getEnd() == null) {
+            return "End date is required.";
+        }
+        if (d.getEnd().before(d.getStart())) {
+            return "End date must be after start date.";
+        }
         return null;
     }
 }

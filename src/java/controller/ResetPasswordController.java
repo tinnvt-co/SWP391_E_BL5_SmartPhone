@@ -79,7 +79,7 @@ public class ResetPasswordController extends HttpServlet {
     }
 
     private void forwardForm(HttpServletRequest request, HttpServletResponse response,
-                             String token, String error)
+            String token, String error)
             throws ServletException, IOException {
         request.setAttribute("token", token);
         request.setAttribute("error", error);

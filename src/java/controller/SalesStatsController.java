@@ -23,6 +23,7 @@ import java.util.List;
 
 @WebServlet(name = "SalesStatsController", urlPatterns = {"/manager/sales-stats"})
 public class SalesStatsController extends HttpServlet {
+
     private final SalesStatsDAO dao = new SalesStatsDAO();
     private static final SimpleDateFormat DATE_FMT = new SimpleDateFormat("yyyy-MM-dd");
     private static final SimpleDateFormat MONTH_FMT = new SimpleDateFormat("MMM yyyy");
@@ -32,7 +33,9 @@ public class SalesStatsController extends HttpServlet {
             throws ServletException, IOException {
         try {
             String range = req.getParameter("range");
-            if (range == null || range.isBlank()) range = "12m";
+            if (range == null || range.isBlank()) {
+                range = "12m";
+            }
 
             int year;
             try {
@@ -69,7 +72,9 @@ public class SalesStatsController extends HttpServlet {
 
             int currentYear = Calendar.getInstance().get(Calendar.YEAR);
             List<Integer> years = new ArrayList<>();
-            for (int y = currentYear; y >= currentYear - 4; y--) years.add(y);
+            for (int y = currentYear; y >= currentYear - 4; y--) {
+                years.add(y);
+            }
 
             req.setAttribute("overview", overview);
             req.setAttribute("avgOrderValue", avgOrderValue);
@@ -102,9 +107,15 @@ public class SalesStatsController extends HttpServlet {
 
         cal.setTime(to);
         switch (range) {
-            case "7":  cal.add(Calendar.DAY_OF_MONTH, -6); break;
-            case "30": cal.add(Calendar.DAY_OF_MONTH, -29); break;
-            case "90": cal.add(Calendar.DAY_OF_MONTH, -89); break;
+            case "7":
+                cal.add(Calendar.DAY_OF_MONTH, -6);
+                break;
+            case "30":
+                cal.add(Calendar.DAY_OF_MONTH, -29);
+                break;
+            case "90":
+                cal.add(Calendar.DAY_OF_MONTH, -89);
+                break;
             case "month":
                 cal.set(Calendar.DAY_OF_MONTH, 1);
                 cal.set(Calendar.HOUR_OF_DAY, 0);
@@ -162,7 +173,9 @@ public class SalesStatsController extends HttpServlet {
     private List<SalesStatsModel> fillMissingDays(List<SalesStatsModel> raw, Date from, Date to) {
         java.util.Map<String, SalesStatsModel> map = new java.util.HashMap<>();
         for (SalesStatsModel r : raw) {
-            if (r.getPeriod() != null) map.put(r.getPeriod(), r);
+            if (r.getPeriod() != null) {
+                map.put(r.getPeriod(), r);
+            }
         }
 
         List<SalesStatsModel> filled = new ArrayList<>();

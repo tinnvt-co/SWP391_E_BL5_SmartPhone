@@ -3,39 +3,135 @@
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order History | SmartPhone store</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css">
-    <style>
-        body { background:#f6f8fb; color:#111827; }
-        .history-shell { padding:42px 0 70px; }
-        .history-panel { background:#fff; border:1px solid rgba(15,23,42,.08); border-radius:8px; box-shadow:0 18px 45px rgba(15,23,42,.08); overflow:hidden; }
-        .history-header { padding:24px; border-bottom:1px solid #eef2f7; display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; }
-        .history-header h1 { margin:0; font-weight:900; }
-        .history-sub { color:#64748b; margin-top:4px; }
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Order History | SmartPhone store</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css">
+        <style>
+            body {
+                background:#f6f8fb;
+                color:#111827;
+            }
+            .history-shell {
+                padding:42px 0 70px;
+            }
+            .history-panel {
+                background:#fff;
+                border:1px solid rgba(15,23,42,.08);
+                border-radius:8px;
+                box-shadow:0 18px 45px rgba(15,23,42,.08);
+                overflow:hidden;
+            }
+            .history-header {
+                padding:24px;
+                border-bottom:1px solid #eef2f7;
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                gap:16px;
+                flex-wrap:wrap;
+            }
+            .history-header h1 {
+                margin:0;
+                font-weight:900;
+            }
+            .history-sub {
+                color:#64748b;
+                margin-top:4px;
+            }
 
-        .history-table { width:100%; border-collapse:collapse; }
-        .history-table th, .history-table td { padding:14px 16px; text-align:left; font-size:.94rem; vertical-align:middle; }
-        .history-table thead th { background:#f8fafc; color:#475569; font-weight:700; font-size:.82rem; text-transform:uppercase; letter-spacing:.4px; border-bottom:1px solid #eef2f7; }
-        .history-table tbody tr { border-bottom:1px solid #eef2f7; }
-        .history-table tbody tr:last-child { border-bottom:none; }
-        .history-code { font-weight:900; color:#0f172a; }
-        .history-total { font-weight:900; color:#b91c1c; }
+            .history-table {
+                width:100%;
+                border-collapse:collapse;
+            }
+            .history-table th, .history-table td {
+                padding:14px 16px;
+                text-align:left;
+                font-size:.94rem;
+                vertical-align:middle;
+            }
+            .history-table thead th {
+                background:#f8fafc;
+                color:#475569;
+                font-weight:700;
+                font-size:.82rem;
+                text-transform:uppercase;
+                letter-spacing:.4px;
+                border-bottom:1px solid #eef2f7;
+            }
+            .history-table tbody tr {
+                border-bottom:1px solid #eef2f7;
+            }
+            .history-table tbody tr:last-child {
+                border-bottom:none;
+            }
+            .history-code {
+                font-weight:900;
+                color:#0f172a;
+            }
+            .history-total {
+                font-weight:900;
+                color:#b91c1c;
+            }
 
-        .status-pill { display:inline-block; padding:4px 10px; border-radius:999px; font-size:.72rem; font-weight:800; letter-spacing:.4px; text-transform:uppercase; border:1px solid transparent; }
-        .status-pill.paid { background:#ecfdf5; color:#15803d; border-color:#bbf7d0; }
-        .status-pill.delivered { background:#e0f2fe; color:#075985; border-color:#bae6fd; }
-        .status-pill.completed { background:#dcfce7; color:#166534; border-color:#86efac; }
-        .status-pill.shipping { background:#fef3c7; color:#92400e; border-color:#fde68a; }
-        .status-pill.processing { background:#ede9fe; color:#5b21b6; border-color:#ddd6fe; }
-        .status-pill.confirmed { background:#dbeafe; color:#1e40af; border-color:#bfdbfe; }
-        .status-pill.pending { background:#fef3c7; color:#92400e; border-color:#fde68a; }
-        .status-pill.cancelled { background:#fee2e2; color:#991b1b; border-color:#fecaca; }
-        .status-pill.cancel_requested { background:#fde68a; color:#92400e; border-color:#fbbf24; }
+            .status-pill {
+                display:inline-block;
+                padding:4px 10px;
+                border-radius:999px;
+                font-size:.72rem;
+                font-weight:800;
+                letter-spacing:.4px;
+                text-transform:uppercase;
+                border:1px solid transparent;
+            }
+            .status-pill.paid {
+                background:#ecfdf5;
+                color:#15803d;
+                border-color:#bbf7d0;
+            }
+            .status-pill.delivered {
+                background:#e0f2fe;
+                color:#075985;
+                border-color:#bae6fd;
+            }
+            .status-pill.completed {
+                background:#dcfce7;
+                color:#166534;
+                border-color:#86efac;
+            }
+            .status-pill.shipping {
+                background:#fef3c7;
+                color:#92400e;
+                border-color:#fde68a;
+            }
+            .status-pill.processing {
+                background:#ede9fe;
+                color:#5b21b6;
+                border-color:#ddd6fe;
+            }
+            .status-pill.confirmed {
+                background:#dbeafe;
+                color:#1e40af;
+                border-color:#bfdbfe;
+            }
+            .status-pill.pending {
+                background:#fef3c7;
+                color:#92400e;
+                border-color:#fde68a;
+            }
+            .status-pill.cancelled {
+                background:#fee2e2;
+                color:#991b1b;
+                border-color:#fecaca;
+            }
+            .status-pill.cancel_requested {
+                background:#fde68a;
+                color:#92400e;
+                border-color:#fbbf24;
+            }
 
         .history-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
         .view-btn, .review-btn { min-height:36px; display:inline-flex; align-items:center; gap:6px; padding:0 14px; border-radius:6px; font-weight:700; font-size:.85rem; text-decoration:none; border:1px solid transparent; cursor:pointer; }
@@ -48,35 +144,67 @@
         .refund-btn:hover { background:#fef2f2; border-color:#f87171; color:#b91c1c; }
         .refund-pending { display:inline-block; padding:4px 10px; border-radius:999px; font-size:.72rem; font-weight:800; letter-spacing:.4px; text-transform:uppercase; border:1px solid #fde68a; background:#fef3c7; color:#92400e; }
 
-        .history-empty { padding:60px 24px; text-align:center; color:#64748b; }
-        .history-empty i { font-size:48px; color:#cbd5e1; display:block; margin-bottom:12px; }
+            .history-empty {
+                padding:60px 24px;
+                text-align:center;
+                color:#64748b;
+            }
+            .history-empty i {
+                font-size:48px;
+                color:#cbd5e1;
+                display:block;
+                margin-bottom:12px;
+            }
 
-        @media(max-width:700px){
-            .history-table thead { display:none; }
-            .history-table, .history-table tbody, .history-table tr, .history-table td { display:block; width:100%; }
-            .history-table tr { padding:14px 16px; border-bottom:1px solid #eef2f7; }
-            .history-table td { padding:6px 0; border:none; }
-            .history-table td::before { content:attr(data-label); display:block; font-size:.72rem; color:#64748b; text-transform:uppercase; letter-spacing:.4px; font-weight:700; margin-bottom:2px; }
-            .history-actions { justify-content:flex-start; margin-top:8px; }
-        }
-    </style>
-</head>
-<body>
-<c:set var="activePage" value="orders" scope="request"/>
-<%@ include file="/views/common/header.jsp" %>
+            @media(max-width:700px){
+                .history-table thead {
+                    display:none;
+                }
+                .history-table, .history-table tbody, .history-table tr, .history-table td {
+                    display:block;
+                    width:100%;
+                }
+                .history-table tr {
+                    padding:14px 16px;
+                    border-bottom:1px solid #eef2f7;
+                }
+                .history-table td {
+                    padding:6px 0;
+                    border:none;
+                }
+                .history-table td::before {
+                    content:attr(data-label);
+                    display:block;
+                    font-size:.72rem;
+                    color:#64748b;
+                    text-transform:uppercase;
+                    letter-spacing:.4px;
+                    font-weight:700;
+                    margin-bottom:2px;
+                }
+                .history-actions {
+                    justify-content:flex-start;
+                    margin-top:8px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <c:set var="activePage" value="orders" scope="request"/>
+        <%@ include file="/views/common/header.jsp" %>
 
-<main class="history-shell">
-    <div class="container">
-        <div class="history-panel">
-            <div class="history-header">
-                <div>
-                    <h1><i class="bi bi-receipt"></i> Order History</h1>
-                    <div class="history-sub">All purchases you have made on this account.</div>
-                </div>
-                <a href="${pageContext.request.contextPath}/products" class="view-btn">
-                    <i class="bi bi-bag"></i> Continue shopping
-                </a>
-            </div>
+        <main class="history-shell">
+            <div class="container">
+                <div class="history-panel">
+                    <div class="history-header">
+                        <div>
+                            <h1><i class="bi bi-receipt"></i> Order History</h1>
+                            <div class="history-sub">All purchases you have made on this account.</div>
+                        </div>
+                        <a href="${pageContext.request.contextPath}/products" class="view-btn">
+                            <i class="bi bi-bag"></i> Continue shopping
+                        </a>
+                    </div>
 
             <c:choose>
                 <c:when test="${empty orders}">
@@ -146,6 +274,6 @@
     </div>
 </main>
 
-<%@ include file="/views/common/footer.jsp" %>
-</body>
+        <%@ include file="/views/common/footer.jsp" %>
+    </body>
 </html>

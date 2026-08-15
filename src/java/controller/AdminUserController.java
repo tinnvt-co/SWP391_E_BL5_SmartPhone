@@ -33,7 +33,7 @@ public class AdminUserController extends HttpServlet {
             throws ServletException, IOException {
         String action = request.getParameter("action");
         String idStr = request.getParameter("id");
-        
+
         if (action != null && idStr != null) {
             try {
                 int id = Integer.parseInt(idStr);

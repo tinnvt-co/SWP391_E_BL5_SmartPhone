@@ -9,7 +9,13 @@
     <div class="top-user"><a class="manager-store-link" href="${pageContext.request.contextPath}/home">View storefront</a><span class="role-pill role-${topbarRole == 'Staff' ? 'staff' : 'manager'}">${topbarRole}</span><span class="avatar">${topbarInitial}</span></div>
 </header>
 <aside class="side-nav">
-    <div class="manager-nav-brand"><span>S</span><div><strong>SmartPhone</strong><small>${topbarBrand}</small></div></div>
+    <div class="manager-nav-brand">
+        <span>S</span>
+        <div>
+            <strong>SmartPhone</strong>
+            <small>${topbarBrand}</small>
+        </div>
+    </div>
 
     <p class="manager-nav-label">OVERVIEW</p>
     <a class="${pageName == 'Dashboard' ? 'active' : ''}" href="${pageContext.request.contextPath}${topbarHome}">

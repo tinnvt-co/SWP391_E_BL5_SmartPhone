@@ -68,7 +68,7 @@ public class ForgotPasswordController extends HttpServlet {
     }
 
     private void forward(HttpServletRequest request, HttpServletResponse response,
-                         String error, String success, String email)
+            String error, String success, String email)
             throws ServletException, IOException {
         request.setAttribute("error", error);
         request.setAttribute("success", success);

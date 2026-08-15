@@ -28,8 +28,7 @@ public class SalesStatsDAO {
                 + "  AND t.Status NOT IN ('PENDING','CANCELLED','CANCEL_REQUESTED') "
                 + "  AND t.Created_at BETWEEN ? AND ?";
 
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setTimestamp(1, from);
             statement.setTimestamp(2, to);
             try (ResultSet rs = statement.executeQuery()) {
@@ -59,8 +58,7 @@ public class SalesStatsDAO {
                 + "GROUP BY DATE(t.Created_at) ORDER BY Day ASC";
 
         List<SalesStatsModel> list = new ArrayList<>();
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setTimestamp(1, from);
             statement.setTimestamp(2, to);
             try (ResultSet rs = statement.executeQuery()) {
@@ -92,8 +90,7 @@ public class SalesStatsDAO {
                 + "GROUP BY DATE_FORMAT(t.Created_at, '%Y-%m') ORDER BY Month ASC";
 
         List<SalesStatsModel> list = new ArrayList<>();
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setTimestamp(1, from);
             statement.setTimestamp(2, to);
             try (ResultSet rs = statement.executeQuery()) {
@@ -129,8 +126,7 @@ public class SalesStatsDAO {
                 + "LIMIT ?";
 
         List<TopProductModel> list = new ArrayList<>();
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setTimestamp(1, from);
             statement.setTimestamp(2, to);
             statement.setInt(3, limit);
@@ -165,8 +161,7 @@ public class SalesStatsDAO {
                 + "GROUP BY HOUR(t.Created_at) ORDER BY Hour ASC";
 
         List<SalesStatsModel> list = new ArrayList<>();
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setTimestamp(1, from);
             statement.setTimestamp(2, to);
             try (ResultSet rs = statement.executeQuery()) {
@@ -195,8 +190,7 @@ public class SalesStatsDAO {
                 + "ORDER BY Revenue DESC";
 
         List<ChannelSlice> list = new ArrayList<>();
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setTimestamp(1, from);
             statement.setTimestamp(2, to);
             try (ResultSet rs = statement.executeQuery()) {
@@ -237,8 +231,7 @@ public class SalesStatsDAO {
                 + "LIMIT ?";
 
         List<TopBrandModel> list = new ArrayList<>();
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setTimestamp(1, from);
             statement.setTimestamp(2, to);
             statement.setInt(3, limit);

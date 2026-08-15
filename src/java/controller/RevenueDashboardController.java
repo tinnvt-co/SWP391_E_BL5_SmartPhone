@@ -24,6 +24,7 @@ import java.util.List;
 
 @WebServlet(name = "RevenueDashboardController", urlPatterns = {"/manager/revenue"})
 public class RevenueDashboardController extends HttpServlet {
+
     private final SalesStatsDAO dao = new SalesStatsDAO();
     private static final SimpleDateFormat DATE_FMT = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -119,7 +120,8 @@ public class RevenueDashboardController extends HttpServlet {
         for (SalesStatsModel r : hourly) {
             try {
                 map.put(Integer.parseInt(r.getPeriod()), r.getRevenue() != null ? r.getRevenue() : BigDecimal.ZERO);
-            } catch (NumberFormatException ignored) {}
+            } catch (NumberFormatException ignored) {
+            }
         }
         List<SalesStatsModel> hours = new ArrayList<>();
         for (int h = 0; h < 24; h++) {

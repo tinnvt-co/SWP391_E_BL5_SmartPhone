@@ -10,6 +10,7 @@ import java.util.List;
 import model.CategoryModel;
 
 public class CategoryDAO {
+
     public List<CategoryModel> findAll(boolean activeOnly) throws SQLException {
         String sql = "SELECT c.ID, c.Name, c.Description, c.Status, "
                 + "COUNT(p.ID) AS ProductCount "
@@ -18,9 +19,7 @@ public class CategoryDAO {
                 + "GROUP BY c.ID, c.Name, c.Description, c.Status ORDER BY c.ID";
 
         List<CategoryModel> categories = new ArrayList<>();
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet resultSet = statement.executeQuery()) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql); ResultSet resultSet = statement.executeQuery()) {
 
             while (resultSet.next()) {
                 CategoryModel category = new CategoryModel(
@@ -40,8 +39,7 @@ public class CategoryDAO {
         String sql = "SELECT ID, Name, Description, Status "
                 + "FROM Category WHERE ID = ?";
 
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, id);
 
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -65,8 +63,7 @@ public class CategoryDAO {
                 ? "INSERT INTO Category(Name, Description, Status) VALUES(?, ?, ?)"
                 : "UPDATE Category SET Name = ?, Description = ?, Status = ? WHERE ID = ?";
 
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, category.getName());
             statement.setString(2, category.getDescription());
             statement.setString(3, category.isActive() ? "ACTIVE" : "INACTIVE");
@@ -79,8 +76,7 @@ public class CategoryDAO {
 
     public void deactivate(int id) throws SQLException {
         String sql = "UPDATE Category SET Status = 'INACTIVE' WHERE ID = ?";
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, id);
             statement.executeUpdate();
         }

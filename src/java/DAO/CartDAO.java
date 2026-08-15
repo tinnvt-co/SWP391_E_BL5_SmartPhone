@@ -24,8 +24,7 @@ public class CartDAO {
                 + "VALUES (?, ?, ?) "
                 + "ON DUPLICATE KEY UPDATE Amount = LEAST(Amount + VALUES(Amount), ?)";
 
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, userId);
             statement.setInt(2, productVariantId);
             statement.setInt(3, finalAmount);
@@ -43,8 +42,7 @@ public class CartDAO {
 
         int stock = findStock(productVariantId);
         String sql = "UPDATE Cart SET Amount = ? WHERE UserID = ? AND ProductVariantID = ?";
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, Math.min(amount, Math.max(stock, 1)));
             statement.setInt(2, userId);
             statement.setInt(3, productVariantId);
@@ -54,8 +52,7 @@ public class CartDAO {
 
     public void removeItem(int userId, int productVariantId) throws SQLException {
         String sql = "DELETE FROM Cart WHERE UserID = ? AND ProductVariantID = ?";
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, userId);
             statement.setInt(2, productVariantId);
             statement.executeUpdate();
@@ -79,8 +76,7 @@ public class CartDAO {
                 + "WHERE c.UserID = ? "
                 + "ORDER BY p.Name, pv.Storage_GB, pv.RAM_GB, pv.ColorName";
 
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, userId);
             List<CartItemModel> items = new ArrayList<>();
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -94,8 +90,7 @@ public class CartDAO {
 
     public int countItems(int userId) throws SQLException {
         String sql = "SELECT COALESCE(SUM(Amount), 0) FROM Cart WHERE UserID = ?";
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, userId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 resultSet.next();
@@ -110,8 +105,7 @@ public class CartDAO {
                 + "LEFT JOIN Inventory i ON i.ProductVariantID = pv.ID "
                 + "WHERE pv.ID = ? AND pv.Status = 'ACTIVE'";
 
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, productVariantId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (!resultSet.next()) {

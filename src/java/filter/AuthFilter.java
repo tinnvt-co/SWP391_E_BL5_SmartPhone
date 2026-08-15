@@ -84,7 +84,8 @@ public class AuthFilter implements Filter {
     );
 
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {}
+    public void init(FilterConfig filterConfig) throws ServletException {
+    }
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain)
@@ -127,7 +128,8 @@ public class AuthFilter implements Filter {
     }
 
     @Override
-    public void destroy() {}
+    public void destroy() {
+    }
 
     private boolean isPublic(String path) {
         if (path == null) {
@@ -211,6 +213,7 @@ public class AuthFilter implements Filter {
     }
 
     private static final class AccessRule {
+
         private final String pathPrefix;
         private final List<String> roles;
 

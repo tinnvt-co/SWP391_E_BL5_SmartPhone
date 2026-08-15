@@ -36,6 +36,14 @@
                     <li>
                         <a class="swp-layout-link" href="${pageContext.request.contextPath}/home#services">Services</a>
                     </li>
+                    <c:if test="${currentRole == 'Admin'}">
+                        <li>
+                            <a class="swp-layout-link ${activePage == 'users' ? 'is-active' : ''}" href="${pageContext.request.contextPath}/admin/users">Users</a>
+                        </li>
+                        <li>
+                            <a class="swp-layout-link ${activePage == 'roles' ? 'is-active' : ''}" href="${pageContext.request.contextPath}/admin/roles">Roles</a>
+                        </li>
+                    </c:if>
                 </ul>
 
                 <div class="swp-layout-actions">

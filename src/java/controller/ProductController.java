@@ -17,6 +17,7 @@ import model.FeedbackWithReplies;
 import model.ProductModel;
 
 public class ProductController extends HttpServlet {
+
     private static final int MAX_SEARCH_LENGTH = 100;
     private static final int PAGE_SIZE = 12;
     private static final Set<String> VALID_SORTS = Set.of(
@@ -25,9 +26,6 @@ public class ProductController extends HttpServlet {
     private final BrandDAO brandDAO = new BrandDAO();
     private final CategoryDAO categoryDAO = new CategoryDAO();
     private final FeedbackDAO feedbackDAO = new FeedbackDAO();
-
-
-
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)

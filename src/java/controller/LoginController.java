@@ -78,8 +78,8 @@ public class LoginController extends HttpServlet {
     }
 
     private void forwardWithError(HttpServletRequest request, HttpServletResponse response,
-                                  String username, String remember, String redirect,
-                                  String requiredRole, String error)
+            String username, String remember, String redirect,
+            String requiredRole, String error)
             throws ServletException, IOException {
         request.setAttribute("error", error);
         request.setAttribute("username", username);
@@ -90,6 +90,18 @@ public class LoginController extends HttpServlet {
     }
 
     private String defaultPage(Object role) {
+        if (role != null) {
+            String roleStr = role.toString().toUpperCase();
+            if (roleStr.equals("ADMIN")) {
+                return "/admin/dashboard";
+            } else if (roleStr.equals("MANAGER")) {
+                return "/manager";
+            } else if (roleStr.equals("STAFF")) {
+                return "/staff";
+            } else if (roleStr.equals("SHIPPER")) {
+                return "/shipper/orders";
+            }
+        }
         return "/home?login=success";
     }
 
