@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import model.UserModel;
+import model.Permission;
 
 public class UserDAO {
 
@@ -248,6 +249,52 @@ public class UserDAO {
             }
         }
         return permissions;
+    }
+
+    public List<Permission> findAllPermissions() throws SQLException {
+        String sql = "SELECT ID, Name FROM Permisson ORDER BY ID";
+        List<Permission> list = new ArrayList<>();
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(new Permission(rs.getInt("ID"), rs.getString("Name")));
+            }
+        }
+        return list;
+    }
+
+    public void updateRolePermissions(int roleId, List<Integer> permissionIds) throws SQLException {
+        String deleteSql = "DELETE FROM Permisson_Role WHERE RoleID = ?";
+        String insertSql = "INSERT INTO Permisson_Role (RoleID, PermissonID) VALUES (?, ?)";
+
+        try (Connection conn = DBContext.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                // First delete existing permissions
+                try (PreparedStatement psDelete = conn.prepareStatement(deleteSql)) {
+                    psDelete.setInt(1, roleId);
+                    psDelete.executeUpdate();
+                }
+
+                // Then insert new permissions
+                if (permissionIds != null && !permissionIds.isEmpty()) {
+                    try (PreparedStatement psInsert = conn.prepareStatement(insertSql)) {
+                        for (Integer permId : permissionIds) {
+                            psInsert.setInt(1, roleId);
+                            psInsert.setInt(2, permId);
+                            psInsert.addBatch();
+                        }
+                        psInsert.executeBatch();
+                    }
+                }
+
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        }
     }
 
     public List<UserModel> findAll() throws SQLException {

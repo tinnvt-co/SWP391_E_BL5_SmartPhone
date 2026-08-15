@@ -249,6 +249,15 @@
                                 <h2 class="h4 fw-bold mb-1">Role Management</h2>
                                 <p class="text-muted mb-0">${roles.size()} roles found</p>
                             </div>
+                            
+                            <c:if test="${not empty message}">
+                                <div class="alert alert-success py-2 mb-0"><i class="bi bi-check-circle me-2"></i>${message}</div>
+                                <c:remove var="message" scope="session"/>
+                            </c:if>
+                            <c:if test="${not empty error}">
+                                <div class="alert alert-danger py-2 mb-0"><i class="bi bi-exclamation-circle me-2"></i>${error}</div>
+                                <c:remove var="error" scope="session"/>
+                            </c:if>
                         </div>
 
                         <div class="table-panel table-responsive">
@@ -260,6 +269,7 @@
                                         <th class="text-nowrap">Created At</th>
                                         <th class="text-nowrap">Updated At</th>
                                         <th class="text-nowrap">Status</th>
+                                        <th class="text-end text-nowrap">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -287,11 +297,21 @@
                                                     <c:out value="${r.status}"/>
                                                 </span>
                                             </td>
+                                            <td class="text-end text-nowrap">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                        onclick="openPermissionModal(${r.id}, '${r.name}', [
+                                                        <c:forEach items="${r.permissions}" var="p" varStatus="loop">
+                                                            '${p}'${!loop.last ? ',' : ''}
+                                                        </c:forEach>
+                                                        ])">
+                                                    <i class="bi bi-pencil-square"></i> Edit
+                                                </button>
+                                            </td>
                                         </tr>
                                     </c:forEach>
                                     <c:if test="${empty roles}">
                                         <tr>
-                                            <td colspan="5" class="text-center py-4 text-muted">No roles found.</td>
+                                            <td colspan="6" class="text-center py-4 text-muted">No roles found.</td>
                                         </tr>
                                     </c:if>
                                 </tbody>
@@ -303,6 +323,66 @@
         </main>
 
         <%@ include file="/views/common/footer.jsp" %>
+
+        <!-- Update Permission Modal -->
+        <div class="modal fade" id="permissionModal" tabindex="-1" aria-labelledby="permissionModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header bg-light">
+                        <h5 class="modal-title fw-bold" id="permissionModalLabel">Update Permissions: <span id="modalRoleName" class="text-primary"></span></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form action="${pageContext.request.contextPath}/admin/roles" method="post">
+                        <div class="modal-body">
+                            <input type="hidden" name="action" value="updatePermissions">
+                            <input type="hidden" name="roleId" id="modalRoleId" value="">
+                            
+                            <p class="text-muted mb-3">Select the permissions you want to grant to this role:</p>
+                            
+                            <div class="row g-3">
+                                <c:forEach items="${allPermissions}" var="perm">
+                                    <div class="col-md-4 col-sm-6">
+                                        <div class="form-check custom-checkbox">
+                                            <input class="form-check-input perm-checkbox" type="checkbox" name="permissions" value="${perm.id}" id="perm_${perm.id}" data-name="${perm.name}">
+                                            <label class="form-check-label user-select-none" for="perm_${perm.id}">
+                                                <c:out value="${perm.name}"/>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </c:forEach>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            function openPermissionModal(roleId, roleName, permissions) {
+                document.getElementById('modalRoleId').value = roleId;
+                document.getElementById('modalRoleName').textContent = roleName;
+                
+                // Uncheck all first
+                const checkboxes = document.querySelectorAll('.perm-checkbox');
+                checkboxes.forEach(cb => cb.checked = false);
+                
+                // Check the ones that match the role's current permissions
+                checkboxes.forEach(cb => {
+                    const permName = cb.getAttribute('data-name');
+                    if (permissions.includes(permName)) {
+                        cb.checked = true;
+                    }
+                });
+                
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('permissionModal'));
+                modal.show();
+            }
+        </script>
     </body>
 </html>

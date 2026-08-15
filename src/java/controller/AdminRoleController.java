@@ -24,9 +24,38 @@ public class AdminRoleController extends HttpServlet {
                 role.setPermissions(userDAO.findPermissionNamesByRoleId(role.getId()));
             }
             request.setAttribute("roles", roles);
+            
+            // Fetch all permissions for the edit modal
+            java.util.List<model.Permission> allPermissions = userDAO.findAllPermissions();
+            request.setAttribute("allPermissions", allPermissions);
+            
             request.getRequestDispatcher("/views/admin/role-list.jsp").forward(request, response);
         } catch (SQLException ex) {
             throw new ServletException(ex);
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String action = request.getParameter("action");
+        if ("updatePermissions".equals(action)) {
+            try {
+                int roleId = Integer.parseInt(request.getParameter("roleId"));
+                String[] permStrs = request.getParameterValues("permissions");
+                java.util.List<Integer> permissionIds = new java.util.ArrayList<>();
+                if (permStrs != null) {
+                    for (String p : permStrs) {
+                        permissionIds.add(Integer.parseInt(p));
+                    }
+                }
+                userDAO.updateRolePermissions(roleId, permissionIds);
+                request.getSession().setAttribute("message", "Role permissions updated successfully.");
+                response.sendRedirect(request.getContextPath() + "/admin/roles");
+            } catch (Exception ex) {
+                request.getSession().setAttribute("error", "Error updating permissions: " + ex.getMessage());
+                response.sendRedirect(request.getContextPath() + "/admin/roles");
+            }
         }
     }
 }
