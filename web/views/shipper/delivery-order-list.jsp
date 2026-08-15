@@ -243,19 +243,16 @@
                             <table class="table table-hover align-middle">
                                 <thead class="table-light">
                                     <tr>
-                                        <th class="text-nowrap">Order ID</th>
                                         <th class="text-nowrap">Customer Info</th>
                                         <th class="text-nowrap">Total Price</th>
                                         <th class="text-nowrap">Status</th>
+                                        <th class="text-nowrap">Note</th>
                                         <th class="text-end text-nowrap">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <c:forEach items="${orders}" var="order">
                                         <tr>
-                                            <td class="text-nowrap fw-bold text-dark">
-                                                #${order.id}
-                                            </td>
                                             <td>
                                                 <div class="fw-bold">${empty order.recipientName ? order.userName : order.recipientName}</div>
                                                 <div class="text-muted small"><i class="bi bi-telephone-fill me-1"></i>${empty order.recipientPhone ? order.userPhone : order.recipientPhone}</div>
@@ -268,6 +265,11 @@
                                                 <span class="badge rounded-pill badge-soft-warning">
                                                     <c:out value="${order.status}"/>
                                                 </span>
+                                            </td>
+                                            <td>
+                                                <div class="text-muted small text-wrap" style="max-width: 150px;">
+                                                    <c:out value="${empty order.note ? '' : order.note}"/>
+                                                </div>
                                             </td>
                                             <td class="text-end text-nowrap">
                                                 <c:set var="addrLower" value="${fn:toLowerCase(order.deliveryAddress)}" />

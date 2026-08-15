@@ -31,6 +31,7 @@ public class OrderModel implements Serializable {
     private String recipientPhone;
     private String deliveryAddress;
     private int itemCount;
+    private String note;
     private List<OrderItemModel> items = new ArrayList<>();
 
     public OrderModel() {
@@ -233,6 +234,14 @@ public class OrderModel implements Serializable {
     }
 
     public void setShippingFee(BigDecimal shippingFee) {
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
     }
 
     public String getCode() {

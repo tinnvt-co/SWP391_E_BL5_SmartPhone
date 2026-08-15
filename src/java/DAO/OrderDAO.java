@@ -31,7 +31,7 @@ public class OrderDAO {
         StringBuilder sql = new StringBuilder()
                 .append("SELECT t.ID, t.UserID, t.Total_price, t.Type, t.Status, ")
                 .append("       t.Paid_amount, t.Change_amount, t.Method, ")
-                .append("       t.Updated_by, t.Updated_at, t.Created_at, ")
+                .append("       t.Updated_by, t.Updated_at, t.Created_at, t.Note, ")
                 .append("       t.Reference_transactionID, t.DeliveryInfoID, ")
                 .append("       u.Username, u.Name AS UserName, u.Phone, u.Email, ")
                 .append("       upd.Name AS UpdatedByName, ")
@@ -94,7 +94,7 @@ public class OrderDAO {
     public List<OrderModel> findShippingOrders() throws SQLException {
         String sql = "SELECT t.ID, t.UserID, t.Total_price, t.Type, t.Status, "
                 + "       t.Paid_amount, t.Change_amount, t.Method, "
-                + "       t.Updated_by, t.Updated_at, t.Created_at, "
+                + "       t.Updated_by, t.Updated_at, t.Created_at, t.Note, "
                 + "       t.Reference_transactionID, t.DeliveryInfoID, "
                 + "       u.Username, u.Name AS UserName, u.Phone, u.Email, "
                 + "       upd.Name AS UpdatedByName, "
@@ -121,7 +121,7 @@ public class OrderDAO {
     public OrderModel findOrderDetail(int id) throws SQLException {
         String sql = "SELECT t.ID, t.UserID, t.Total_price, t.Type, t.Status, "
                 + "       t.Paid_amount, t.Change_amount, t.Method, "
-                + "       t.Updated_by, t.Updated_at, t.Created_at, "
+                + "       t.Updated_by, t.Updated_at, t.Created_at, t.Note, "
                 + "       t.Reference_transactionID, t.DeliveryInfoID, "
                 + "       u.Username, u.Name AS UserName, u.Phone, u.Email, "
                 + "       upd.Name AS UpdatedByName, "
@@ -260,7 +260,7 @@ public class OrderDAO {
     public List<OrderModel> findByUserId(int userId) throws SQLException {
         String sql = "SELECT t.ID, t.UserID, t.Total_price, t.Type, t.Status, "
                 + "       t.Paid_amount, t.Change_amount, t.Method, "
-                + "       t.Updated_by, t.Updated_at, t.Created_at, "
+                + "       t.Updated_by, t.Updated_at, t.Created_at, t.Note, "
                 + "       t.Reference_transactionID, t.DeliveryInfoID, "
                 + "       u.Username, u.Name AS UserName, u.Phone, u.Email, "
                 + "       upd.Name AS UpdatedByName, "
@@ -325,6 +325,7 @@ public class OrderDAO {
         order.setCreatedAt(createdAt);
         int referenceId = rs.getInt("Reference_transactionID");
         order.setReferenceTransactionId(rs.wasNull() ? null : referenceId);
+        order.setNote(rs.getString("Note"));
         int deliveryId = rs.getInt("DeliveryInfoID");
         order.setDeliveryInfoId(rs.wasNull() ? null : deliveryId);
         order.setItemCount(rs.getInt("ItemCount"));
