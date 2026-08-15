@@ -90,6 +90,16 @@ public class LoginController extends HttpServlet {
     }
 
     private String defaultPage(Object role) {
+        if (role != null) {
+            String roleStr = role.toString().toUpperCase();
+            if (roleStr.equals("ADMIN")) {
+                return "/admin/dashboard";
+            } else if (roleStr.equals("MANAGER")) {
+                return "/manager";
+            } else if (roleStr.equals("STAFF")) {
+                return "/staff";
+            }
+        }
         return "/home?login=success";
     }
 

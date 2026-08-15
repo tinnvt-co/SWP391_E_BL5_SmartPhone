@@ -1,13 +1,12 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
-<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Roles | SmartPhone store</title>
+        <title>Admin Dashboard | SmartPhone store</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css">
@@ -126,52 +125,57 @@
                 padding: 24px;
             }
 
-            .table-panel {
-                margin-top: 18px;
-                overflow: hidden;
-                border: 1px solid rgba(15, 23, 42, 0.08);
-                border-radius: 8px;
-                background: #fff;
-            }
-
-            .table {
-                margin-bottom: 0;
-            }
-
-            .table > :not(caption) > * > * {
-                padding: 1rem 1.15rem;
-                border-bottom-color: #eef2f7;
-            }
-
-            .table-light th {
+            .stat-card {
                 background: #f8fafc;
-                color: #64748b;
-                font-size: 0.75rem;
-                font-weight: 800;
-                letter-spacing: 0.07em;
-                text-transform: uppercase;
+                border-radius: 12px;
+                padding: 24px;
+                display: flex;
+                align-items: center;
+                gap: 20px;
+                border: 1px solid rgba(15, 23, 42, 0.05);
+                transition: transform 0.2s, box-shadow 0.2s;
             }
 
-            .role-id {
-                color: #64748b;
-                font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            .stat-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 25px rgba(15, 23, 42, 0.05);
+            }
+
+            .stat-icon {
+                width: 64px;
+                height: 64px;
+                border-radius: 16px;
+                display: grid;
+                place-items: center;
+                font-size: 2rem;
+                flex-shrink: 0;
+            }
+
+            .stat-icon-blue {
+                background: #eff6ff;
+                color: #3b82f6;
+            }
+
+            .stat-icon-purple {
+                background: #f5f3ff;
+                color: #8b5cf6;
+            }
+
+            .stat-info h3 {
                 font-size: 0.9rem;
+                color: #64748b;
+                margin: 0 0 5px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
             }
 
-            .badge-soft-success {
-                background: #ecfdf5;
-                color: #10b981;
-            }
-
-            .badge-soft-danger {
-                background: #fef2f2;
-                color: #ef4444;
-            }
-
-            .badge-soft-success,
-            .badge-soft-danger {
-                font-weight: 800;
-                padding: 0.42em 0.75em;
+            .stat-info p {
+                font-size: 2.2rem;
+                font-weight: 900;
+                color: #0f172a;
+                margin: 0;
+                line-height: 1;
             }
 
             @media (max-width: 991.98px) {
@@ -191,8 +195,8 @@
 
         <section class="profile-hero">
             <div class="container">
-                <h1>Profile Dashboard</h1>
-                <p>Manage your account, security settings, and administration tools from one place.</p>
+                <h1>Admin Dashboard</h1>
+                <p>Welcome back, Administrator. Here's an overview of the system.</p>
             </div>
         </section>
 
@@ -225,13 +229,13 @@
                             <a href="${pageContext.request.contextPath}/profile">
                                 <i class="bi bi-person"></i> My Profile
                             </a>
-                            <a href="${pageContext.request.contextPath}/admin/dashboard">
+                            <a class="active" href="${pageContext.request.contextPath}/admin/dashboard">
                                 <i class="bi bi-speedometer2"></i> Dashboard
                             </a>
                             <a href="${pageContext.request.contextPath}/admin/users">
                                 <i class="bi bi-people"></i> User Management
                             </a>
-                            <a class="active" href="${pageContext.request.contextPath}/admin/roles">
+                            <a href="${pageContext.request.contextPath}/admin/roles">
                                 <i class="bi bi-shield-lock"></i> Roles
                             </a>
                             <a href="${pageContext.request.contextPath}/change-password">
@@ -244,51 +248,55 @@
                     </aside>
 
                     <section class="panel content-panel">
-                        <div class="d-flex align-items-end justify-content-between gap-3 flex-wrap">
-                            <div>
-                                <h2 class="h4 fw-bold mb-1">Role Management</h2>
-                                <p class="text-muted mb-0">${roles.size()} roles found</p>
+                        <h2 class="h4 fw-bold mb-4">System Overview</h2>
+                        
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <div class="stat-card">
+                                    <div class="stat-icon stat-icon-blue">
+                                        <i class="bi bi-people-fill"></i>
+                                    </div>
+                                    <div class="stat-info">
+                                        <h3>Total Users</h3>
+                                        <p>${totalUsers}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="stat-card">
+                                    <div class="stat-icon stat-icon-purple">
+                                        <i class="bi bi-shield-lock-fill"></i>
+                                    </div>
+                                    <div class="stat-info">
+                                        <h3>Total Roles</h3>
+                                        <p>${totalRoles}</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="table-panel table-responsive">
-                            <table class="table table-hover align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Role Name</th>
-                                        <th>Created At</th>
-                                        <th>Updated At</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <c:forEach items="${roles}" var="r">
-                                        <tr>
-                                            <td class="role-id">#${r.id}</td>
-                                            <td>
-                                                <div class="fw-bold text-dark"><c:out value="${r.name}"/></div>
-                                            </td>
-                                            <td class="text-secondary">
-                                                <fmt:formatDate value="${r.createdAt}" pattern="dd/MM/yyyy HH:mm"/>
-                                            </td>
-                                            <td class="text-secondary">
-                                                <fmt:formatDate value="${r.updatedAt}" pattern="dd/MM/yyyy HH:mm"/>
-                                            </td>
-                                            <td>
-                                                <span class="badge rounded-pill ${r.status == 'ACTIVE' ? 'badge-soft-success' : 'badge-soft-danger'}">
-                                                    <c:out value="${r.status}"/>
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    </c:forEach>
-                                    <c:if test="${empty roles}">
-                                        <tr>
-                                            <td colspan="5" class="text-center py-4 text-muted">No roles found.</td>
-                                        </tr>
-                                    </c:if>
-                                </tbody>
-                            </table>
+                        <!-- Charts Section -->
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <div class="panel p-4 h-100">
+                                    <h4 class="h5 fw-bold mb-4 text-center">Users by Role</h4>
+                                    <canvas id="roleChart" style="max-height: 300px;"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="panel p-4 h-100">
+                                    <h4 class="h5 fw-bold mb-4 text-center">Users by Status</h4>
+                                    <canvas id="statusChart" style="max-height: 300px;"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info border-0 bg-opacity-10 shadow-none d-flex align-items-center gap-3">
+                            <i class="bi bi-info-circle-fill fs-4 text-info"></i>
+                            <div>
+                                <h5 class="alert-heading fw-bold mb-1">Quick Actions</h5>
+                                <p class="mb-0">Use the sidebar to manage users, assign roles, or update your account details.</p>
+                            </div>
                         </div>
                     </section>
                 </div>
@@ -297,5 +305,66 @@
 
         <%@ include file="/views/common/footer.jsp" %>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Parse the data passed from the Controller
+                const roleLabels = ${roleLabels};
+                const roleData = ${roleData};
+                
+                const statusLabels = ${statusLabels};
+                const statusData = ${statusData};
+
+                // Chart colors
+                const roleColors = ['#3b82f6', '#8b5cf6', '#ef4444', '#10b981', '#f59e0b', '#64748b'];
+                const statusColors = ['#10b981', '#ef4444'];
+
+                // 1. Users by Role Pie Chart
+                const roleCtx = document.getElementById('roleChart').getContext('2d');
+                new Chart(roleCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: roleLabels,
+                        datasets: [{
+                            data: roleData,
+                            backgroundColor: roleColors,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+
+                // 2. Users by Status Doughnut Chart
+                const statusCtx = document.getElementById('statusChart').getContext('2d');
+                new Chart(statusCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: statusLabels,
+                        datasets: [{
+                            data: statusData,
+                            backgroundColor: statusColors,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            });
+        </script>
     </body>
 </html>
