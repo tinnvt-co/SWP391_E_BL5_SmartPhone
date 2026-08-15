@@ -44,6 +44,10 @@
         .review-btn { background:#16a34a; color:#fff; border-color:#16a34a; }
         .review-btn:hover { background:#15803d; border-color:#15803d; color:#fff; }
 
+        .refund-btn { min-height:36px; display:inline-flex; align-items:center; gap:6px; padding:0 14px; border-radius:6px; font-weight:700; font-size:.85rem; text-decoration:none; border:1px solid transparent; cursor:pointer; background:#fff; color:#b91c1c; border-color:#fecaca; }
+        .refund-btn:hover { background:#fef2f2; border-color:#f87171; color:#b91c1c; }
+        .refund-pending { display:inline-block; padding:4px 10px; border-radius:999px; font-size:.72rem; font-weight:800; letter-spacing:.4px; text-transform:uppercase; border:1px solid #fde68a; background:#fef3c7; color:#92400e; }
+
         .history-empty { padding:60px 24px; text-align:center; color:#64748b; }
         .history-empty i { font-size:48px; color:#cbd5e1; display:block; margin-bottom:12px; }
 
@@ -115,11 +119,21 @@
                                             <a class="view-btn" href="${pageContext.request.contextPath}/order-detail?id=${o.id}">
                                                 <i class="bi bi-eye"></i> View
                                             </a>
-                                            <c:if test="${o.status == 'DELIVERED' || o.status == 'COMPLETED'}">
+                                            <c:if test="${(o.status == 'DELIVERED' || o.status == 'COMPLETED') && !o.hasBlockingRefund}">
                                                 <a class="review-btn" href="${pageContext.request.contextPath}/feedback?orderId=${o.id}">
                                                     <i class="bi bi-star"></i> Review
                                                 </a>
                                             </c:if>
+                                            <c:choose>
+                                                <c:when test="${o.status == 'DELIVERED' && !o.hasOpenRefund}">
+                                                    <a class="refund-btn" href="${pageContext.request.contextPath}/return-request?orderId=${o.id}">
+                                                        <i class="bi bi-arrow-counterclockwise"></i> Refund
+                                                    </a>
+                                                </c:when>
+                                                <c:when test="${o.status == 'DELIVERED' && o.hasOpenRefund}">
+                                                    <span class="refund-pending"><i class="bi bi-clock-history"></i> Refund pending</span>
+                                                </c:when>
+                                            </c:choose>
                                         </div>
                                     </td>
                                 </tr>

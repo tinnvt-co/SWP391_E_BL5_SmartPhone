@@ -6,6 +6,7 @@ import DAO.DiscountDAO;
 import DAO.InventoryDAO;
 import DAO.OrderDAO;
 import DAO.ProductDAO;
+import DAO.ReturnRequestDAO;
 import DAO.SalesStatsDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -35,6 +36,7 @@ public class ManagerDashboardController extends HttpServlet {
     private final DiscountDAO discountDAO = new DiscountDAO();
     private final OrderDAO orderDAO = new OrderDAO();
     private final SalesStatsDAO salesStatsDAO = new SalesStatsDAO();
+    private final ReturnRequestDAO returnRequestDAO = new ReturnRequestDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -73,6 +75,9 @@ public class ManagerDashboardController extends HttpServlet {
             request.setAttribute("totalDelivered", totalDelivered);
             request.setAttribute("totalCancelled", totalCancelled);
             request.setAttribute("totalRevenue", totalRevenue != null ? totalRevenue : BigDecimal.ZERO);
+
+            // --- Refund snapshot ---
+            request.setAttribute("pendingRefunds", returnRequestDAO.countPending());
 
             // --- Today's revenue (for today card) ---
             Date[] todayRange = resolveToday();

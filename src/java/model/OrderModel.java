@@ -31,6 +31,8 @@ public class OrderModel implements Serializable {
     private String deliveryAddress;
     private int itemCount;
     private List<OrderItemModel> items = new ArrayList<>();
+    private Boolean hasOpenRefund;
+    private Boolean hasBlockingRefund;
 
     public OrderModel() {}
 
@@ -102,6 +104,12 @@ public class OrderModel implements Serializable {
 
     public int getItemCount() { return itemCount; }
     public void setItemCount(int itemCount) { this.itemCount = itemCount; }
+
+    public Boolean getHasOpenRefund() { return hasOpenRefund; }
+    public void setHasOpenRefund(Boolean hasOpenRefund) { this.hasOpenRefund = hasOpenRefund; }
+
+    public Boolean getHasBlockingRefund() { return hasBlockingRefund; }
+    public void setHasBlockingRefund(Boolean hasBlockingRefund) { this.hasBlockingRefund = hasBlockingRefund; }
 
     public List<OrderItemModel> getItems() { return items; }
     public void setItems(List<OrderItemModel> items) { this.items = items; }

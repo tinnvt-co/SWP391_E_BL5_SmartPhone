@@ -2,6 +2,7 @@ package controller;
 
 import DAO.BrandDAO;
 import DAO.CategoryDAO;
+import DAO.FeedbackDAO;
 import DAO.ProductDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -9,7 +10,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Set;
+import java.util.Map;
+import model.FeedbackWithReplies;
 import model.ProductModel;
 
 public class ProductController extends HttpServlet {
@@ -20,6 +24,7 @@ public class ProductController extends HttpServlet {
     private final ProductDAO productDAO = new ProductDAO();
     private final BrandDAO brandDAO = new BrandDAO();
     private final CategoryDAO categoryDAO = new CategoryDAO();
+    private final FeedbackDAO feedbackDAO = new FeedbackDAO();
 
 
 
@@ -91,7 +96,15 @@ public class ProductController extends HttpServlet {
             return;
         }
 
+        List<FeedbackWithReplies> reviews = feedbackDAO.loadForProduct(productId);
+        Map<String, Double> aggregate = feedbackDAO.aggregateForProduct(productId);
+        double avgRating = aggregate.getOrDefault("avg", 0.0);
+        int reviewCount = aggregate.getOrDefault("count", 0.0).intValue();
+
         request.setAttribute("product", product);
+        request.setAttribute("reviews", reviews);
+        request.setAttribute("avgRating", avgRating);
+        request.setAttribute("feedbackCount", reviewCount);
         request.getRequestDispatcher("/views/public/product-detail.jsp")
                 .forward(request, response);
     }

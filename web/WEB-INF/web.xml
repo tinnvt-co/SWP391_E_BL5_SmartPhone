@@ -132,6 +132,18 @@
         <servlet-name>FeedbackController</servlet-name>
         <servlet-class>controller.FeedbackController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>ManagerFeedbackController</servlet-name>
+        <servlet-class>controller.ManagerFeedbackController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ReturnRequestController</servlet-name>
+        <servlet-class>controller.ReturnRequestController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ManagerReturnRequestController</servlet-name>
+        <servlet-class>controller.ManagerReturnRequestController</servlet-class>
+    </servlet>
 
     <servlet>
         <servlet-name>AdminUserController</servlet-name>
@@ -270,6 +282,18 @@
     <servlet-mapping>
         <servlet-name>FeedbackController</servlet-name>
         <url-pattern>/feedback</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ManagerFeedbackController</servlet-name>
+        <url-pattern>/manager/feedback</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ReturnRequestController</servlet-name>
+        <url-pattern>/return-request</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ManagerReturnRequestController</servlet-name>
+        <url-pattern>/manager/return-request</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

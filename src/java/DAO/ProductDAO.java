@@ -18,7 +18,10 @@ import model.ProductVariantModel;
 
 public class ProductDAO {
     private static final String SELECT_PRODUCTS =
-            "SELECT p.ID, p.Name, p.Description, p.Release_Year, p.Rating, "
+            "SELECT p.ID, p.Name, p.Description, p.Release_Year, "
+            + "COALESCE((SELECT ROUND(AVG(f.Rating)) FROM Feedback f "
+            + "          JOIN ProductVariant pv2 ON pv2.ID = f.ProductVariantID "
+            + "          WHERE pv2.ProductID = p.ID), p.Rating) AS Rating, "
             + "p.warranty_months, p.CategoryID, c.Name AS CategoryName, "
             + "p.BrandID, b.Name AS BrandName, p.Status, p.Created_at, "
             + "COALESCE((SELECT MIN(pv.Selling_price) FROM ProductVariant pv "

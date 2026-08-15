@@ -135,6 +135,22 @@
                 <b>Open sales stats <span>→</span></b>
             </a>
 
+            <a class="manager-module feedback-module" href="${pageContext.request.contextPath}/manager/feedback">
+                <span class="module-icon">⭐</span>
+                <span class="module-count">Customer voices</span>
+                <h3>Customer Reviews</h3>
+                <p>Read what shoppers are saying and reply to keep the conversation going.</p>
+                <b>Open review queue <span>→</span></b>
+            </a>
+
+            <a class="manager-module refund-module" href="${pageContext.request.contextPath}/manager/return-request">
+                <span class="module-icon">↩️</span>
+                <span class="module-count">${pendingRefunds} pending</span>
+                <h3>Refund Requests</h3>
+                <p>Approve or reject customer refund requests for delivered orders and view attached evidence.</p>
+                <b>Open refund queue <span>→</span></b>
+            </a>
+
             <a class="manager-module revenue-module" href="${pageContext.request.contextPath}/manager/revenue">
                 <span class="module-icon">💰</span>
                 <span class="module-count">live today</span>
