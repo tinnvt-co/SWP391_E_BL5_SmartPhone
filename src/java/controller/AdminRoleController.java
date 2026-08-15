@@ -62,6 +62,16 @@ public class AdminRoleController extends HttpServlet {
                 String name = request.getParameter("name");
                 String status = request.getParameter("status");
                 
+                model.UserModel currentUser = (model.UserModel) request.getSession().getAttribute("currentUser");
+                if (currentUser != null && currentUser.getRoleId() == roleId && (!"ACTIVE".equals(status) && status != null)) {
+                    throw new Exception("You cannot deactivate your own role.");
+                }
+                
+                // If status is disabled in UI, it comes as null. Default it to current active
+                if (currentUser != null && currentUser.getRoleId() == roleId && status == null) {
+                    status = "ACTIVE";
+                }
+                
                 Role role = new Role();
                 role.setId(roleId);
                 role.setName(name);
@@ -72,6 +82,25 @@ public class AdminRoleController extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/admin/roles");
             } catch (Exception ex) {
                 request.getSession().setAttribute("error", "Error updating role information: " + ex.getMessage());
+                response.sendRedirect(request.getContextPath() + "/admin/roles");
+            }
+        } else if ("toggleStatus".equals(action)) {
+            try {
+                int roleId = Integer.parseInt(request.getParameter("roleId"));
+                
+                model.UserModel currentUser = (model.UserModel) request.getSession().getAttribute("currentUser");
+                if (currentUser != null && currentUser.getRoleId() == roleId) {
+                    throw new Exception("You cannot deactivate your own role.");
+                }
+                
+                String currentStatus = request.getParameter("currentStatus");
+                String newStatus = "ACTIVE".equals(currentStatus) ? "INACTIVE" : "ACTIVE";
+                
+                roleDAO.updateStatus(roleId, newStatus);
+                request.getSession().setAttribute("message", "Role status changed to " + newStatus + ".");
+                response.sendRedirect(request.getContextPath() + "/admin/roles");
+            } catch (Exception ex) {
+                request.getSession().setAttribute("error", "Error updating role status: " + ex.getMessage());
                 response.sendRedirect(request.getContextPath() + "/admin/roles");
             }
         }

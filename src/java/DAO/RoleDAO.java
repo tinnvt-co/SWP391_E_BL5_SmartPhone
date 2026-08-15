@@ -37,4 +37,13 @@ public class RoleDAO {
             ps.executeUpdate();
         }
     }
+
+    public void updateStatus(int roleId, String status) throws SQLException {
+        String sql = "UPDATE `Role` SET Status = ? WHERE ID = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setInt(2, roleId);
+            ps.executeUpdate();
+        }
+    }
 }

@@ -304,7 +304,7 @@
                                                     </button>
                                                     <ul class="dropdown-menu dropdown-menu-end shadow-sm">
                                                         <li>
-                                                            <button class="dropdown-item" type="button" onclick="openEditRoleModal(${r.id}, '${r.name}', '${r.status}')">
+                                                            <button class="dropdown-item" type="button" onclick="openEditRoleModal(${r.id}, '${r.name}', '${r.status}', ${r.id == currentUser.roleId})">
                                                                 <i class="bi bi-pencil me-2 text-primary"></i> Edit Information
                                                             </button>
                                                         </li>
@@ -317,6 +317,19 @@
                                                                 <i class="bi bi-shield-lock me-2 text-success"></i> Update Permissions
                                                             </button>
                                                         </li>
+                                                        <c:if test="${r.id != currentUser.roleId}">
+                                                            <li>
+                                                                <form action="${pageContext.request.contextPath}/admin/roles" method="post" class="m-0 p-0">
+                                                                    <input type="hidden" name="action" value="toggleStatus">
+                                                                    <input type="hidden" name="roleId" value="${r.id}">
+                                                                    <input type="hidden" name="currentStatus" value="${r.status}">
+                                                                    <button type="submit" class="dropdown-item ${r.status == 'ACTIVE' ? 'text-danger' : 'text-success'}">
+                                                                        <i class="bi ${r.status == 'ACTIVE' ? 'bi-lock me-2' : 'bi-unlock me-2'}"></i>
+                                                                        ${r.status == 'ACTIVE' ? 'Deactivate' : 'Activate'}
+                                                                    </button>
+                                                                </form>
+                                                            </li>
+                                                        </c:if>
                                                     </ul>
                                                 </div>
                                             </td>
@@ -433,10 +446,17 @@
                 modal.show();
             }
 
-            function openEditRoleModal(roleId, roleName, roleStatus) {
+            function openEditRoleModal(roleId, roleName, roleStatus, isOwnRole) {
                 document.getElementById('editRoleId').value = roleId;
                 document.getElementById('editRoleName').value = roleName;
-                document.getElementById('editRoleStatus').value = roleStatus;
+                
+                const statusSelect = document.getElementById('editRoleStatus');
+                statusSelect.value = roleStatus;
+                if (isOwnRole) {
+                    statusSelect.setAttribute('disabled', 'disabled');
+                } else {
+                    statusSelect.removeAttribute('disabled');
+                }
                 
                 const modal = new bootstrap.Modal(document.getElementById('editRoleModal'));
                 modal.show();
