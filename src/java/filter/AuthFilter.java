@@ -70,6 +70,7 @@ public class AuthFilter implements Filter {
             rule("/order-history", roles("CUSTOMER")),
             rule("/customer/orders", roles("CUSTOMER")),
             rule("/customer/order-detail", roles("CUSTOMER")),
+            rule("/order-detail", roles("CUSTOMER")),
             rule("/customer/delivery-status", roles("CUSTOMER")),
             rule("/delivery-status", roles("CUSTOMER")),
             rule("/profile", roles("ADMIN", "MANAGER", "STAFF", "CUSTOMER", "SHIPPER")),

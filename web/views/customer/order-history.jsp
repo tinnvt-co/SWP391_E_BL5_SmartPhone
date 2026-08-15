@@ -133,44 +133,16 @@
                 border-color:#fbbf24;
             }
 
-            .history-actions {
-                display:flex;
-                gap:8px;
-                flex-wrap:wrap;
-                justify-content:flex-end;
-            }
-            .view-btn, .review-btn {
-                min-height:36px;
-                display:inline-flex;
-                align-items:center;
-                gap:6px;
-                padding:0 14px;
-                border-radius:6px;
-                font-weight:700;
-                font-size:.85rem;
-                text-decoration:none;
-                border:1px solid transparent;
-                cursor:pointer;
-            }
-            .view-btn {
-                background:#fff;
-                border-color:#dbe3ec;
-                color:#111827;
-            }
-            .view-btn:hover {
-                color:#1665d8;
-                border-color:#b9c9ef;
-            }
-            .review-btn {
-                background:#16a34a;
-                color:#fff;
-                border-color:#16a34a;
-            }
-            .review-btn:hover {
-                background:#15803d;
-                border-color:#15803d;
-                color:#fff;
-            }
+        .history-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+        .view-btn, .review-btn { min-height:36px; display:inline-flex; align-items:center; gap:6px; padding:0 14px; border-radius:6px; font-weight:700; font-size:.85rem; text-decoration:none; border:1px solid transparent; cursor:pointer; }
+        .view-btn { background:#fff; border-color:#dbe3ec; color:#111827; }
+        .view-btn:hover { color:#1665d8; border-color:#b9c9ef; }
+        .review-btn { background:#16a34a; color:#fff; border-color:#16a34a; }
+        .review-btn:hover { background:#15803d; border-color:#15803d; color:#fff; }
+
+        .refund-btn { min-height:36px; display:inline-flex; align-items:center; gap:6px; padding:0 14px; border-radius:6px; font-weight:700; font-size:.85rem; text-decoration:none; border:1px solid transparent; cursor:pointer; background:#fff; color:#b91c1c; border-color:#fecaca; }
+        .refund-btn:hover { background:#fef2f2; border-color:#f87171; color:#b91c1c; }
+        .refund-pending { display:inline-block; padding:4px 10px; border-radius:999px; font-size:.72rem; font-weight:800; letter-spacing:.4px; text-transform:uppercase; border:1px solid #fde68a; background:#fef3c7; color:#92400e; }
 
             .history-empty {
                 padding:60px 24px;
@@ -234,63 +206,73 @@
                         </a>
                     </div>
 
-                    <c:choose>
-                        <c:when test="${empty orders}">
-                            <div class="history-empty">
-                                <i class="bi bi-bag-x"></i>
-                                <h4 style="margin:8px 0 4px; font-weight:900;">No orders yet</h4>
-                                <p style="margin:0;">You haven't placed any orders. Start shopping to see your history here.</p>
-                            </div>
-                        </c:when>
-                        <c:otherwise>
-                            <table class="history-table">
-                                <thead>
-                                    <tr>
-                                        <th>Order</th>
-                                        <th>Placed on</th>
-                                        <th>Items</th>
-                                        <th>Total</th>
-                                        <th>Status</th>
-                                        <th style="text-align:right;">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <c:forEach var="o" items="${orders}">
-                                        <tr>
-                                            <td data-label="Order">
-                                                <div class="history-code">#${o.id}</div>
-                                                <div style="color:#64748b; font-size:.82rem;">${o.method}</div>
-                                            </td>
-                                            <td data-label="Placed on">
-                                                <fmt:formatDate value="${o.createdAt}" pattern="dd MMM yyyy"/>
-                                                <div style="color:#64748b; font-size:.82rem;"><fmt:formatDate value="${o.createdAt}" pattern="HH:mm"/></div>
-                                            </td>
-                                            <td data-label="Items">${o.itemCount}</td>
-                                            <td data-label="Total" class="history-total"><fmt:formatNumber value="${o.totalPrice}" pattern="#,##0"/>₫</td>
-                                            <td data-label="Status">
-                                                <span class="status-pill ${o.status.toLowerCase()}">${o.status}</span>
-                                            </td>
-                                            <td data-label="Action">
-                                                <div class="history-actions">
-                                                    <a class="view-btn" href="${pageContext.request.contextPath}/order-detail?id=${o.id}">
-                                                        <i class="bi bi-eye"></i> View
+            <c:choose>
+                <c:when test="${empty orders}">
+                    <div class="history-empty">
+                        <i class="bi bi-bag-x"></i>
+                        <h4 style="margin:8px 0 4px; font-weight:900;">No orders yet</h4>
+                        <p style="margin:0;">You haven't placed any orders. Start shopping to see your history here.</p>
+                    </div>
+                </c:when>
+                <c:otherwise>
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Order</th>
+                                <th>Placed on</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th style="text-align:right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="o" items="${orders}">
+                                <tr>
+                                    <td data-label="Order">
+                                        <div class="history-code">#${o.id}</div>
+                                        <div style="color:#64748b; font-size:.82rem;">${o.method}</div>
+                                    </td>
+                                    <td data-label="Placed on">
+                                        <fmt:formatDate value="${o.createdAt}" pattern="dd MMM yyyy"/>
+                                        <div style="color:#64748b; font-size:.82rem;"><fmt:formatDate value="${o.createdAt}" pattern="HH:mm"/></div>
+                                    </td>
+                                    <td data-label="Items">${o.itemCount}</td>
+                                    <td data-label="Total" class="history-total"><fmt:formatNumber value="${o.totalPrice}" pattern="#,##0"/>₫</td>
+                                    <td data-label="Status">
+                                        <span class="status-pill ${o.status.toLowerCase()}">${o.status}</span>
+                                    </td>
+                                    <td data-label="Action">
+                                        <div class="history-actions">
+                                            <a class="view-btn" href="${pageContext.request.contextPath}/order-detail?id=${o.id}">
+                                                <i class="bi bi-eye"></i> View
+                                            </a>
+                                            <c:if test="${(o.status == 'DELIVERED' || o.status == 'COMPLETED') && !o.hasBlockingRefund}">
+                                                <a class="review-btn" href="${pageContext.request.contextPath}/feedback?orderId=${o.id}">
+                                                    <i class="bi bi-star"></i> Review
+                                                </a>
+                                            </c:if>
+                                            <c:choose>
+                                                <c:when test="${o.status == 'DELIVERED' && !o.hasOpenRefund}">
+                                                    <a class="refund-btn" href="${pageContext.request.contextPath}/return-request?orderId=${o.id}">
+                                                        <i class="bi bi-arrow-counterclockwise"></i> Refund
                                                     </a>
-                                                    <c:if test="${o.status == 'DELIVERED' || o.status == 'COMPLETED'}">
-                                                        <a class="review-btn" href="${pageContext.request.contextPath}/feedback?orderId=${o.id}">
-                                                            <i class="bi bi-star"></i> Review
-                                                        </a>
-                                                    </c:if>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </c:forEach>
-                                </tbody>
-                            </table>
-                        </c:otherwise>
-                    </c:choose>
-                </div>
-            </div>
-        </main>
+                                                </c:when>
+                                                <c:when test="${o.status == 'DELIVERED' && o.hasOpenRefund}">
+                                                    <span class="refund-pending"><i class="bi bi-clock-history"></i> Refund pending</span>
+                                                </c:when>
+                                            </c:choose>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </c:otherwise>
+            </c:choose>
+        </div>
+    </div>
+</main>
 
         <%@ include file="/views/common/footer.jsp" %>
     </body>

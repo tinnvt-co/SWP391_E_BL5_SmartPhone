@@ -91,6 +91,13 @@
                                             </a>
                                         </li>
                                     </c:if>
+                                    <c:if test="${currentRole == 'Manager' || currentRole == 'ADMIN'}">
+                                        <li>
+                                            <a class="dropdown-item" href="${pageContext.request.contextPath}/manager/feedback">
+                                                <i class="bi bi-chat-square-quote me-2"></i>Customer Reviews
+                                            </a>
+                                        </li>
+                                    </c:if>
                                     <li>
                                         <a class="dropdown-item" href="${pageContext.request.contextPath}/profile">
                                             <i class="bi bi-person me-2"></i>Profile
