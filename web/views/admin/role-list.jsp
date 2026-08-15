@@ -298,14 +298,27 @@
                                                 </span>
                                             </td>
                                             <td class="text-end text-nowrap">
-                                                <button type="button" class="btn btn-sm btn-outline-primary" 
-                                                        onclick="openPermissionModal(${r.id}, '${r.name}', [
-                                                        <c:forEach items="${r.permissions}" var="p" varStatus="loop">
-                                                            '${p}'${!loop.last ? ',' : ''}
-                                                        </c:forEach>
-                                                        ])">
-                                                    <i class="bi bi-pencil-square"></i> Edit
-                                                </button>
+                                                <div class="dropdown">
+                                                    <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        Actions
+                                                    </button>
+                                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                                        <li>
+                                                            <button class="dropdown-item" type="button" onclick="openEditRoleModal(${r.id}, '${r.name}', '${r.status}')">
+                                                                <i class="bi bi-pencil me-2 text-primary"></i> Edit Information
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            <button class="dropdown-item" type="button" onclick="openPermissionModal(${r.id}, '${r.name}', [
+                                                                <c:forEach items="${r.permissions}" var="p" varStatus="loop">
+                                                                    '${p}'${!loop.last ? ',' : ''}
+                                                                </c:forEach>
+                                                                ])">
+                                                                <i class="bi bi-shield-lock me-2 text-success"></i> Update Permissions
+                                                            </button>
+                                                        </li>
+                                                    </ul>
+                                                </div>
                                             </td>
                                         </tr>
                                     </c:forEach>
@@ -361,6 +374,42 @@
             </div>
         </div>
 
+        <!-- Edit Role Info Modal -->
+        <div class="modal fade" id="editRoleModal" tabindex="-1" aria-labelledby="editRoleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header bg-light">
+                        <h5 class="modal-title fw-bold" id="editRoleModalLabel">Edit Role Information</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form action="${pageContext.request.contextPath}/admin/roles" method="post">
+                        <div class="modal-body">
+                            <input type="hidden" name="action" value="updateRole">
+                            <input type="hidden" name="roleId" id="editRoleId" value="">
+                            
+                            <div class="mb-3">
+                                <label for="editRoleName" class="form-label fw-bold">Role Name</label>
+                                <input type="text" class="form-control" id="editRoleName" name="name" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="editRoleStatus" class="form-label fw-bold">Status</label>
+                                <select class="form-select" id="editRoleStatus" name="status" required>
+                                    <option value="ACTIVE">ACTIVE</option>
+                                    <option value="INACTIVE">INACTIVE</option>
+                                    <option value="BANNED">BANNED</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         <script>
             function openPermissionModal(roleId, roleName, permissions) {
@@ -381,6 +430,15 @@
                 
                 // Show modal
                 const modal = new bootstrap.Modal(document.getElementById('permissionModal'));
+                modal.show();
+            }
+
+            function openEditRoleModal(roleId, roleName, roleStatus) {
+                document.getElementById('editRoleId').value = roleId;
+                document.getElementById('editRoleName').value = roleName;
+                document.getElementById('editRoleStatus').value = roleStatus;
+                
+                const modal = new bootstrap.Modal(document.getElementById('editRoleModal'));
                 modal.show();
             }
         </script>

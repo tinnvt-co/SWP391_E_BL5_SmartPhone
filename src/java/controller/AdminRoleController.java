@@ -56,6 +56,24 @@ public class AdminRoleController extends HttpServlet {
                 request.getSession().setAttribute("error", "Error updating permissions: " + ex.getMessage());
                 response.sendRedirect(request.getContextPath() + "/admin/roles");
             }
+        } else if ("updateRole".equals(action)) {
+            try {
+                int roleId = Integer.parseInt(request.getParameter("roleId"));
+                String name = request.getParameter("name");
+                String status = request.getParameter("status");
+                
+                Role role = new Role();
+                role.setId(roleId);
+                role.setName(name);
+                role.setStatus(status);
+                
+                roleDAO.update(role);
+                request.getSession().setAttribute("message", "Role information updated successfully.");
+                response.sendRedirect(request.getContextPath() + "/admin/roles");
+            } catch (Exception ex) {
+                request.getSession().setAttribute("error", "Error updating role information: " + ex.getMessage());
+                response.sendRedirect(request.getContextPath() + "/admin/roles");
+            }
         }
     }
 }

@@ -27,4 +27,14 @@ public class RoleDAO {
         }
         return list;
     }
+
+    public void update(Role role) throws SQLException {
+        String sql = "UPDATE `Role` SET Name = ?, Status = ? WHERE ID = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, role.getName());
+            ps.setString(2, role.getStatus());
+            ps.setInt(3, role.getId());
+            ps.executeUpdate();
+        }
+    }
 }
