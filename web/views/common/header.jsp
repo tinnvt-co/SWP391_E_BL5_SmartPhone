@@ -22,20 +22,22 @@
 
             <div class="swp-layout-collapse collapse navbar-collapse" id="mainNav">
                 <ul class="swp-layout-links">
-                    <li>
-                        <a class="swp-layout-link ${activePage == 'home' ? 'is-active' : ''}"
-                           href="${pageContext.request.contextPath}/home">Home</a>
-                    </li>
-                    <li>
-                        <a class="swp-layout-link ${activePage == 'products' ? 'is-active' : ''}"
-                           href="${pageContext.request.contextPath}/products">Products</a>
-                    </li>
-                    <li>
-                        <a class="swp-layout-link" href="${pageContext.request.contextPath}/home#categories">Categories</a>
-                    </li>
-                    <li>
-                        <a class="swp-layout-link" href="${pageContext.request.contextPath}/home#services">Services</a>
-                    </li>
+                    <c:if test="${currentRole ne 'Admin' and currentRole ne 'ADMIN' and currentRole ne 'Shipper' and currentRole ne 'SHIPPER'}">
+                        <li>
+                            <a class="swp-layout-link ${activePage == 'home' ? 'is-active' : ''}"
+                               href="${pageContext.request.contextPath}/home">Home</a>
+                        </li>
+                        <li>
+                            <a class="swp-layout-link ${activePage == 'products' ? 'is-active' : ''}"
+                               href="${pageContext.request.contextPath}/products">Products</a>
+                        </li>
+                        <li>
+                            <a class="swp-layout-link" href="${pageContext.request.contextPath}/home#categories">Categories</a>
+                        </li>
+                        <li>
+                            <a class="swp-layout-link" href="${pageContext.request.contextPath}/home#services">Services</a>
+                        </li>
+                    </c:if>
                     <c:if test="${currentRole == 'Admin'}">
                         <li>
                             <a class="swp-layout-link ${activePage == 'users' ? 'is-active' : ''}" href="${pageContext.request.contextPath}/admin/users">Users</a>
@@ -60,18 +62,20 @@
                         </a>
                     </c:if>
 
-                    <button class="swp-layout-icon-btn" type="button" title="Search">
-                        <i class="bi bi-search"></i>
-                    </button>
-                    <c:if test="${empty currentUser || currentRole == 'Customer'}">
-                        <a class="swp-layout-icon-btn ${activePage == 'wishlist' ? 'is-active' : ''}"
-                           href="${pageContext.request.contextPath}/wishlist" title="Wishlist">
-                            <i class="bi bi-heart"></i>
+                    <c:if test="${currentRole ne 'Admin' and currentRole ne 'ADMIN' and currentRole ne 'Shipper' and currentRole ne 'SHIPPER'}">
+                        <button class="swp-layout-icon-btn" type="button" title="Search">
+                            <i class="bi bi-search"></i>
+                        </button>
+                        <c:if test="${empty currentUser || currentRole == 'Customer'}">
+                            <a class="swp-layout-icon-btn ${activePage == 'wishlist' ? 'is-active' : ''}"
+                               href="${pageContext.request.contextPath}/wishlist" title="Wishlist">
+                                <i class="bi bi-heart"></i>
+                            </a>
+                        </c:if>
+                        <a class="swp-layout-icon-btn" href="${pageContext.request.contextPath}/cart" title="Cart">
+                            <i class="bi bi-bag"></i>
                         </a>
                     </c:if>
-                    <a class="swp-layout-icon-btn" href="${pageContext.request.contextPath}/cart" title="Cart">
-                        <i class="bi bi-bag"></i>
-                    </a>
 
                     <c:choose>
                         <c:when test="${not empty currentUser}">
@@ -120,10 +124,12 @@
                         </c:otherwise>
                     </c:choose>
 
-                    <a class="swp-layout-action swp-layout-action-primary"
-                       href="${pageContext.request.contextPath}/products">
-                        <i class="bi bi-grid"></i> Shop
-                    </a>
+                    <c:if test="${currentRole ne 'Admin' and currentRole ne 'ADMIN' and currentRole ne 'Shipper' and currentRole ne 'SHIPPER'}">
+                        <a class="swp-layout-action swp-layout-action-primary"
+                           href="${pageContext.request.contextPath}/products">
+                            <i class="bi bi-grid"></i> Shop
+                        </a>
+                    </c:if>
                 </div>
             </div>
         </div>
