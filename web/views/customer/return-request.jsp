@@ -9,49 +9,49 @@
     <title>Refund request | SmartPhone store</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css">
-    <style>
-        body { background:#f6f8fb; color:#111827; }
-        .rr-shell { padding:42px 0 70px; }
-        .rr-panel { max-width:860px; margin:0 auto; background:#fff; border:1px solid rgba(15,23,42,.08); border-radius:8px; box-shadow:0 18px 45px rgba(15,23,42,.08); overflow:hidden; }
-        .rr-header { padding:24px; border-bottom:1px solid #eef2f7; }
-        .rr-header h1 { margin:0; font-weight:900; }
-        .rr-header p { color:#64748b; margin:6px 0 0; }
-        .rr-body { padding:24px; }
-        .order-summary { background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:14px; margin-bottom:18px; }
-        .order-summary .kv { display:flex; justify-content:space-between; padding:4px 0; font-size:.92rem; }
-        .order-summary .kv b { color:#0f172a; }
-        .item-row { display:flex; gap:12px; padding:12px 0; border-bottom:1px dashed #eef2f7; }
-        .item-row:last-child { border-bottom:none; }
-        .item-thumb { width:60px; height:60px; border-radius:6px; overflow:hidden; background:#fff; flex:0 0 60px; display:flex; align-items:center; justify-content:center; }
-        .item-thumb img { max-width:100%; max-height:100%; }
-        .item-meta { color:#64748b; font-size:.85rem; }
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer.css">
+        <style>
+            .rr-shell { padding:40px 0 64px; }
+            .rr-panel { max-width:860px; margin:0 auto; background:#fff; border:1px solid #e5e7eb; border-radius:16px; box-shadow:0 4px 12px rgba(15,23,42,0.06); overflow:hidden; }
+            .rr-header { padding:24px; border-bottom:1px solid #e5e7eb; }
+            .rr-header h1 { margin:0; font-weight:800; }
+            .rr-header p { color:#64748b; margin:6px 0 0; }
+            .rr-body { padding:24px; }
+            .order-summary { background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:16px; margin-bottom:18px; }
+            .order-summary .kv { display:flex; justify-content:space-between; padding:6px 0; font-size:.94rem; }
+            .order-summary .kv b { color:#0f172a; }
+            .item-row { display:flex; gap:12px; padding:12px 0; border-bottom:1px dashed #eef2f7; }
+            .item-row:last-child { border-bottom:none; }
+            .item-thumb { width:60px; height:60px; border-radius:8px; overflow:hidden; background:#fff; flex:0 0 60px; display:flex; align-items:center; justify-content:center; border:1px solid #e5e7eb; }
+            .item-thumb img { max-width:100%; max-height:100%; }
+            .item-meta { color:#64748b; font-size:.85rem; }
 
-        .upload-card { border:2px dashed #cbd5e1; border-radius:8px; padding:18px; text-align:center; background:#fbfdff; }
-        .upload-card input[type=file] { display:none; }
-        .upload-card label { cursor:pointer; color:#1665d8; font-weight:700; }
-        .upload-card .preview { margin-top:12px; }
-        .upload-card .preview img { max-height:160px; border-radius:6px; border:1px solid #e2e8f0; }
+            .upload-card { border:2px dashed #cbd5e1; border-radius:10px; padding:22px; text-align:center; background:#fbfdff; transition: all .15s ease; }
+            .upload-card:hover { border-color: #93c5fd; background: #eff6ff; }
+            .upload-card input[type=file] { display:none; }
+            .upload-card label { cursor:pointer; color:#1d4ed8; font-weight:700; }
+            .upload-card .preview { margin-top:12px; }
+            .upload-card .preview img { max-height:160px; border-radius:8px; border:1px solid #e2e8f0; }
 
-        .status-pill { display:inline-block; padding:4px 12px; border-radius:999px; font-size:.78rem; font-weight:800; letter-spacing:.4px; text-transform:uppercase; border:1px solid transparent; }
-        .status-active   { background:#fef3c7; color:#92400e; border-color:#fde68a; }
-        .status-approved { background:#dcfce7; color:#166534; border-color:#86efac; }
-        .status-rejected { background:#fee2e2; color:#991b1b; border-color:#fecaca; }
+            .status-active   { background:#fef3c7; color:#92400e; border-color:#fde68a; }
+            .status-approved { background:#dcfce7; color:#166534; border-color:#86efac; }
+            .status-rejected { background:#fee2e2; color:#991b1b; border-color:#fecaca; }
 
-        .flash-message { padding:14px 18px; background:#ecfdf5; border:1px solid #bbf7d0; border-radius:8px; color:#166534; margin-bottom:18px; }
-        .flash-message.error { background:#fef2f2; border-color:#fecaca; color:#991b1b; }
-        .error-message { background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:14px 18px; color:#991b1b; margin-bottom:18px; }
+            .flash-message { padding:14px 18px; background:#ecfdf5; border:1px solid #bbf7d0; border-radius:10px; color:#166534; margin-bottom:18px; }
+            .flash-message.error { background:#fef2f2; border-color:#fecaca; color:#991b1b; }
+            .error-message { background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:14px 18px; color:#991b1b; margin-bottom:18px; }
 
-        .btn-submit { background:#16a34a; color:#fff; border:none; padding:10px 22px; border-radius:6px; font-weight:700; }
-        .btn-submit:hover { background:#15803d; color:#fff; }
+            .btn-submit { background:#16a34a; color:#fff; border:none; padding:10px 22px; border-radius:8px; font-weight:700; }
+            .btn-submit:hover { background:#15803d; color:#fff; }
 
-        .thread-bubble { border:1px solid #e2e8f0; border-radius:10px; padding:14px 16px; margin-bottom:14px; background:#f8fafc; }
-        .thread-bubble.manager { background:#eef2ff; border-color:#c7d2fe; }
+            .thread-bubble { border:1px solid #e2e8f0; border-radius:10px; padding:14px 16px; margin-bottom:14px; background:#f8fafc; }
+            .thread-bubble.manager { background:#eef2ff; border-color:#c7d2fe; }
 
-        .rr-list { width:100%; border-collapse:collapse; }
-        .rr-list th, .rr-list td { padding:12px 10px; border-bottom:1px solid #eef2f7; text-align:left; font-size:.94rem; }
-        .rr-list th { background:#f8fafc; color:#475569; font-weight:700; font-size:.78rem; text-transform:uppercase; letter-spacing:.4px; }
-    </style>
+            .rr-list { width:100%; border-collapse:collapse; }
+            .rr-list th, .rr-list td { padding:12px 10px; border-bottom:1px solid #eef2f7; text-align:left; font-size:.94rem; }
+            .rr-list th { background:#f8fafc; color:#475569; font-weight:700; font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; }
+        </style>
 </head>
 <body>
 <c:set var="activePage" value="orders" scope="request"/>

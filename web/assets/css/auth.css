@@ -1,0 +1,457 @@
+/* =============================================================
+   SmartPhone Store — Authentication pages (login, register,
+   forgot-password, reset-password, change-password) styles.
+   Modern, professional, refined light theme.
+   ============================================================= */
+
+:root {
+    --auth-blue: #1d4ed8;
+    --auth-blue-dark: #1e40af;
+    --auth-blue-soft: #eff4ff;
+    --auth-green: #059669;
+    --auth-green-soft: #ecfdf5;
+    --auth-red: #dc2626;
+    --auth-red-soft: #fef2f2;
+    --auth-ink: #0f172a;
+    --auth-text: #1f2937;
+    --auth-muted: #64748b;
+    --auth-line: #e5e7eb;
+    --auth-surface: #ffffff;
+    --auth-soft: #f8fafc;
+    --auth-shadow-sm: 0 4px 14px rgba(15, 23, 42, 0.06);
+    --auth-shadow-md: 0 14px 36px rgba(15, 23, 42, 0.1);
+    --auth-shadow-lg: 0 26px 60px rgba(15, 23, 42, 0.18);
+}
+
+/* =============================================================
+   AUTH PAGES — split layout with hero image
+   ============================================================= */
+body.auth-page {
+    min-height: 100vh;
+    margin: 0;
+    color: var(--auth-ink);
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.94) 50%, rgba(255, 255, 255, 0.4) 100%),
+        url("../images/home/smartphone-hero.png") center right / cover no-repeat;
+    -webkit-font-smoothing: antialiased;
+}
+
+.auth-shell {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 2rem 0;
+}
+
+.auth-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    gap: 56px;
+    align-items: center;
+    width: 100%;
+}
+
+.auth-hero {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.auth-hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--auth-blue);
+    background: var(--auth-blue-soft);
+    border: 1px solid #bfdbfe;
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    width: fit-content;
+}
+
+.auth-hero h1 {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 800;
+    color: var(--auth-ink);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+}
+
+.auth-hero p {
+    margin: 0;
+    color: var(--auth-muted);
+    font-size: 16px;
+    line-height: 1.6;
+    max-width: 480px;
+}
+
+.auth-hero-features {
+    margin-top: 12px;
+    display: grid;
+    gap: 10px;
+}
+
+.auth-hero-features li {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--auth-text);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.auth-hero-features li i {
+    color: var(--auth-green);
+    font-size: 18px;
+}
+
+.auth-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--auth-ink);
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+}
+
+.auth-brand-mark {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--auth-blue), var(--auth-green));
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 20px;
+    box-shadow: 0 6px 14px rgba(29, 78, 216, 0.28);
+}
+
+.auth-panel {
+    width: min(100%, 460px);
+    margin-left: auto;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid var(--auth-line);
+    border-radius: 18px;
+    box-shadow: var(--auth-shadow-lg);
+    padding: 32px;
+    backdrop-filter: blur(14px);
+}
+
+.auth-panel.wide {
+    width: min(100%, 620px);
+}
+
+.auth-panel-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.auth-panel h1 {
+    font-size: 26px;
+    font-weight: 800;
+    margin: 0 0 8px;
+    color: var(--auth-ink);
+    letter-spacing: -0.02em;
+}
+
+.auth-panel .lead {
+    color: var(--auth-muted);
+    margin: 0 0 22px;
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 22px 0;
+    color: var(--auth-muted);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--auth-line);
+}
+
+.auth-link {
+    color: var(--auth-blue);
+    font-weight: 700;
+    text-decoration: none;
+    transition: color .15s ease;
+}
+
+.auth-link:hover {
+    color: var(--auth-blue-dark);
+    text-decoration: underline;
+}
+
+.auth-back-link {
+    color: var(--auth-muted);
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 18px;
+    transition: color .15s ease;
+}
+
+.auth-back-link:hover {
+    color: var(--auth-blue);
+}
+
+.auth-switch-link {
+    color: var(--auth-blue);
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.auth-switch-link:hover {
+    color: var(--auth-blue-dark);
+}
+
+/* Auth forms */
+.auth-form .form-label {
+    color: var(--auth-ink);
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 6px;
+}
+
+.auth-form .input-group-text,
+.auth-form .form-control {
+    min-height: 46px;
+    border-color: var(--auth-line);
+    border-radius: 10px;
+    background: var(--auth-surface);
+}
+
+.auth-form .input-group {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.auth-form .input-group-text {
+    background: var(--auth-soft);
+    color: var(--auth-muted);
+    border-right: 0;
+}
+
+.auth-form .input-group .form-control {
+    border-left: 0;
+}
+
+.auth-form .form-control:focus {
+    border-color: var(--auth-blue);
+    box-shadow: 0 0 0 4px rgba(29, 78, 216, 0.12);
+}
+
+.auth-form .input-group:focus-within .input-group-text {
+    border-color: var(--auth-blue);
+    color: var(--auth-blue);
+    background: var(--auth-blue-soft);
+}
+
+.auth-form .input-group-text.btn-toggle {
+    background: var(--auth-soft);
+    color: var(--auth-muted);
+    cursor: pointer;
+    border-left: 0;
+    border-right: 1px solid var(--auth-line);
+}
+
+.auth-form .input-group-text.btn-toggle:hover {
+    color: var(--auth-blue);
+    background: var(--auth-blue-soft);
+}
+
+.auth-form .form-check-input {
+    accent-color: var(--auth-blue);
+    cursor: pointer;
+}
+
+.auth-form .form-check-label {
+    color: var(--auth-muted);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.auth-form .form-text {
+    color: var(--auth-muted);
+    font-size: 12px;
+    margin-top: 6px;
+}
+
+.auth-submit {
+    min-height: 48px;
+    border-radius: 10px;
+    background: var(--auth-blue);
+    border: 1px solid var(--auth-blue);
+    color: #fff;
+    font-weight: 700;
+    font-size: 15px;
+    transition: all .15s ease;
+    box-shadow: 0 6px 14px rgba(29, 78, 216, 0.28);
+}
+
+.auth-submit:hover {
+    background: var(--auth-blue-dark);
+    border-color: var(--auth-blue-dark);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(29, 78, 216, 0.34);
+}
+
+.auth-google {
+    min-height: 48px;
+    border-radius: 10px;
+    border: 1px solid var(--auth-line);
+    background: #ffffff;
+    color: var(--auth-ink);
+    font-weight: 700;
+    font-size: 15px;
+    transition: all .15s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-decoration: none;
+}
+
+.auth-google:hover {
+    border-color: #cbd5e1;
+    background: var(--auth-soft);
+    color: var(--auth-ink);
+}
+
+.auth-info {
+    background: var(--auth-blue-soft);
+    border: 1px solid #bfdbfe;
+    color: var(--auth-blue-dark);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 13px;
+    margin-bottom: 16px;
+}
+
+.auth-quick-login {
+    border-top: 1px solid var(--auth-line);
+    margin-top: 16px;
+    padding-top: 16px;
+}
+
+.auth-quick-login code {
+    color: var(--auth-red);
+    background: var(--auth-red-soft);
+    border-radius: 6px;
+    padding: 0.18rem 0.4rem;
+    font-size: 12px;
+}
+
+.auth-bottom-text {
+    text-align: center;
+    font-size: 14px;
+    color: var(--auth-muted);
+    margin-top: 16px;
+}
+
+/* Auth page alerts */
+.auth-alert {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 16px;
+}
+
+.auth-alert i {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.auth-alert.danger {
+    background: var(--auth-red-soft);
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.auth-alert.success {
+    background: var(--auth-green-soft);
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+/* =============================================================
+   CHANGE PASSWORD PAGE (with sidebar layout)
+   ============================================================= */
+.auth-profile-shell {
+    margin-top: -64px;
+    padding-bottom: 64px;
+    position: relative;
+    z-index: 2;
+}
+
+/* =============================================================
+   RESPONSIVE
+   ============================================================= */
+@media (max-width: 991.98px) {
+    body.auth-page {
+        background:
+            linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.92)),
+            url("${pageContext.request.contextPath}/assets/images/home/smartphone-hero.png") center bottom / cover no-repeat;
+    }
+
+    .auth-shell {
+        align-items: flex-start;
+    }
+
+    .auth-split {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .auth-hero {
+        text-align: left;
+    }
+
+    .auth-panel {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .auth-panel {
+        padding: 24px;
+    }
+
+    .auth-panel h1 {
+        font-size: 22px;
+    }
+}

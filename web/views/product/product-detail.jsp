@@ -10,72 +10,9 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css">
-        <style>
-            body {
-                background:#f5f7fa;
-                color:#17202a;
-                font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
-            }
-            .detail-panel {
-                background:#fff;
-                border:1px solid #dce3ea;
-            }
-            .detail-panel {
-                border-radius:8px;
-                padding:1.5rem;
-                margin:2rem 0 3rem;
-            }
-            .product-media {
-                aspect-ratio:1/1;
-                background:#fff;
-                border:1px solid #eef1f5;
-                border-radius:8px;
-                display:flex;
-                align-items:center;
-                justify-content:center;
-                padding:1rem;
-            }
-            .product-media img {
-                width:100%;
-                height:100%;
-                object-fit:contain;
-            }
-            .product-title {
-                font-size:2rem;
-                font-weight:850;
-                line-height:1.2;
-            }
-            .meta {
-                color:#657486;
-                font-weight:700;
-            }
-            .price {
-                color:#e02d2d;
-                font-size:1.8rem;
-                font-weight:900;
-            }
-            .old-price {
-                color:#8b97aa;
-                text-decoration:line-through;
-                margin-right:.5rem;
-            }
-            .spec {
-                background:#f1f3f7;
-                color:#68758b;
-                border-radius:5px;
-                padding:.32rem .58rem;
-                font-weight:750;
-                display:inline-flex;
-                margin-right:.4rem;
-            }
-            .primary-action {
-                min-height:46px;
-                border-radius:8px;
-                font-weight:800;
-            }
-        </style>
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/store.css">
     </head>
-    <body>
+    <body class="detail-page">
         <c:set var="activePage" value="products" scope="request"/>
         <%@ include file="/views/common/header.jsp" %>
 

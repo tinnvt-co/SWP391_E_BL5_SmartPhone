@@ -6,111 +6,25 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer.css">
         <style>
-            body {
-                background:#f6f8fb;
-                color:#111827;
-            }
-            .detail-shell {
-                padding:42px 0 70px;
-            }
-            .detail-panel {
-                max-width:760px;
-                margin:0 auto;
-                background:#fff;
-                border:1px solid rgba(15,23,42,.08);
-                border-radius:8px;
-                box-shadow:0 18px 45px rgba(15,23,42,.08);
-                overflow:hidden;
-            }
-            .detail-header {
-                padding:24px;
-                border-bottom:1px solid #eef2f7;
-                display:flex;
-                justify-content:space-between;
-                align-items:flex-start;
-                gap:16px;
-                flex-wrap:wrap;
-            }
-            .detail-header h1 {
-                margin:0;
-                font-weight:900;
-            }
-            .detail-meta {
-                color:#64748b;
-                font-size:.92rem;
-                margin-top:4px;
-            }
-            .detail-pill {
-                display:inline-block;
-                padding:5px 12px;
-                border-radius:999px;
-                font-size:.72rem;
-                font-weight:800;
-                letter-spacing:.4px;
-                text-transform:uppercase;
-            }
-            .detail-pill.status {
-                background:#e0f2fe;
-                color:#075985;
-            }
-            .detail-pill.type {
-                background:#ede9fe;
-                color:#5b21b6;
-            }
-            .detail-summary {
-                padding:18px 24px;
-                background:#f8fafc;
-                border-bottom:1px solid #eef2f7;
-                display:flex;
-                justify-content:space-between;
-                gap:16px;
-                flex-wrap:wrap;
-            }
-            .detail-summary strong {
-                color:#0f172a;
-                font-size:1.05rem;
-            }
-            .detail-items {
-                padding:24px;
-            }
-            .detail-items table {
-                width:100%;
-                border-collapse:collapse;
-            }
-            .detail-items th, .detail-items td {
-                padding:10px 8px;
-                text-align:left;
-                font-size:.92rem;
-                border-bottom:1px solid #eef2f7;
-            }
-            .detail-items th {
-                color:#64748b;
-                font-weight:700;
-                font-size:.78rem;
-                text-transform:uppercase;
-                letter-spacing:.4px;
-            }
-            .detail-items td.num {
-                text-align:right;
-            }
-            .detail-total {
-                padding:18px 24px;
-                border-top:1px solid #eef2f7;
-                text-align:right;
-                font-weight:900;
-                color:#b91c1c;
-                font-size:1.2rem;
-            }
-            .detail-footer {
-                padding:18px 24px;
-                border-top:1px solid #eef2f7;
-                display:flex;
-                gap:10px;
-                flex-wrap:wrap;
-                justify-content:space-between;
-                align-items:center;
-            }
+            .detail-shell { padding:40px 0 64px; }
+            .detail-panel { max-width:760px; margin:0 auto; background:#fff; border:1px solid #e5e7eb; border-radius:16px; box-shadow:0 4px 12px rgba(15,23,42,0.06); overflow:hidden; }
+            .detail-header { padding:24px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; }
+            .detail-header h1 { margin:0; font-weight:800; color:#0f172a; }
+            .detail-meta { color:#64748b; font-size:.92rem; margin-top:4px; }
+            .detail-pill { display:inline-block; padding:5px 12px; border-radius:999px; font-size:.72rem; font-weight:800; letter-spacing:.04em; text-transform:uppercase; margin-right:6px; }
+            .detail-pill.status { background:#e0f2fe; color:#075985; }
+            .detail-pill.type { background:#ede9fe; color:#5b21b6; }
+            .detail-summary { padding:18px 24px; background:#f8fafc; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+            .detail-summary strong { color:#0f172a; font-size:1.05rem; font-weight:700; }
+            .detail-items { padding:24px; }
+            .detail-items table { width:100%; border-collapse:collapse; }
+            .detail-items th, .detail-items td { padding:12px 8px; text-align:left; font-size:.92rem; border-bottom:1px solid #eef2f7; }
+            .detail-items th { color:#64748b; font-weight:700; font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; }
+            .detail-items td.num { text-align:right; }
+            .detail-total { padding:18px 24px; border-top:1px solid #e5e7eb; text-align:right; font-weight:800; color:#dc2626; font-size:1.2rem; }
+            .detail-footer { padding:18px 24px; border-top:1px solid #e5e7eb; display:flex; gap:10px; flex-wrap:wrap; justify-content:space-between; align-items:center; }
         </style>
     </head><body>
         <c:set var="activePage" value="orders" scope="request"/>

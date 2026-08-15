@@ -7,25 +7,7 @@
  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
  <%@include file="../common/head.jsp"%>
  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css">
- <style>
-  .review-summary { display:flex; align-items:center; gap:16px; flex-wrap:wrap; padding:18px 24px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; margin-bottom:18px; }
-  .review-summary-big { font-size:3rem; font-weight:900; color:#0f172a; line-height:1; }
-  .review-summary-stars { color:#f59e0b; font-size:1.4rem; letter-spacing:2px; }
-  .review-summary-count { color:#64748b; font-size:.9rem; }
-  .review-list { display:flex; flex-direction:column; gap:14px; }
-  .review-card { background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:18px; }
-  .review-card-head { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:8px; flex-wrap:wrap; }
-  .review-author { font-weight:800; color:#0f172a; }
-  .review-time { color:#64748b; font-size:.82rem; }
-  .review-rating { color:#f59e0b; letter-spacing:1px; }
-  .review-content { white-space:pre-wrap; color:#0f172a; margin-top:8px; }
-  .review-variant { color:#64748b; font-size:.82rem; margin-top:2px; }
-  .review-replies { margin-top:14px; padding-left:18px; border-left:3px solid #c7d2fe; display:flex; flex-direction:column; gap:10px; }
-  .review-reply { background:#eef2ff; border:1px solid #c7d2fe; border-radius:8px; padding:10px 14px; }
-  .review-reply-head { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:4px; }
-  .review-reply-role { font-size:.7rem; text-transform:uppercase; letter-spacing:.4px; color:#1e3a8a; font-weight:800; }
-  .review-empty { padding:36px 20px; text-align:center; color:#64748b; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:8px; }
- </style>
+ <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/store.css">
 </head>
 <body>
 <c:set var="activePage" value="products" scope="request"/>
@@ -53,9 +35,9 @@
   <div class="spec"><span>Brand</span><b><c:out value="${product.brandName}"/></b></div><div class="spec"><span>Category</span><b><c:out value="${product.categoryName}"/></b></div><div class="spec"><span>Release year</span><b>${product.releaseYear}</b></div><div class="spec"><span>Rating</span><b><fmt:formatNumber value="${countForDisplay > 0 ? avgRating : product.rating}" pattern="#.#" maxFractionDigits="1"/>/5</b></div><div class="spec"><span>SKU</span><b><c:out value="${product.sku}"/></b></div><div class="spec"><span>Barcode</span><b><c:out value="${product.barcode}"/></b></div><div class="spec"><span>Stock</span><b>${product.stock} units</b></div><div class="spec"><span>Warranty</span><b>${product.warrantyMonths} months</b></div>
  </div><c:if test="${not empty product.description}"><p class="description"><c:out value="${product.description}"/></p></c:if></section>
 
- <section class="reviews-section" id="reviews-section" style="padding:36px 0 70px;">
+ <section class="reviews-section" id="reviews-section">
   <div class="container">
-   <h2 style="font-weight:900; margin-bottom:14px;">Customer reviews</h2>
+   <h2>Customer reviews</h2>
 
    <div class="review-summary">
     <div class="review-summary-big">
@@ -77,9 +59,9 @@
    <c:choose>
     <c:when test="${empty reviews}">
      <div class="review-empty">
-      <i class="bi bi-chat-square" style="font-size:2.4rem; color:#cbd5e1;"></i>
-      <h4 style="margin:12px 0 4px; font-weight:900;">No reviews yet</h4>
-      <p style="margin:0;">Be the first to share your experience with this product.</p>
+      <i class="bi bi-chat-square"></i>
+      <h4>No reviews yet</h4>
+      <p>Be the first to share your experience with this product.</p>
      </div>
     </c:when>
     <c:otherwise>
@@ -91,7 +73,7 @@
           <div class="review-author"><c:out value="${rw.feedback.userName}"/></div>
           <div class="review-variant">${rw.feedback.productName} &middot; <c:out value="${rw.feedback.variantLabel}"/></div>
          </div>
-         <div style="text-align:right;">
+         <div class="review-meta-right">
           <div class="review-rating">
            <c:forEach begin="1" end="5" var="s">
             <c:choose><c:when test="${s <= rw.feedback.rating}">&#9733;</c:when><c:otherwise>&#9734;</c:otherwise></c:choose>

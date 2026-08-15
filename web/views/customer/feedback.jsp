@@ -9,52 +9,52 @@
     <title>Review your order | SmartPhone store</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css">
-    <style>
-        body { background:#f6f8fb; color:#111827; }
-        .review-shell { padding:42px 0 70px; }
-        .review-panel { max-width:860px; margin:0 auto; background:#fff; border:1px solid rgba(15,23,42,.08); border-radius:8px; box-shadow:0 18px 45px rgba(15,23,42,.08); overflow:hidden; }
-        .review-header { padding:24px; border-bottom:1px solid #eef2f7; }
-        .review-header h1 { margin:0; font-weight:900; }
-        .review-header p { color:#64748b; margin:6px 0 0; }
-        .review-item { padding:24px; border-bottom:1px solid #eef2f7; }
-        .review-item:last-child { border-bottom:none; }
-        .review-item-head { display:flex; gap:14px; align-items:center; margin-bottom:12px; }
-        .review-item-thumb { width:64px; height:64px; border-radius:8px; background:#f8fafc; flex:0 0 64px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
-        .review-item-thumb img { max-width:100%; max-height:100%; }
-        .review-item-title { font-weight:900; color:#0f172a; }
-        .review-item-meta { color:#64748b; font-size:.85rem; }
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer.css">
+        <style>
+            .star-picker { display:inline-flex; gap:4px; font-size:1.8rem; color:#e2e8f0; line-height:1; }
+            .star-picker .star { cursor:pointer; transition:transform .15s; }
+            .star-picker .star:hover { transform:scale(1.1); }
+            .star-picker .star.active { color:#f59e0b; }
+            .star-picker.readonly .star { cursor:default; }
+            .star-picker.readonly .star:hover { transform:none; }
+            .star-display { font-size:1rem; color:#f59e0b; letter-spacing:1px; }
 
-        .star-picker { display:inline-flex; gap:4px; font-size:1.8rem; color:#e2e8f0; line-height:1; }
-        .star-picker .star { cursor:pointer; transition:transform .15s; }
-        .star-picker .star:hover { transform:scale(1.1); }
-        .star-picker .star.active { color:#f59e0b; }
-        .star-picker.readonly .star { cursor:default; }
-        .star-picker.readonly .star:hover { transform:none; }
-        .star-display { font-size:1rem; color:#f59e0b; letter-spacing:1px; }
+            .review-form .form-control { min-height:120px; resize:vertical; }
+            .review-status { font-size:.85rem; color:#16a34a; font-weight:700; }
+            .review-status.expired { color:#b91c1c; }
+            .review-status.edited { color:#0369a1; }
 
-        .review-form .form-control { min-height:120px; resize:vertical; }
-        .review-status { font-size:.85rem; color:#16a34a; font-weight:700; }
-        .review-status.expired { color:#b91c1c; }
-        .review-status.edited { color:#0369a1; }
+            .review-exists { background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:14px; margin-bottom:12px; }
+            .review-exists .review-exists-head { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px; }
+            .review-exists .review-exists-content { white-space:pre-wrap; color:#0f172a; }
 
-        .flash-message { padding:14px 18px; background:#ecfdf5; border:1px solid #bbf7d0; border-radius:8px; color:#166534; margin-bottom:18px; }
-        .flash-message.error { background:#fef2f2; border-color:#fecaca; color:#991b1b; }
+            .btn-submit { background:#16a34a; color:#fff; border:none; padding:10px 22px; border-radius:8px; font-weight:700; }
+            .btn-submit:hover { background:#15803d; color:#fff; }
+            .btn-danger-link { color:#b91c1c; background:none; border:none; font-weight:700; cursor:pointer; }
+            .btn-danger-link:hover { text-decoration:underline; }
 
-        .review-exists { background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:14px; margin-bottom:12px; }
-        .review-exists .review-exists-head { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px; }
-        .review-exists .review-exists-content { white-space:pre-wrap; color:#0f172a; }
+            .review-shell { padding:40px 0 64px; }
+            .review-panel { max-width:860px; margin:0 auto; background:#fff; border:1px solid #e5e7eb; border-radius:16px; box-shadow:0 4px 12px rgba(15,23,42,0.06); overflow:hidden; }
+            .review-header { padding:24px; border-bottom:1px solid #e5e7eb; }
+            .review-header h1 { margin:0; font-weight:800; }
+            .review-header p { color:#64748b; margin:6px 0 0; }
+            .review-item { padding:24px; border-bottom:1px solid #e5e7eb; }
+            .review-item:last-child { border-bottom:none; }
+            .review-item-head { display:flex; gap:14px; align-items:center; margin-bottom:12px; }
+            .review-item-thumb { width:64px; height:64px; border-radius:8px; background:#f8fafc; flex:0 0 64px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+            .review-item-thumb img { max-width:100%; max-height:100%; }
+            .review-item-title { font-weight:800; color:#0f172a; }
+            .review-item-meta { color:#64748b; font-size:.85rem; }
 
-        .btn-submit { background:#16a34a; color:#fff; border:none; padding:10px 22px; border-radius:6px; font-weight:700; }
-        .btn-submit:hover { background:#15803d; color:#fff; }
-        .btn-danger-link { color:#b91c1c; background:none; border:none; font-weight:700; cursor:pointer; }
-        .btn-danger-link:hover { text-decoration:underline; }
+            .flash-message { padding:14px 18px; background:#ecfdf5; border:1px solid #bbf7d0; border-radius:10px; color:#166534; margin-bottom:18px; }
+            .flash-message.error { background:#fef2f2; border-color:#fecaca; color:#991b1b; }
 
-        @media(max-width:600px){
-            .review-item-head { flex-direction:column; align-items:flex-start; }
-            .review-item-thumb { width:80px; height:80px; }
-        }
-    </style>
+            @media(max-width:600px){
+                .review-item-head { flex-direction:column; align-items:flex-start; }
+                .review-item-thumb { width:80px; height:80px; }
+            }
+        </style>
 </head>
 <body>
 <c:set var="activePage" value="orders" scope="request"/>

@@ -61,6 +61,10 @@ public class InventoryDAO {
                     if (!rs.wasNull() && min > 0) {
                         s.setLowStockThreshold(min);
                     }
+                    int max = rs.getInt("Max_amount");
+                    if (!rs.wasNull() && max > 0) {
+                        s.setMaxAmount(max);
+                    }
                     s.setActive("ACTIVE".equals(rs.getString("product_status")));
                     list.add(s);
                 }
@@ -76,8 +80,10 @@ public class InventoryDAO {
                         return !s.isLowStock() || s.isOutOfStock();
                     case "OUT":
                         return !s.isOutOfStock();
+                    case "EXCESS":
+                        return !"EXCESS".equals(s.getStockStatus());
                     case "OK":
-                        return s.isLowStock();
+                        return s.isLowStock() || s.isOutOfStock() || "EXCESS".equals(s.getStockStatus());
                     default:
                         return false;
                 }
@@ -87,8 +93,9 @@ public class InventoryDAO {
     }
 
     public int[] getStockStats() {
-        int total = 0, inStock = 0, lowStock = 0, outOfStock = 0;
-        String sql = "SELECT v.ID, COALESCE(i.Amount, 0) AS stock, COALESCE(i.Min_amount, 5) AS min_amount, v.Status, p.Status AS pstatus "
+        int total = 0, inStock = 0, lowStock = 0, outOfStock = 0, excess = 0;
+        String sql = "SELECT v.ID, COALESCE(i.Amount, 0) AS stock, COALESCE(i.Min_amount, 5) AS min_amount, "
+                + "COALESCE(i.Max_amount, 0) AS max_amount, v.Status, p.Status AS pstatus "
                 + "FROM ProductVariant v "
                 + "JOIN Product p ON p.ID = v.ProductID "
                 + "LEFT JOIN Inventory i ON i.ProductVariantID = v.ID";
@@ -102,11 +109,14 @@ public class InventoryDAO {
                 }
                 int stock = rs.getInt("stock");
                 int min = rs.getInt("min_amount");
+                int max = rs.getInt("max_amount");
                 total++;
                 if (stock <= 0) {
                     outOfStock++;
                 } else if (stock <= min) {
                     lowStock++;
+                } else if (max > 0 && stock > max) {
+                    excess++;
                 } else {
                     inStock++;
                 }
@@ -114,7 +124,7 @@ public class InventoryDAO {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return new int[]{total, inStock, lowStock, outOfStock};
+        return new int[]{total, inStock, lowStock, outOfStock, excess};
     }
 
     public boolean stockIn(int variantId, int qty, String note, Integer createdBy) {
@@ -173,6 +183,53 @@ public class InventoryDAO {
                     ps.setInt(1, variantId);
                     ps.setInt(2, newStock);
                     ps.executeUpdate();
+                }
+                conn.commit();
+                return true;
+            } catch (Exception e) {
+                conn.rollback();
+                e.printStackTrace();
+                return false;
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean updateMinMax(int variantId, int minAmount, int maxAmount, Integer createdBy) {
+        String checkSql = "SELECT COUNT(*) FROM Inventory WHERE ProductVariantID = ?";
+        String insertSql = "INSERT INTO Inventory(ProductVariantID, Amount, Min_amount, Max_amount, Status, Updated_at) "
+                + "VALUES(?, 0, ?, ?, 'ACTIVE', CURRENT_TIMESTAMP)";
+        String updateSql = "UPDATE Inventory SET Min_amount = ?, Max_amount = ?, Updated_at = CURRENT_TIMESTAMP WHERE ProductVariantID = ?";
+        try (Connection conn = DBContext.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                boolean exists = false;
+                try (PreparedStatement ps = conn.prepareStatement(checkSql)) {
+                    ps.setInt(1, variantId);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next() && rs.getInt(1) > 0) {
+                            exists = true;
+                        }
+                    }
+                }
+                if (!exists) {
+                    try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
+                        ps.setInt(1, variantId);
+                        ps.setInt(2, minAmount);
+                        ps.setInt(3, maxAmount);
+                        ps.executeUpdate();
+                    }
+                } else {
+                    try (PreparedStatement ps = conn.prepareStatement(updateSql)) {
+                        ps.setInt(1, minAmount);
+                        ps.setInt(2, maxAmount);
+                        ps.setInt(3, variantId);
+                        ps.executeUpdate();
+                    }
                 }
                 conn.commit();
                 return true;

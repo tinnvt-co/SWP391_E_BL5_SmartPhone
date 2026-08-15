@@ -25,6 +25,18 @@ public class InventoryController extends HttpServlet {
         List<StockModel> stocks = dao.getAllStock(keyword, brand, status);
         int[] stats = dao.getStockStats();
 
+        HttpSession session = request.getSession();
+        Object msgOk = session.getAttribute("msgOk");
+        Object msgErr = session.getAttribute("msgErr");
+        if (msgOk != null) {
+            request.setAttribute("message", msgOk);
+            session.removeAttribute("msgOk");
+        }
+        if (msgErr != null) {
+            request.setAttribute("error", msgErr);
+            session.removeAttribute("msgErr");
+        }
+
         request.setAttribute("stocks", stocks);
         request.setAttribute("stats", stats);
         request.setAttribute("keyword", keyword);
@@ -64,6 +76,22 @@ public class InventoryController extends HttpServlet {
                 } else {
                     boolean ok = dao.stockAdjust(variantId, newStock, note, userId);
                     session.setAttribute(ok ? "msgOk" : "msgErr", ok ? "Điều chỉnh thành công" : "Lỗi");
+                }
+            } catch (Exception e) {
+                session.setAttribute("msgErr", "Dữ liệu không h�p lệ");
+            }
+        } else if ("updateLimits".equals(action)) {
+            try {
+                int variantId = Integer.parseInt(request.getParameter("variantId"));
+                int minAmount = Integer.parseInt(request.getParameter("minAmount"));
+                int maxAmount = Integer.parseInt(request.getParameter("maxAmount"));
+                if (minAmount < 0 || maxAmount < 0) {
+                    session.setAttribute("msgErr", "Min / Max không thể âm");
+                } else if (maxAmount > 0 && minAmount > maxAmount) {
+                    session.setAttribute("msgErr", "Min phải nhỏ hơn hoặc bằng Max");
+                } else {
+                    boolean ok = dao.updateMinMax(variantId, minAmount, maxAmount, userId);
+                    session.setAttribute(ok ? "msgOk" : "msgErr", ok ? "Đã cập nhật ngưỡng Min / Max" : "Lỗi khi cập nhật");
                 }
             } catch (Exception e) {
                 session.setAttribute("msgErr", "Dữ liệu không hợp lệ");

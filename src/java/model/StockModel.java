@@ -17,6 +17,8 @@ public class StockModel implements Serializable {
     private int importPrice;
     private boolean active;
     private int lowStockThreshold = 5;
+    private int maxStockThreshold = 100;
+    private boolean hasMaxThreshold = false;
 
     public int getVariantId() {
         return variantId;
@@ -134,16 +136,6 @@ public class StockModel implements Serializable {
         return (long) stock * importPrice;
     }
 
-    public String getStockStatus() {
-        if (stock <= 0) {
-            return "OUT";
-        }
-        if (stock <= lowStockThreshold) {
-            return "LOW";
-        }
-        return "OK";
-    }
-
     public int getMinAmount() {
         return lowStockThreshold;
     }
@@ -152,7 +144,42 @@ public class StockModel implements Serializable {
         this.lowStockThreshold = v;
     }
 
-    public Integer getMaxAmount() {
-        return null;
+    public int getMaxAmount() {
+        return maxStockThreshold;
+    }
+
+    public void setMaxAmount(int v) {
+        this.maxStockThreshold = v;
+        this.hasMaxThreshold = true;
+    }
+
+    public boolean hasMaxAmount() {
+        return hasMaxThreshold;
+    }
+
+    public String getStockStatus() {
+        if (stock <= 0) {
+            return "OUT";
+        }
+        if (stock <= lowStockThreshold) {
+            return "LOW";
+        }
+        if (hasMaxThreshold && stock > maxStockThreshold) {
+            return "EXCESS";
+        }
+        return "OK";
+    }
+
+    public String getStockStatusLabel() {
+        switch (getStockStatus()) {
+            case "OUT":
+                return "Out of Stock";
+            case "LOW":
+                return "Low Stock";
+            case "EXCESS":
+                return "Excess Inventory";
+            default:
+                return "In Stock";
+        }
     }
 }
