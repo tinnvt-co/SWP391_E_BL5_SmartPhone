@@ -91,6 +91,33 @@ public class OrderDAO {
         return orders;
     }
 
+    public List<OrderModel> findShippingOrders() throws SQLException {
+        String sql = "SELECT t.ID, t.UserID, t.Total_price, t.Type, t.Status, "
+                + "       t.Paid_amount, t.Change_amount, t.Method, "
+                + "       t.Updated_by, t.Updated_at, t.Created_at, "
+                + "       t.Reference_transactionID, t.DeliveryInfoID, "
+                + "       u.Username, u.Name AS UserName, u.Phone, u.Email, "
+                + "       upd.Name AS UpdatedByName, "
+                + "       d.Recipient_name, d.Recipient_phone, d.Delivery_address, "
+                + "       (SELECT COALESCE(SUM(tp.Amount),0) FROM Transaction_ProductVariant tp WHERE tp.TransactionID = t.ID) AS ItemCount "
+                + "FROM `Transaction` t "
+                + "JOIN `User` u   ON t.UserID = u.ID "
+                + "LEFT JOIN `User` upd ON t.Updated_by = upd.ID "
+                + "LEFT JOIN DeliveryInfo d ON t.DeliveryInfoID = d.ID "
+                + "WHERE t.Status = 'SHIPPING' AND t.Type = 'ORDER' "
+                + "ORDER BY t.Created_at DESC, t.ID DESC";
+
+        List<OrderModel> orders = new ArrayList<>();
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    orders.add(mapOrderDetail(rs));
+                }
+            }
+        }
+        return orders;
+    }
+
     public OrderModel findOrderDetail(int id) throws SQLException {
         String sql = "SELECT t.ID, t.UserID, t.Total_price, t.Type, t.Status, "
                 + "       t.Paid_amount, t.Change_amount, t.Method, "

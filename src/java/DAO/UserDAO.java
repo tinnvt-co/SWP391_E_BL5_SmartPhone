@@ -73,6 +73,23 @@ public class UserDAO {
         return null;
     }
 
+    public List<UserModel> findActiveShippers() throws SQLException {
+        String sql = "SELECT u.ID, u.Username, u.Name, u.Phone, u.Address, u.Image, u.Age, "
+                + "u.Email, u.RoleID, u.Status, r.Name AS RoleName "
+                + "FROM `User` u "
+                + "JOIN `Role` r ON u.RoleID = r.ID "
+                + "WHERE r.Name = 'SHIPPER' AND u.Status = 'ACTIVE' "
+                + "ORDER BY u.ID ASC";
+
+        List<UserModel> shippers = new ArrayList<>();
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                shippers.add(mapUser(rs));
+            }
+        }
+        return shippers;
+    }
+
     public boolean existsByUsername(String username) throws SQLException {
         return exists("SELECT 1 FROM `User` WHERE Username = ?", username);
     }
