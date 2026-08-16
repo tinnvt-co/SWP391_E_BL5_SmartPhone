@@ -40,8 +40,27 @@ public class OrderController extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         String action = value(request.getParameter("action"), "update-status");
-
         
+        try {
+            if ("update-status".equals(action)) {
+                int orderId = integer(request.getParameter("id"), 0);
+                String status = request.getParameter("status");
+                Integer updatedBy = integerOrNull(request.getParameter("updatedBy"));
+                if (orderId <= 0 || status == null || !VALID_STATUSES.contains(status)) {
+                    redirectBack(request, response, "Invalid request");
+                    return;
+                }
+                OrderModel existing = orderDAO.findOrderDetail(orderId);
+                if (existing == null || "IMPORT".equalsIgnoreCase(existing.getType())) {
+                    redirectBack(request, response, "Cannot update import orders");
+                    return;
+                }
+                boolean ok = orderDAO.updateStatusWithNote(orderId, status, updatedBy, null);
+                redirectBack(request, response, ok ? "Order status updated" : "Cannot update order");
+            }
+        } catch (SQLException exception) {
+            redirectBack(request, response, "Database error: " + exception.getMessage());
+        }
     }
 
     private void listOrders(HttpServletRequest request, HttpServletResponse response)
