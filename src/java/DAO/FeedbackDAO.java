@@ -72,9 +72,8 @@ public class FeedbackDAO {
         }
     }
 
-    /* -------------------------------------------------------------------- */
- /*  Helpers                                                             */
- /* -------------------------------------------------------------------- */
+   
+     // Helpers                                                             */
     private int nextFeedbackId(Connection connection) throws SQLException {
         try (Statement lock = connection.createStatement()) {
             lock.executeUpdate("LOCK TABLES `Feedback` WRITE");
@@ -157,9 +156,8 @@ public class FeedbackDAO {
                 + "JOIN Product p ON p.ID = pv.ProductID ";
     }
 
-    /* -------------------------------------------------------------------- */
- /*  Reads                                                               */
- /* -------------------------------------------------------------------- */
+   
+     // Reads                                                        
     public FeedbackModel findById(int id) throws SQLException {
         String sql = selectFeedbackBase("f") + fromFeedbackJoin() + "WHERE f.IsDeleted = 0 AND f.ID = ?";
         try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
@@ -530,9 +528,8 @@ public class FeedbackDAO {
         }
     }
 
-    /* -------------------------------------------------------------------- */
- /*  Order-authorization helpers                                         */
- /* -------------------------------------------------------------------- */
+    
+    // Order-authorization helpers                                       
     /**
      * True when (a) the order belongs to the user, (b) it's an ORDER (not
      * IMPORT), (c) it's in DELIVERED or COMPLETED, and (d) the variant is
