@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <!DOCTYPE html>
@@ -69,6 +69,16 @@
                                 </a>
                                 <a href="${pageContext.request.contextPath}/checkout">
                                     <i class="bi bi-bag-check"></i> Checkout
+                                </a>
+                            </c:if>
+                            <c:if test="${fn:toLowerCase(profile.roleName) == 'shipper'}">
+                                <a href="${pageContext.request.contextPath}/shipper/orders">
+                                    <i class="bi bi-box-seam"></i> Delivery Orders
+                                </a>
+                            </c:if>
+                            <c:if test="${fn:toLowerCase(profile.roleName) == 'staff'}">
+                                <a href="${pageContext.request.contextPath}/staff/orders">
+                                    <i class="bi bi-card-list"></i> Manage Orders
                                 </a>
                             </c:if>
                             <a href="${pageContext.request.contextPath}/change-password">

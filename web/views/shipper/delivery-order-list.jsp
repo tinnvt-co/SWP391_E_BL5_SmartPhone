@@ -225,8 +225,76 @@
                     <section class="panel content-panel">
                         <div class="d-flex align-items-end justify-content-between gap-3 flex-wrap">
                             <div>
-                                <h2 class="h4 fw-bold mb-1">Active Deliveries</h2>
-                                <p class="text-muted mb-0">${orders.size()} orders ready for delivery</p>
+                                <h2 class="h4 fw-bold mb-1 text-primary">Available Orders</h2>
+                                <p class="text-muted mb-0">${availableOrders.size()} orders waiting to be claimed</p>
+                            </div>
+                            
+                            <c:if test="${not empty message}">
+                                <div class="alert alert-success py-2 mb-0"><i class="bi bi-check-circle me-2"></i>${message}</div>
+                                <c:remove var="message" scope="session"/>
+                            </c:if>
+                            <c:if test="${not empty error}">
+                                <div class="alert alert-danger py-2 mb-0"><i class="bi bi-exclamation-circle me-2"></i>${error}</div>
+                                <c:remove var="error" scope="session"/>
+                            </c:if>
+                        </div>
+                        
+                        <div class="table-panel table-responsive mb-5">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="text-nowrap">Customer Info</th>
+                                        <th class="text-nowrap">Total Price</th>
+                                        <th class="text-nowrap">Status</th>
+                                        <th class="text-nowrap">Note</th>
+                                        <th class="text-end text-nowrap">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <c:forEach items="${availableOrders}" var="order">
+                                        <tr>
+                                            <td>
+                                                <div class="fw-bold">${empty order.recipientName ? order.userName : order.recipientName}</div>
+                                                <div class="text-muted small"><i class="bi bi-telephone-fill me-1"></i>${empty order.recipientPhone ? order.userPhone : order.recipientPhone}</div>
+                                                <div class="text-muted small mt-1"><i class="bi bi-geo-alt-fill me-1"></i>${empty order.deliveryAddress ? 'No address provided' : order.deliveryAddress}</div>
+                                            </td>
+                                            <td class="text-nowrap fw-bold text-primary">
+                                                <fmt:formatNumber value="${order.totalPrice}" type="currency" currencySymbol="₫" maxFractionDigits="0"/>
+                                            </td>
+                                            <td class="text-nowrap">
+                                                <span class="badge rounded-pill badge-soft-warning">
+                                                    <c:out value="${order.status}"/>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="text-muted small text-wrap" style="max-width: 150px;">
+                                                    <c:out value="${empty order.note ? '' : order.note}"/>
+                                                </div>
+                                            </td>
+                                            <td class="text-end text-nowrap">
+                                                <form action="${pageContext.request.contextPath}/shipper/orders" method="post" class="m-0 p-0">
+                                                    <input type="hidden" name="action" value="claim">
+                                                    <input type="hidden" name="orderId" value="${order.id}">
+                                                    <button type="submit" class="btn btn-sm btn-primary shadow-sm">
+                                                        <i class="bi bi-box-arrow-in-down me-1"></i> Claim Order
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    </c:forEach>
+                                    <c:if test="${empty availableOrders}">
+                                        <tr>
+                                            <td colspan="5" class="text-center py-4 text-muted">No available orders at the moment.</td>
+                                        </tr>
+                                    </c:if>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="d-flex align-items-end justify-content-between gap-3 flex-wrap">
+                            <div>
+                                <h2 class="h4 fw-bold mb-1">My Assigned Orders</h2>
+                                <p class="text-muted mb-0">${orders.size()} orders currently assigned to you</p>
                             </div>
                             
                             <c:if test="${not empty message}">
