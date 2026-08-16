@@ -89,6 +89,10 @@
         <servlet-name>WishlistController</servlet-name>
         <servlet-class>controller.WishlistController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>FeedbackController</servlet-name>
+        <servlet-class>controller.FeedbackController</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>HomeController</servlet-name>
         <url-pattern>/home</url-pattern>
@@ -183,6 +187,10 @@
     <servlet-mapping>
         <servlet-name>WishlistController</servlet-name>
         <url-pattern>/WishlistController</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>FeedbackController</servlet-name>
+        <url-pattern>/FeedbackController</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>30</session-timeout>
