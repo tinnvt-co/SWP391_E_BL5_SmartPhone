@@ -216,25 +216,6 @@ public class OrderDAO {
         }
     }
 
-    public boolean updateStatus(int orderId, String status, Integer updatedBy)
-            throws SQLException {
-        if (!VALID_STATUSES.contains(status)) {
-            throw new SQLException("Invalid status: " + status);
-        }
-        if (updatedBy == null) {
-            updatedBy = resolveFallbackUpdater();
-        }
-        String sql = "UPDATE `Transaction` SET Status = ?, Updated_by = ?, Updated_at = CURRENT_TIMESTAMP "
-                + "WHERE ID = ?";
-        try (Connection connection = DBContext.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, status);
-            statement.setInt(2, updatedBy);
-            statement.setInt(3, orderId);
-            return statement.executeUpdate() > 0;
-        }
-    }
-
     private Integer resolveFallbackUpdater() throws SQLException {
         String sql = "SELECT u.ID FROM `User` u JOIN `Role` r ON u.RoleID = r.ID WHERE r.Name IN ('STAFF','ADMIN') AND u.Status='ACTIVE' ORDER BY (r.Name='ADMIN') DESC, u.ID ASC LIMIT 1";
         try (Connection connection = DBContext.getConnection();
@@ -246,7 +227,25 @@ public class OrderDAO {
         }
         throw new SQLException("No active STAFF/ADMIN account available to set Updated_by");
     }
-
+    
+    public boolean updateStatus(int orderId, String status, Integer updatedBy)
+            throws SQLException {
+        if (!VALID_STATUSES.contains(status)) {
+            throw new SQLException("Invalid status: " + status);
+        }
+        if (updatedBy == null) {
+            updatedBy = resolveFallbackUpdater();
+        }
+        String sql = "UPDATE `Transaction` SET Status = ?, Updated_by = ?, Updated_at = CURRENT_TIMESTAMP "
+                + "WHERE ID = ?";
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, status);
+            statement.setInt(2, updatedBy);
+            statement.setInt(3, orderId);
+            return statement.executeUpdate() > 0;
+        }
+    }
+    
     public boolean updateStatusWithNote(int orderId, String status, Integer updatedBy, String note)
             throws SQLException {
         if (!VALID_STATUSES.contains(status)) {
