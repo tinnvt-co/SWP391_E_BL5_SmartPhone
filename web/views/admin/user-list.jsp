@@ -287,6 +287,11 @@
                                 <h2 class="h4 fw-bold mb-1">User Management</h2>
                                 <p class="text-muted mb-0">${users.size()} users found</p>
                             </div>
+                            <div>
+                                <a href="${pageContext.request.contextPath}/admin/users?action=create" class="btn btn-primary fw-bold">
+                                    <i class="bi bi-plus-lg me-1"></i> Create New User
+                                </a>
+                            </div>
                         </div>
 
                         <div class="table-panel table-responsive">

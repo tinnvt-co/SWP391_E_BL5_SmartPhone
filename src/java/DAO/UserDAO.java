@@ -157,6 +157,49 @@ public class UserDAO {
         }
     }
 
+    public UserModel createUser(UserModel user, String password, int roleId) throws SQLException {
+        String nextIdSql = "SELECT COALESCE(MAX(ID), 0) + 1 FROM `User`";
+        String insertSql = "INSERT INTO `User` "
+                + "(ID, Username, Password, Name, Phone, Address, Image, Age, Email, RoleID, Status) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE')";
+
+        try (Connection conn = DBContext.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                int nextId;
+                try (PreparedStatement ps = conn.prepareStatement(nextIdSql); ResultSet rs = ps.executeQuery()) {
+                    rs.next();
+                    nextId = rs.getInt(1);
+                }
+
+                try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
+                    ps.setInt(1, nextId);
+                    ps.setString(2, user.getUsername());
+                    ps.setString(3, password);
+                    ps.setString(4, user.getName());
+                    ps.setString(5, user.getPhone());
+                    ps.setString(6, user.getAddress());
+                    ps.setString(7, user.getImage());
+                    if (user.getAge() != null) {
+                        ps.setInt(8, user.getAge());
+                    } else {
+                        ps.setNull(8, java.sql.Types.INTEGER);
+                    }
+                    ps.setString(9, user.getEmail());
+                    ps.setInt(10, roleId);
+                    ps.executeUpdate();
+                }
+
+                conn.commit();
+                return findActiveByCredentials(user.getUsername(), password);
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        }
+    }
     public UserModel findOrCreateGoogleCustomer(String email, String name, String image) throws SQLException {
         UserModel existing = findActiveByEmail(email);
         if (existing != null) {

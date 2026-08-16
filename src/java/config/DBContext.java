@@ -21,7 +21,7 @@ public final class DBContext {
     private static final String PASSWORD = firstNonBlank(
             System.getProperty("smartphone.db.password"),
             System.getenv("SMARTPHONE_DB_PASSWORD"),
-            "Duc@123456");
+            "123456");
 
     static {
         try {
