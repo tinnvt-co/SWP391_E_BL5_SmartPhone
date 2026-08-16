@@ -38,12 +38,17 @@
                             <a class="swp-layout-link" href="${pageContext.request.contextPath}/home#services">Services</a>
                         </li>
                     </c:if>
-                    <c:if test="${currentRole == 'Admin'}">
+                    <c:if test="${currentRole == 'Admin' or currentRole == 'ADMIN'}">
                         <li>
                             <a class="swp-layout-link ${activePage == 'users' ? 'is-active' : ''}" href="${pageContext.request.contextPath}/admin/users">Users</a>
                         </li>
                         <li>
                             <a class="swp-layout-link ${activePage == 'roles' ? 'is-active' : ''}" href="${pageContext.request.contextPath}/admin/roles">Roles</a>
+                        </li>
+                    </c:if>
+                    <c:if test="${currentRole == 'Shipper' or currentRole == 'SHIPPER'}">
+                        <li>
+                            <a class="swp-layout-link ${activePage == 'shipper-orders' ? 'is-active' : ''}" href="${pageContext.request.contextPath}/shipper/orders">Assigned Orders</a>
                         </li>
                     </c:if>
                 </ul>
