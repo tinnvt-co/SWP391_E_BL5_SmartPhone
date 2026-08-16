@@ -1605,3 +1605,276 @@ body.inventory-page .empty-state {
         grid-template-columns: 1fr;
     }
 }
+
+/* =============================================================
+   ORDER STATUS UPDATE MODAL (used by staff / manager order lists)
+   ============================================================= */
+.order-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.order-modal[hidden] {
+    display: none !important;
+}
+
+.order-modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    cursor: pointer;
+    animation: modalFadeIn .18s ease;
+}
+
+.order-modal-card {
+    position: relative;
+    width: min(100%, 520px);
+    max-height: calc(100vh - 48px);
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: 0 26px 60px rgba(15, 23, 42, 0.32);
+    display: flex;
+    flex-direction: column;
+    animation: modalPop .22s ease;
+}
+
+.order-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 22px 26px 12px;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, #f8fafc, #fff);
+}
+
+.order-modal-header h2 {
+    margin: 0 0 4px;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+}
+
+.order-modal-sub {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.order-modal-close {
+    background: transparent;
+    border: 0;
+    font-size: 1.6rem;
+    line-height: 1;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 0 4px;
+    transition: color .15s ease;
+}
+
+.order-modal-close:hover {
+    color: var(--ink);
+}
+
+.order-modal-body {
+    padding: 18px 26px 22px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.order-modal-label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+}
+
+.order-stepper {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    padding: 8px 4px 14px;
+    border-bottom: 1px dashed var(--line);
+    margin-bottom: 4px;
+}
+
+.order-stepper-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    text-align: center;
+    position: relative;
+}
+
+.order-stepper-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--surface-2, #f1f5f9);
+    color: var(--muted);
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line);
+}
+
+.order-stepper-item.done .order-stepper-dot {
+    background: var(--mgr-green, #059669);
+    color: #fff;
+    border-color: var(--mgr-green, #059669);
+}
+
+.order-stepper-item.current .order-stepper-dot {
+    background: var(--mgr-blue, #1d4ed8);
+    color: #fff;
+    border-color: var(--mgr-blue, #1d4ed8);
+    box-shadow: 0 0 0 4px rgba(29, 78, 216, 0.18);
+}
+
+.order-stepper-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+.order-stepper-item.current .order-stepper-label,
+.order-stepper-item.done .order-stepper-label {
+    color: var(--ink);
+}
+
+.order-status-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+}
+
+.order-status-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+    cursor: pointer;
+    transition: all .15s ease;
+}
+
+.order-status-option:hover {
+    border-color: var(--mgr-blue, #1d4ed8);
+    background: var(--mgr-blue-soft, #eff4ff);
+}
+
+.order-status-option.is-selected {
+    border-color: var(--mgr-blue, #1d4ed8);
+    background: var(--mgr-blue-soft, #eff4ff);
+    box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
+}
+
+.order-status-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.order-status-option-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--muted);
+    flex: 0 0 18px;
+    transition: all .15s ease;
+}
+
+.order-status-option.is-selected .order-status-option-dot {
+    border-color: var(--mgr-blue, #1d4ed8);
+    background: var(--mgr-blue, #1d4ed8);
+    box-shadow: inset 0 0 0 3px #fff;
+}
+
+.order-status-option-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.order-status-option-code {
+    font-weight: 700;
+    color: var(--ink);
+    font-size: 0.92rem;
+    letter-spacing: 0.02em;
+}
+
+.order-status-option-desc {
+    color: var(--muted);
+    font-size: 0.82rem;
+}
+
+.order-modal-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 6px;
+    border-top: 1px solid var(--line);
+    margin-top: 4px;
+    padding-top: 14px;
+}
+
+#modalSubmit:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    background: var(--muted);
+    border-color: var(--muted);
+}
+
+#modalSubmit:disabled:hover {
+    background: var(--muted);
+    transform: none;
+}
+
+body.modal-open {
+    overflow: hidden;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes modalPop {
+    from { transform: translateY(8px) scale(0.98); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+@media (max-width: 575.98px) {
+    .order-modal-card {
+        border-radius: 14px;
+    }
+
+    .order-modal-header,
+    .order-modal-body {
+        padding: 18px 18px;
+    }
+
+    .order-stepper {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}

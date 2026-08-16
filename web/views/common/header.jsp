@@ -55,12 +55,6 @@
                             <i class="bi bi-speedometer2"></i> Management Center
                         </a>
                     </c:if>
-                    <c:if test="${currentRole == 'Staff'}">
-                        <a class="swp-layout-action swp-layout-action-staff"
-                           href="${pageContext.request.contextPath}/staff">
-                            <i class="bi bi-clipboard-check"></i> Staff Center
-                        </a>
-                    </c:if>
 
                     <c:if test="${currentRole ne 'Admin' and currentRole ne 'ADMIN' and currentRole ne 'Shipper' and currentRole ne 'SHIPPER'}">
                         <button class="swp-layout-icon-btn" type="button" title="Search">
@@ -88,13 +82,6 @@
                                     <li>
                                         <h6 class="dropdown-header">${currentRole}</h6>
                                     </li>
-                                    <c:if test="${currentRole == 'Staff'}">
-                                        <li>
-                                            <a class="dropdown-item" href="${pageContext.request.contextPath}/staff">
-                                                <i class="bi bi-clipboard-check me-2"></i>Staff Center
-                                            </a>
-                                        </li>
-                                    </c:if>
                                     <c:if test="${currentRole == 'Manager' || currentRole == 'ADMIN'}">
                                         <li>
                                             <a class="dropdown-item" href="${pageContext.request.contextPath}/manager/feedback">

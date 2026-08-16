@@ -718,6 +718,147 @@
 }
 
 /* =============================================================
+   STAFF CTA PANEL (visible only when currentRole == Staff)
+   ============================================================= */
+.staff-cta-panel {
+    display: grid;
+    grid-template-columns: 180px 1fr auto;
+    gap: 2.2rem;
+    align-items: center;
+    padding: 2.2rem 2.4rem;
+    border-radius: var(--home-radius-lg);
+    background:
+        linear-gradient(120deg, rgba(15, 23, 42, 0.96) 0%, rgba(29, 78, 216, 0.92) 60%, rgba(124, 58, 237, 0.85) 100%),
+        url("../images/home/smartphone-hero.png") center right / cover no-repeat;
+    color: #fff;
+    box-shadow: var(--home-shadow-md);
+    position: relative;
+    overflow: hidden;
+}
+
+.staff-cta-panel::after {
+    content: "";
+    position: absolute;
+    right: -120px;
+    bottom: -120px;
+    width: 360px;
+    height: 360px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.10), transparent 70%);
+    pointer-events: none;
+}
+
+.staff-cta-art {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.staff-cta-icon {
+    font-size: 3.4rem;
+    color: #fff;
+    line-height: 1;
+}
+
+.staff-cta-decor {
+    position: absolute;
+    inset: -14px;
+    border-radius: 50%;
+    border: 1px dashed rgba(255, 255, 255, 0.32);
+    pointer-events: none;
+}
+
+.staff-cta-content {
+    position: relative;
+    z-index: 1;
+}
+
+.staff-cta-content .hero-eyebrow {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.28);
+    color: #fff;
+}
+
+.staff-cta-content h2 {
+    color: #fff;
+    font-size: clamp(1.4rem, 2.4vw, 1.85rem);
+    font-weight: 800;
+    line-height: 1.25;
+    margin: 0.85rem 0 0.65rem;
+    letter-spacing: -0.01em;
+}
+
+.staff-cta-content p {
+    color: rgba(255, 255, 255, 0.82);
+    margin: 0 0 0.85rem;
+    max-width: 540px;
+    line-height: 1.6;
+}
+
+.staff-cta-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem 1.1rem;
+}
+
+.staff-cta-features li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: var(--home-radius-pill);
+    padding: 0.35rem 0.85rem;
+}
+
+.staff-cta-features li i {
+    color: #fff;
+    font-size: 0.95rem;
+}
+
+.staff-cta-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.55rem;
+    position: relative;
+    z-index: 1;
+}
+
+.staff-cta-btn {
+    background: #fff;
+    color: var(--home-blue-dark);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+}
+
+.staff-cta-btn:hover {
+    background: #f8fafc;
+    color: var(--home-blue-dark);
+    transform: translateY(-1px);
+}
+
+.staff-cta-actions small {
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+/* =============================================================
    ALERT (hero alert messages)
    ============================================================= */
 .hero-copy .alert {
@@ -761,6 +902,18 @@
     .category-strip {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
+
+    .staff-cta-panel {
+        grid-template-columns: 140px 1fr;
+        gap: 1.6rem;
+    }
+
+    .staff-cta-actions {
+        grid-column: 1 / -1;
+        align-items: flex-start;
+        flex-direction: row;
+        justify-content: space-between;
+    }
 }
 
 @media (max-width: 767.98px) {
@@ -793,6 +946,21 @@
 
     .promo-panel {
         padding: 1.6rem;
+    }
+
+    .staff-cta-panel {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding: 1.8rem;
+    }
+
+    .staff-cta-features {
+        justify-content: center;
+    }
+
+    .staff-cta-actions {
+        flex-direction: column;
+        align-items: center;
     }
 }
 

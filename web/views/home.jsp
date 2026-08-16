@@ -67,6 +67,39 @@
                 </div>
             </section>
 
+            <c:if test="${currentRole == 'Staff'}">
+                <section class="section-band">
+                    <div class="container">
+                        <div class="staff-cta-panel">
+                            <div class="staff-cta-art">
+                                <span class="staff-cta-icon"><i class="bi bi-clipboard-check"></i></span>
+                                <span class="staff-cta-decor"></span>
+                            </div>
+                            <div class="staff-cta-content">
+                                <span class="hero-eyebrow"><i class="bi bi-shield-lock-fill"></i> STAFF ACCESS</span>
+                                <h2>Welcome back, <c:out value="${currentUser.name}"/>. Ready to process today's orders?</h2>
+                                <p>
+                                    Use the Staff Center to search, review and update customer orders.
+                                    Your work helps keep the fulfillment queue moving.
+                                </p>
+                                <ul class="staff-cta-features">
+                                    <li><i class="bi bi-check2-circle"></i> Process pending &amp; processing orders</li>
+                                    <li><i class="bi bi-check2-circle"></i> Track shipping &amp; delivery status</li>
+                                    <li><i class="bi bi-check2-circle"></i> Reply to customer feedback</li>
+                                </ul>
+                            </div>
+                            <div class="staff-cta-actions">
+                                <a class="btn-primary-action staff-cta-btn"
+                                   href="${pageContext.request.contextPath}/staff">
+                                    <i class="bi bi-arrow-right-circle"></i> Open Staff Center
+                                </a>
+                                <small>Authorized personnel only</small>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </c:if>
+
             <section class="section-band section-soft" id="categories">
                 <div class="container">
                     <div class="section-header">

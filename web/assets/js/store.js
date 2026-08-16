@@ -157,7 +157,8 @@ document.addEventListener('click', function (event) {
             option.innerHTML = '<input type="radio" name="status" value="' + code + '"' + (code === current ? ' checked' : '') + '><span class="order-status-option-dot"></span><div class="order-status-option-info"><span class="order-status-option-code">' + code.replace(/_/g, ' ') + '</span><span class="order-status-option-desc">' + STATUS_DESCS[code] + '</span></div>';
             gridEl.appendChild(option);
         });
-        submitBtn.disabled = true;
+        submitBtn.disabled = current === '' || current === null;
+        submitBtn.textContent = 'Confirm Update';
         gridEl.querySelectorAll('input[type=radio]').forEach(function (radio) {
             radio.addEventListener('change', function () {
                 gridEl.querySelectorAll('.order-status-option').forEach(function (option) {
@@ -201,6 +202,13 @@ document.addEventListener('click', function (event) {
             close();
         }
     });
+    var updateForm = document.getElementById('modalUpdateForm');
+    if (updateForm) {
+        updateForm.addEventListener('submit', function () {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Updating...';
+        });
+    }
 })();
 (function () {
     document.querySelectorAll('[data-variant-picker]').forEach(function (picker) {
