@@ -43,44 +43,44 @@ public class AuthFilter implements Filter {
     );
 
     private static final List<AccessRule> ACCESS_RULES = List.of(
-            rule("/admin/users", roles("ADMIN")),
-            rule("/admin/roles", roles("ADMIN")),
-            rule("/manager/products", roles("MANAGER")),
-            rule("/manager/categories", roles("MANAGER")),
-            rule("/manager/brands", roles("MANAGER")),
-            rule("/manager/inventory", roles("MANAGER")),
-            rule("/manager/discounts", roles("MANAGER")),
-            rule("/manager/sales", roles("MANAGER")),
-            rule("/manager/sales-stats", roles("MANAGER")),
-            rule("/manager/revenue", roles("MANAGER")),
-            rule("/manager/order-statistics", roles("MANAGER")),
-            rule("/manager/statistics", roles("MANAGER")),
-            rule("/manager/suppliers", roles("MANAGER")),
-            rule("/manager/refunds", roles("MANAGER")),
-            rule("/manager/feedback", roles("MANAGER")),
-            rule("/manager/orders", roles("MANAGER", "STAFF")),
-            rule("/staff/orders", roles("STAFF", "MANAGER")),
-            rule("/orders/manage", roles("STAFF", "MANAGER")),
-            rule("/shipper/orders", roles("SHIPPER")),
-            rule("/shipper/deliveries", roles("SHIPPER")),
-            rule("/wishlist", roles("CUSTOMER")),
-            rule("/cart", roles("CUSTOMER")),
-            rule("/feedback", roles("CUSTOMER", "MANAGER")),
-            rule("/checkout", roles("CUSTOMER")),
-            rule("/order-history", roles("CUSTOMER")),
-            rule("/customer/orders", roles("CUSTOMER")),
-            rule("/customer/order-detail", roles("CUSTOMER")),
-            rule("/order-detail", roles("CUSTOMER")),
-            rule("/customer/delivery-status", roles("CUSTOMER")),
-            rule("/delivery-status", roles("CUSTOMER")),
-            rule("/profile", roles("ADMIN", "MANAGER", "STAFF", "CUSTOMER", "SHIPPER")),
-            rule("/my-profile", roles("ADMIN", "MANAGER", "STAFF", "CUSTOMER", "SHIPPER")),
-            rule("/change-password", roles("ADMIN", "MANAGER", "STAFF", "CUSTOMER", "SHIPPER")),
-            rule("/admin", roles("ADMIN")),
-            rule("/manager", roles("MANAGER")),
-            rule("/staff", roles("STAFF", "MANAGER")),
-            rule("/shipper", roles("SHIPPER")),
-            rule("/customer", roles("CUSTOMER"))
+            rule("/admin/users", perms("USER_VIEW_LIST", "USER_TOGGLE_STATUS")),
+            rule("/admin/roles", perms("ROLE_VIEW_LIST", "ROLE_VIEW_PERMISSIONS", "ROLE_UPDATE", "ROLE_TOGGLE_STATUS", "ROLE_EDIT_PERMISSIONS")),
+            rule("/manager/products", perms("PRODUCT_MANAGE")),
+            rule("/manager/categories", perms("CATEGORY_MANAGE")),
+            rule("/manager/brands", perms("BRAND_MANAGE")),
+            rule("/manager/inventory", perms("INVENTORY_MANAGE")),
+            rule("/manager/discounts", perms("DISCOUNT_MANAGE")),
+            rule("/manager/sales", perms("SALES_STATS_VIEW")),
+            rule("/manager/sales-stats", perms("SALES_STATS_VIEW")),
+            rule("/manager/revenue", perms("REVENUE_VIEW")),
+            rule("/manager/order-statistics", perms("ORDER_STATS_VIEW")),
+            rule("/manager/statistics", perms("SALES_STATS_VIEW", "REVENUE_VIEW", "ORDER_STATS_VIEW")),
+            rule("/manager/suppliers", perms("SUPPLIER_MANAGE")),
+            rule("/manager/refunds", perms("REFUND_MANAGE")),
+            rule("/manager/feedback", perms("FEEDBACK_VIEW", "FEEDBACK_REPLY")),
+            rule("/manager/orders", perms("ORDER_VIEW", "ORDER_UPDATE_STATUS")),
+            rule("/staff/orders", perms("ORDER_VIEW", "ORDER_UPDATE_STATUS")),
+            rule("/orders/manage", perms("ORDER_VIEW", "ORDER_UPDATE_STATUS")),
+            rule("/shipper/orders", perms("DELIVERY_ORDER_VIEW", "DELIVERY_STATUS_UPDATE")),
+            rule("/shipper/deliveries", perms("DELIVERY_ORDER_VIEW")),
+            rule("/wishlist", perms("WISHLIST_MANAGE")),
+            rule("/cart", perms("CHECKOUT")),
+            rule("/feedback", perms("FEEDBACK_SEND", "FEEDBACK_VIEW", "FEEDBACK_REPLY")),
+            rule("/checkout", perms("CHECKOUT")),
+            rule("/order-history", perms("ORDER_HISTORY_VIEW")),
+            rule("/customer/orders", perms("ORDER_HISTORY_VIEW")),
+            rule("/customer/order-detail", perms("ORDER_HISTORY_VIEW")),
+            rule("/order-detail", perms("ORDER_HISTORY_VIEW")),
+            rule("/customer/delivery-status", perms("DELIVERY_STATUS_VIEW")),
+            rule("/delivery-status", perms("DELIVERY_STATUS_VIEW")),
+            rule("/profile", perms()),
+            rule("/my-profile", perms()),
+            rule("/change-password", perms()),
+            rule("/admin", perms("USER_VIEW_LIST", "ROLE_VIEW_LIST")),
+            rule("/manager", perms("PRODUCT_MANAGE", "CATEGORY_MANAGE", "BRAND_MANAGE", "INVENTORY_MANAGE", "DISCOUNT_MANAGE", "SALES_STATS_VIEW", "REVENUE_VIEW", "ORDER_STATS_VIEW", "SUPPLIER_MANAGE", "REFUND_MANAGE", "FEEDBACK_VIEW")),
+            rule("/staff", perms("ORDER_VIEW")),
+            rule("/shipper", perms("DELIVERY_ORDER_VIEW")),
+            rule("/customer", perms("ORDER_HISTORY_VIEW", "WISHLIST_MANAGE", "CHECKOUT"))
     );
 
     @Override
@@ -151,8 +151,21 @@ public class AuthFilter implements Filter {
             return true;
         }
 
-        String role = normalizeRole(session.getAttribute("currentRole"));
-        return rule.roles.contains(role);
+        if (rule.permissions.isEmpty()) {
+            return true;
+        }
+
+        List<String> userPerms = (List<String>) session.getAttribute("permissions");
+        if (userPerms == null || userPerms.isEmpty()) {
+            return false;
+        }
+
+        for (String requiredPerm : rule.permissions) {
+            if (userPerms.contains(requiredPerm)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private AccessRule findRule(String path) {
@@ -200,14 +213,14 @@ public class AuthFilter implements Filter {
         response.setDateHeader("Expires", 0);
     }
 
-    private static AccessRule rule(String pathPrefix, List<String> roles) {
-        return new AccessRule(pathPrefix, roles);
+    private static AccessRule rule(String pathPrefix, List<String> permissions) {
+        return new AccessRule(pathPrefix, permissions);
     }
 
-    private static List<String> roles(String... roles) {
+    private static List<String> perms(String... permissions) {
         List<String> normalized = new ArrayList<>();
-        for (String role : roles) {
-            normalized.add(role.toUpperCase(Locale.ROOT));
+        for (String perm : permissions) {
+            normalized.add(perm.toUpperCase(Locale.ROOT));
         }
         return normalized;
     }
@@ -215,11 +228,11 @@ public class AuthFilter implements Filter {
     private static final class AccessRule {
 
         private final String pathPrefix;
-        private final List<String> roles;
+        private final List<String> permissions;
 
-        private AccessRule(String pathPrefix, List<String> roles) {
+        private AccessRule(String pathPrefix, List<String> permissions) {
             this.pathPrefix = pathPrefix;
-            this.roles = roles;
+            this.permissions = permissions;
         }
     }
 }
