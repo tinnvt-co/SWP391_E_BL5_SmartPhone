@@ -1,72 +1,107 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package controller;
 
-import java.io.IOException;
-import java.io.PrintWriter;
+import DAO.CartDAO;
+import DAO.WishlistDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.util.List;
-import service.WishlistService;
+import model.CartItemModel;
+import model.UserModel;
 
-/**
- *
- * @author admin
- */
 public class WishlistController extends HttpServlet {
-    private final WishlistService wishlistService = new WishlistService();
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        List<ProductVariant> wishlist
-                = wishlistService.findByUser(userId);
 
-        request.setAttribute("wishlist", wishlist);
+    private final WishlistDAO wishlistDAO = new WishlistDAO();
+    private final CartDAO cartDAO = new CartDAO();
 
-        request.getRequestDispatcher("/wishlist.jsp")
-                .forward(request, response);
-    }
-
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        UserModel currentUser = currentUser(request);
+        try {
+            List<CartItemModel> items = wishlistDAO.findByUserId(currentUser.getId());
+            request.setAttribute("wishlistItems", items);
+            request.setAttribute("wishlistCount", items.size());
+            request.getRequestDispatcher("/views/customer/wishlist.jsp")
+                    .forward(request, response);
+        } catch (SQLException exception) {
+            throw new ServletException("Cannot load wishlist.", exception);
+        }
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        request.setCharacterEncoding("UTF-8");
+        UserModel currentUser = currentUser(request);
+        String action = value(request.getParameter("action"), "add");
+        int variantId = integer(request.getParameter("variantId"), 0);
+
+        try {
+            if (variantId <= 0) {
+                throw new SQLException("Please select a product option.");
+            }
+
+            if ("remove".equals(action)) {
+                wishlistDAO.removeItem(currentUser.getId(), variantId);
+                redirect(request, response, "removed");
+                return;
+            }
+
+            if ("moveToCart".equals(action)) {
+                cartDAO.addItem(currentUser.getId(), variantId, 1);
+                wishlistDAO.removeItem(currentUser.getId(), variantId);
+                redirect(request, response, "moved");
+                return;
+            }
+
+            wishlistDAO.addItem(currentUser.getId(), variantId);
+            redirectAfterAdd(request, response);
+        } catch (SQLException exception) {
+            String redirect = value(request.getParameter("redirect"),
+                    request.getContextPath() + "/wishlist");
+            response.sendRedirect(redirect + (redirect.contains("?") ? "&" : "?")
+                    + "wishlistError=" + URLEncoder.encode(exception.getMessage(),
+                            StandardCharsets.UTF_8));
+        }
     }
 
+    private UserModel currentUser(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        return (UserModel) session.getAttribute("currentUser");
+    }
+
+    private void redirect(HttpServletRequest request, HttpServletResponse response,
+            String status) throws IOException {
+        response.sendRedirect(request.getContextPath() + "/wishlist?status=" + status);
+    }
+
+    private void redirectAfterAdd(HttpServletRequest request,
+            HttpServletResponse response) throws IOException {
+        String redirect = request.getParameter("redirect");
+        if (redirect == null || redirect.isBlank()) {
+            redirect(request, response, "added");
+            return;
+        }
+        response.sendRedirect(redirect + (redirect.contains("?") ? "&" : "?")
+                + "wishlistStatus=added");
+    }
+
+    private int integer(String input, int fallback) {
+        try {
+            return Integer.parseInt(input);
+        } catch (Exception exception) {
+            return fallback;
+        }
+    }
+
+    private String value(String input, String fallback) {
+        return input == null || input.isBlank() ? fallback : input;
+    }
 }
