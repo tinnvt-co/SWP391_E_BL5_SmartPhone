@@ -205,6 +205,7 @@ CREATE TABLE `Transaction` (
   `Created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `Reference_transactionID` INT,
   `DeliveryInfoID` INT,
+  `ShipperID` INT NULL,
   PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
  

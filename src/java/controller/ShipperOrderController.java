@@ -28,31 +28,11 @@ public class ShipperOrderController extends HttpServlet {
                 return;
             }
 
-            List<UserModel> shippers = userDAO.findActiveShippers();
-            int totalShippers = shippers.size();
-            int shipperIndex = -1;
-            for (int i = 0; i < totalShippers; i++) {
-                if (shippers.get(i).getId() == currentUser.getId()) {
-                    shipperIndex = i;
-                    break;
-                }
-            }
-
-            // Fetch orders that are in SHIPPING status and have delivery info
-            List<OrderModel> allShippingOrders = orderDAO.findShippingOrders();
-            List<OrderModel> assignedOrders = new ArrayList<>();
+            List<OrderModel> assignedOrders = orderDAO.findShippingOrdersByShipper(currentUser.getId());
+            List<OrderModel> availableOrders = orderDAO.findAvailableShippingOrders();
             
-            if (totalShippers > 0 && shipperIndex != -1) {
-                for (OrderModel order : allShippingOrders) {
-                    if (order.getId() % totalShippers == shipperIndex) {
-                        assignedOrders.add(order);
-                    }
-                }
-            } else {
-                assignedOrders = allShippingOrders;
-            }
-
             request.setAttribute("orders", assignedOrders);
+            request.setAttribute("availableOrders", availableOrders);
             
             request.getRequestDispatcher("/views/shipper/delivery-order-list.jsp").forward(request, response);
         } catch (SQLException ex) {
@@ -64,7 +44,24 @@ public class ShipperOrderController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String action = request.getParameter("action");
-        if ("updateStatus".equals(action)) {
+        if ("claim".equals(action)) {
+            try {
+                int orderId = Integer.parseInt(request.getParameter("orderId"));
+                UserModel currentUser = (UserModel) request.getSession().getAttribute("currentUser");
+                if (currentUser != null) {
+                    boolean ok = orderDAO.assignShipper(orderId, currentUser.getId(), currentUser.getId());
+                    if (ok) {
+                        request.getSession().setAttribute("message", "Order #" + orderId + " claimed successfully.");
+                    } else {
+                        request.getSession().setAttribute("error", "Failed to claim order. It might have been claimed by someone else.");
+                    }
+                }
+                response.sendRedirect(request.getContextPath() + "/shipper/orders");
+            } catch (Exception ex) {
+                request.getSession().setAttribute("error", "Error claiming order: " + ex.getMessage());
+                response.sendRedirect(request.getContextPath() + "/shipper/orders");
+            }
+        } else if ("updateStatus".equals(action)) {
             try {
                 int orderId = Integer.parseInt(request.getParameter("orderId"));
                 String status = request.getParameter("status"); // Expected: DELIVERED or COMPLETED
@@ -88,9 +85,9 @@ public class ShipperOrderController extends HttpServlet {
                 UserModel currentUser = (UserModel) request.getSession().getAttribute("currentUser");
                 Integer updatedBy = (currentUser != null) ? currentUser.getId() : null;
                 
-                orderDAO.updateStatusWithNote(orderId, "SHIPPING", updatedBy, note);
+                orderDAO.updateStatusWithNote(orderId, "DELIVERED", updatedBy, note);
                 
-                request.getSession().setAttribute("message", "Note added to Order #" + orderId + ".");
+                request.getSession().setAttribute("message", "Note added to Order #" + orderId + " and marked as delivered.");
                 response.sendRedirect(request.getContextPath() + "/shipper/orders");
             } catch (Exception ex) {
                 request.getSession().setAttribute("error", "Error adding note: " + ex.getMessage());

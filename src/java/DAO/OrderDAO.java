@@ -32,7 +32,7 @@ public class OrderDAO {
                 .append("SELECT t.ID, t.UserID, t.Total_price, t.Type, t.Status, ")
                 .append("       t.Paid_amount, t.Change_amount, t.Method, ")
                 .append("       t.Updated_by, t.Updated_at, t.Created_at, t.Note, ")
-                .append("       t.Reference_transactionID, t.DeliveryInfoID, ")
+                .append("       t.Reference_transactionID, t.DeliveryInfoID, t.ShipperID, ")
                 .append("       u.Username, u.Name AS UserName, u.Phone, u.Email, ")
                 .append("       upd.Name AS UpdatedByName, ")
                 .append("       (SELECT COUNT(*) FROM Transaction_ProductVariant tp ")
@@ -91,11 +91,11 @@ public class OrderDAO {
         return orders;
     }
 
-    public List<OrderModel> findShippingOrders() throws SQLException {
+    public List<OrderModel> findAvailableShippingOrders() throws SQLException {
         String sql = "SELECT t.ID, t.UserID, t.Total_price, t.Type, t.Status, "
                 + "       t.Paid_amount, t.Change_amount, t.Method, "
                 + "       t.Updated_by, t.Updated_at, t.Created_at, t.Note, "
-                + "       t.Reference_transactionID, t.DeliveryInfoID, "
+                + "       t.Reference_transactionID, t.DeliveryInfoID, t.ShipperID, "
                 + "       u.Username, u.Name AS UserName, u.Phone, u.Email, "
                 + "       upd.Name AS UpdatedByName, "
                 + "       d.Recipient_name, d.Recipient_phone, d.Delivery_address, "
@@ -104,7 +104,7 @@ public class OrderDAO {
                 + "JOIN `User` u   ON t.UserID = u.ID "
                 + "LEFT JOIN `User` upd ON t.Updated_by = upd.ID "
                 + "LEFT JOIN DeliveryInfo d ON t.DeliveryInfoID = d.ID "
-                + "WHERE t.Status = 'SHIPPING' AND t.Type = 'ORDER' "
+                + "WHERE t.Status = 'SHIPPING' AND t.Type = 'ORDER' AND t.ShipperID IS NULL "
                 + "ORDER BY t.Created_at DESC, t.ID DESC";
 
         List<OrderModel> orders = new ArrayList<>();
@@ -118,11 +118,39 @@ public class OrderDAO {
         return orders;
     }
 
+    public List<OrderModel> findShippingOrdersByShipper(int shipperId) throws SQLException {
+        String sql = "SELECT t.ID, t.UserID, t.Total_price, t.Type, t.Status, "
+                + "       t.Paid_amount, t.Change_amount, t.Method, "
+                + "       t.Updated_by, t.Updated_at, t.Created_at, t.Note, "
+                + "       t.Reference_transactionID, t.DeliveryInfoID, t.ShipperID, "
+                + "       u.Username, u.Name AS UserName, u.Phone, u.Email, "
+                + "       upd.Name AS UpdatedByName, "
+                + "       d.Recipient_name, d.Recipient_phone, d.Delivery_address, "
+                + "       (SELECT COALESCE(SUM(tp.Amount),0) FROM Transaction_ProductVariant tp WHERE tp.TransactionID = t.ID) AS ItemCount "
+                + "FROM `Transaction` t "
+                + "JOIN `User` u   ON t.UserID = u.ID "
+                + "LEFT JOIN `User` upd ON t.Updated_by = upd.ID "
+                + "LEFT JOIN DeliveryInfo d ON t.DeliveryInfoID = d.ID "
+                + "WHERE t.Status = 'SHIPPING' AND t.Type = 'ORDER' AND t.ShipperID = ? "
+                + "ORDER BY t.Created_at DESC, t.ID DESC";
+
+        List<OrderModel> orders = new ArrayList<>();
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, shipperId);
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    orders.add(mapOrderDetail(rs));
+                }
+            }
+        }
+        return orders;
+    }
+
     public OrderModel findOrderDetail(int id) throws SQLException {
         String sql = "SELECT t.ID, t.UserID, t.Total_price, t.Type, t.Status, "
                 + "       t.Paid_amount, t.Change_amount, t.Method, "
                 + "       t.Updated_by, t.Updated_at, t.Created_at, t.Note, "
-                + "       t.Reference_transactionID, t.DeliveryInfoID, "
+                + "       t.Reference_transactionID, t.DeliveryInfoID, t.ShipperID, "
                 + "       u.Username, u.Name AS UserName, u.Phone, u.Email, "
                 + "       upd.Name AS UpdatedByName, "
                 + "       d.Recipient_name, d.Recipient_phone, d.Delivery_address, "
@@ -247,6 +275,20 @@ public class OrderDAO {
         }
     }
 
+    public boolean assignShipper(int orderId, int shipperId, Integer updatedBy) throws SQLException {
+        if (updatedBy == null) {
+            updatedBy = resolveFallbackUpdater();
+        }
+        String sql = "UPDATE `Transaction` SET Status = 'SHIPPING', ShipperID = ?, Updated_by = ?, Updated_at = CURRENT_TIMESTAMP "
+                + "WHERE ID = ?";
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, shipperId);
+            statement.setInt(2, updatedBy);
+            statement.setInt(3, orderId);
+            return statement.executeUpdate() > 0;
+        }
+    }
+
     private Integer resolveFallbackUpdater() throws SQLException {
         String sql = "SELECT u.ID FROM `User` u JOIN `Role` r ON u.RoleID = r.ID WHERE r.Name IN ('STAFF','ADMIN') AND u.Status='ACTIVE' ORDER BY (r.Name='ADMIN') DESC, u.ID ASC LIMIT 1";
         try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql); ResultSet rs = statement.executeQuery()) {
@@ -261,7 +303,7 @@ public class OrderDAO {
         String sql = "SELECT t.ID, t.UserID, t.Total_price, t.Type, t.Status, "
                 + "       t.Paid_amount, t.Change_amount, t.Method, "
                 + "       t.Updated_by, t.Updated_at, t.Created_at, t.Note, "
-                + "       t.Reference_transactionID, t.DeliveryInfoID, "
+                + "       t.Reference_transactionID, t.DeliveryInfoID, t.ShipperID, "
                 + "       u.Username, u.Name AS UserName, u.Phone, u.Email, "
                 + "       upd.Name AS UpdatedByName, "
                 + "       (SELECT COUNT(*) FROM Transaction_ProductVariant tp "
@@ -328,6 +370,8 @@ public class OrderDAO {
         order.setNote(rs.getString("Note"));
         int deliveryId = rs.getInt("DeliveryInfoID");
         order.setDeliveryInfoId(rs.wasNull() ? null : deliveryId);
+        int shipperId = rs.getInt("ShipperID");
+        order.setShipperId(rs.wasNull() ? null : shipperId);
         order.setItemCount(rs.getInt("ItemCount"));
         return order;
     }
