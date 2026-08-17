@@ -18,7 +18,7 @@
             <div class="page-heading">
                 <div>
                     <h1>Product Management</h1>
-                    <p>${total} products listed</p>
+                    <p>${filteredTotal} products found</p>
                 </div>
                 <div class="page-heading-actions">
                     <a class="btn subtle" href="${pageContext.request.contextPath}/manager">← Back to dashboard</a>
@@ -58,8 +58,11 @@
 
             <section class="table-panel">
                 <form class="search-row" method="get">
-                    <input name="q" value="<c:out value='${param.q}'/>"
+                    <input name="q" value="<c:out value='${keyword}'/>"
                            placeholder="Search product name...">
+                    <c:if test="${not empty selectedSort}">
+                        <input type="hidden" name="sort" value="<c:out value='${selectedSort}'/>">
+                    </c:if>
 
                     <select name="brand">
                         <option value="">Brand</option>
@@ -99,6 +102,9 @@
                             </tr>
                         </thead>
                         <tbody>
+                            <c:if test="${empty products}">
+                                <tr><td colspan="8" class="manager-empty-row">No products match the current filters.</td></tr>
+                            </c:if>
                             <c:forEach items="${products}" var="product">
                                 <tr>
                                     <td class="mono">${product.id}</td>
@@ -142,6 +148,50 @@
                         </tbody>
                     </table>
                 </div>
+
+                <c:if test="${filteredTotal > 0}">
+                    <c:url var="firstPageUrl" value="/manager/products">
+                        <c:param name="page" value="1"/>
+                        <c:if test="${not empty keyword}"><c:param name="q" value="${keyword}"/></c:if>
+                        <c:if test="${not empty selectedBrand}"><c:param name="brand" value="${selectedBrand}"/></c:if>
+                        <c:if test="${not empty selectedCategory}"><c:param name="category" value="${selectedCategory}"/></c:if>
+                        <c:if test="${not empty selectedSort}"><c:param name="sort" value="${selectedSort}"/></c:if>
+                    </c:url>
+                    <c:url var="previousPageUrl" value="/manager/products">
+                        <c:param name="page" value="${currentPage - 1}"/>
+                        <c:if test="${not empty keyword}"><c:param name="q" value="${keyword}"/></c:if>
+                        <c:if test="${not empty selectedBrand}"><c:param name="brand" value="${selectedBrand}"/></c:if>
+                        <c:if test="${not empty selectedCategory}"><c:param name="category" value="${selectedCategory}"/></c:if>
+                        <c:if test="${not empty selectedSort}"><c:param name="sort" value="${selectedSort}"/></c:if>
+                    </c:url>
+                    <c:url var="nextPageUrl" value="/manager/products">
+                        <c:param name="page" value="${currentPage + 1}"/>
+                        <c:if test="${not empty keyword}"><c:param name="q" value="${keyword}"/></c:if>
+                        <c:if test="${not empty selectedBrand}"><c:param name="brand" value="${selectedBrand}"/></c:if>
+                        <c:if test="${not empty selectedCategory}"><c:param name="category" value="${selectedCategory}"/></c:if>
+                        <c:if test="${not empty selectedSort}"><c:param name="sort" value="${selectedSort}"/></c:if>
+                    </c:url>
+                    <c:url var="lastPageUrl" value="/manager/products">
+                        <c:param name="page" value="${totalPages}"/>
+                        <c:if test="${not empty keyword}"><c:param name="q" value="${keyword}"/></c:if>
+                        <c:if test="${not empty selectedBrand}"><c:param name="brand" value="${selectedBrand}"/></c:if>
+                        <c:if test="${not empty selectedCategory}"><c:param name="category" value="${selectedCategory}"/></c:if>
+                        <c:if test="${not empty selectedSort}"><c:param name="sort" value="${selectedSort}"/></c:if>
+                    </c:url>
+
+                    <nav class="manager-pagination" aria-label="Product management pagination">
+                        <div class="manager-page-summary">
+                            Showing ${pageStart}–${pageEnd} of ${filteredTotal} products
+                        </div>
+                        <div class="manager-page-controls">
+                            <a class="manager-page-button ${currentPage == 1 ? 'disabled' : ''}" href="${firstPageUrl}" aria-label="First page">«</a>
+                            <a class="manager-page-button wide ${currentPage == 1 ? 'disabled' : ''}" href="${previousPageUrl}">Previous</a>
+                            <span class="manager-page-current">Page ${currentPage} of ${totalPages}</span>
+                            <a class="manager-page-button wide ${currentPage == totalPages ? 'disabled' : ''}" href="${nextPageUrl}">Next</a>
+                            <a class="manager-page-button ${currentPage == totalPages ? 'disabled' : ''}" href="${lastPageUrl}" aria-label="Last page">»</a>
+                        </div>
+                    </nav>
+                </c:if>
             </section>
         </main>
 

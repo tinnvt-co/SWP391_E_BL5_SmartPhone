@@ -4,21 +4,41 @@ import DAO.BrandDAO;
 import DAO.CategoryDAO;
 import DAO.ProductDAO;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URLEncoder;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.time.Year;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import model.CategoryModel;
 import model.ProductModel;
 import model.ProductVariantModel;
 
 @WebServlet(name = "ManagerProductController", urlPatterns = {"/manager/products"})
+@MultipartConfig(fileSizeThreshold = 1024 * 1024,
+        maxFileSize = 5 * 1024 * 1024,
+        maxRequestSize = 60 * 1024 * 1024)
 public class ManagerProductController extends HttpServlet {
+
+    private static final String IMAGE_FOLDER = "/assets/images/products";
+    private static final int PAGE_SIZE = 10;
+    private static final List<Integer> RAM_OPTIONS = List.of(
+            2, 3, 4, 6, 8, 12, 16, 18, 24);
+    private static final List<Integer> STORAGE_OPTIONS = List.of(
+            32, 64, 128, 256, 512, 1024, 2048);
 
     private final ProductDAO productDAO = new ProductDAO();
     private final BrandDAO brandDAO = new BrandDAO();
@@ -39,11 +59,30 @@ public class ManagerProductController extends HttpServlet {
             String keyword = request.getParameter("q");
             String sort = request.getParameter("sort");
 
+            int filteredTotal = productDAO.countAll(
+                    keyword, brandId, categoryId, false);
+            int totalPages = Math.max(1,
+                    (int) Math.ceil((double) filteredTotal / PAGE_SIZE));
+            int currentPage = ProductController.integer(
+                    request.getParameter("page"), 1);
+            currentPage = Math.max(1, Math.min(currentPage, totalPages));
+
             var products = productDAO.findAll(
-                    keyword, brandId, categoryId, sort, false);
+                    keyword, brandId, categoryId, sort, false,
+                    PAGE_SIZE, (currentPage - 1) * PAGE_SIZE);
 
             request.setAttribute("products", products);
-            request.setAttribute("total", products.size());
+            request.setAttribute("total", productDAO.countAll(
+                    null, null, null, false));
+            request.setAttribute("filteredTotal", filteredTotal);
+            request.setAttribute("currentPage", currentPage);
+            request.setAttribute("totalPages", totalPages);
+            request.setAttribute("pageStart", filteredTotal == 0 ? 0
+                    : (currentPage - 1) * PAGE_SIZE + 1);
+            request.setAttribute("pageEnd", Math.min(
+                    currentPage * PAGE_SIZE, filteredTotal));
+            request.setAttribute("keyword", keyword);
+            request.setAttribute("selectedSort", sort);
             request.setAttribute("active", productDAO.countActive());
             request.setAttribute("outOfStock", productDAO.countOutOfStock());
             request.setAttribute("brands", brandDAO.findAll(true));
@@ -62,6 +101,8 @@ public class ManagerProductController extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         String action = ProductController.value(request.getParameter("action"), "save");
+        List<Path> uploadedFiles = new ArrayList<>();
+        ProductModel product = null;
 
         try {
             if ("deactivate".equals(action)) {
@@ -71,17 +112,40 @@ public class ManagerProductController extends HttpServlet {
                 return;
             }
 
-            ProductModel product = read(request);
+            product = read(request);
             String validationError = validate(product);
             if (validationError != null) {
                 forwardFormWithError(request, response, product, validationError);
                 return;
             }
 
+            String categoryError = assignPriceSegment(product);
+            if (categoryError != null) {
+                forwardFormWithError(request, response, product, categoryError);
+                return;
+            }
+
+            String uploadError = saveUploadedImages(request, product, uploadedFiles);
+            if (uploadError != null) {
+                deleteUploadedFiles(uploadedFiles);
+                forwardFormWithError(request, response, product, uploadError);
+                return;
+            }
+
             productDAO.save(product);
             redirect(response, request, "Product saved");
+        } catch (IllegalStateException exception) {
+            deleteUploadedFiles(uploadedFiles);
+            if (product == null) {
+                product = new ProductModel();
+            }
+            forwardFormWithError(request, response, product,
+                    "Each image must be 5 MB or smaller.");
         } catch (SQLException exception) {
-            ProductModel product = read(request);
+            deleteUploadedFiles(uploadedFiles);
+            if (product == null) {
+                product = read(request);
+            }
             forwardFormWithError(request, response, product, friendly(exception));
         }
     }
@@ -101,7 +165,9 @@ public class ManagerProductController extends HttpServlet {
 
     private void loadChoices(HttpServletRequest request) throws SQLException {
         request.setAttribute("brands", brandDAO.findAll(true));
-        request.setAttribute("categories", categoryDAO.findAll(true));
+        request.setAttribute("ramOptions", RAM_OPTIONS);
+        request.setAttribute("storageOptions", STORAGE_OPTIONS);
+        request.setAttribute("maxReleaseYear", Year.now().getValue() + 1);
     }
 
     private ProductModel read(HttpServletRequest request) {
@@ -114,7 +180,7 @@ public class ManagerProductController extends HttpServlet {
                 request.getParameter("releaseYear"), 0);
         product.setReleaseYear(releaseYear == 0 ? null : releaseYear);
 
-        product.setRating(ProductController.integer(request.getParameter("rating"), 0));
+        product.setRating(0);
         product.setWarrantyMonths(ProductController.integer(
                 request.getParameter("warrantyMonths"), 12));
         product.setBarcode(request.getParameter("barcode"));
@@ -124,8 +190,6 @@ public class ManagerProductController extends HttpServlet {
         product.setLatestCost(ProductController.integer(
                 request.getParameter("latestCost"), 0));
         product.setImage(request.getParameter("image"));
-        product.setCategoryId(ProductController.integer(
-                request.getParameter("categoryId"), 0));
         product.setBrandId(ProductController.integer(
                 request.getParameter("brandId"), 0));
         product.setStock(ProductController.integer(request.getParameter("stock"), 0));
@@ -153,10 +217,35 @@ public class ManagerProductController extends HttpServlet {
             variant.setSellingPrice(integerAt(request, "variantSellingPrice", index));
             variant.setLatestCost(integerAt(request, "variantLatestCost", index));
             variant.setStock(integerAt(request, "variantStock", index));
-            variant.setImage(valueAt(request, "variantImage", index));
-            variant.setBackImage(valueAt(request, "variantBackImage", index));
+            variant.setImage(uploadedNameAt(request, "variantImageFile",
+                    "existingVariantImage", index));
+            variant.setBackImage(uploadedNameAt(request, "variantBackImageFile",
+                    "existingVariantBackImage", index));
             product.getVariants().add(variant);
         }
+    }
+
+    private String uploadedNameAt(HttpServletRequest request, String partName,
+            String existingName, int index) {
+        List<Part> parts = partsByName(request, partName);
+        if (index < parts.size() && parts.get(index).getSize() > 0) {
+            return safeFileName(parts.get(index).getSubmittedFileName());
+        }
+        return valueAt(request, existingName, index);
+    }
+
+    private List<Part> partsByName(HttpServletRequest request, String name) {
+        List<Part> result = new ArrayList<>();
+        try {
+            for (Part part : request.getParts()) {
+                if (name.equals(part.getName())) {
+                    result.add(part);
+                }
+            }
+        } catch (IOException | ServletException exception) {
+            throw new IllegalStateException(exception);
+        }
+        return result;
     }
 
     private int integerAt(HttpServletRequest request, String name, int index) {
@@ -178,22 +267,21 @@ public class ManagerProductController extends HttpServlet {
         if (product.getDescription() != null && product.getDescription().length() > 255) {
             return "Description cannot exceed 255 characters.";
         }
+        int maxReleaseYear = Year.now().getValue() + 1;
         if (product.getReleaseYear() != null
-                && (product.getReleaseYear() < 2000 || product.getReleaseYear() > 2100)) {
-            return "Release year must be from 2000 to 2100.";
+                && (product.getReleaseYear() < 2007
+                || product.getReleaseYear() > maxReleaseYear)) {
+            return "Release year must be from 2007 to " + maxReleaseYear + ".";
         }
-        if (product.getWarrantyMonths() < 0) {
-            return "Warranty period cannot be negative.";
-        }
-        if (product.getRating() < 0 || product.getRating() > 5) {
-            return "Rating must be from 0 to 5.";
+        if (product.getWarrantyMonths() < 0 || product.getWarrantyMonths() > 36) {
+            return "Warranty period must be from 0 to 36 months.";
         }
         if (!"ACTIVE".equals(product.getStatus())
                 && !"INACTIVE".equals(product.getStatus())) {
             return "Invalid product status.";
         }
-        if (product.getBrandId() == 0 || product.getCategoryId() == 0) {
-            return "Brand and category are required.";
+        if (product.getBrandId() == 0) {
+            return "Brand is required.";
         }
         if (product.getVariants().isEmpty()) {
             return "Add at least one product variant.";
@@ -207,8 +295,13 @@ public class ManagerProductController extends HttpServlet {
         for (int index = 0; index < product.getVariants().size(); index++) {
             ProductVariantModel variant = product.getVariants().get(index);
             String row = "Variant " + (index + 1) + ": ";
-            if (variant.getRamGb() <= 0 || variant.getStorageGb() <= 0) {
-                return row + "RAM and storage must be greater than zero.";
+            if (!RAM_OPTIONS.contains(variant.getRamGb())) {
+                return row + "RAM must be one of these values: "
+                        + "2, 3, 4, 6, 8, 12, 16, 18 or 24 GB.";
+            }
+            if (!STORAGE_OPTIONS.contains(variant.getStorageGb())) {
+                return row + "storage must be one of these values: "
+                        + "32, 64, 128, 256, 512, 1024 or 2048 GB.";
             }
             if (variant.getColorName() == null || variant.getColorName().isBlank()) {
                 return row + "color name is required.";
@@ -216,13 +309,23 @@ public class ManagerProductController extends HttpServlet {
             if (variant.getColorName().trim().length() > 50) {
                 return row + "color name cannot exceed 50 characters.";
             }
+            if (!variant.getColorName().trim().matches(
+                    "^[\\p{L}]+(?:[ -][\\p{L}]+)*$")) {
+                return row + "color name may contain letters, spaces and hyphens only.";
+            }
             if (variant.getSku() == null || variant.getSku().isBlank()
                     || variant.getBarcode() == null || variant.getBarcode().isBlank()) {
                 return row + "SKU and barcode are required.";
             }
-            if (variant.getSellingPrice() < 0 || variant.getLatestCost() < 0
-                    || variant.getStock() < 0) {
-                return row + "price, cost and stock cannot be negative.";
+            if (variant.getSku().trim().equalsIgnoreCase(
+                    variant.getBarcode().trim())) {
+                return row + "SKU and barcode must be different.";
+            }
+            if (variant.getSellingPrice() <= 0) {
+                return row + "selling price must be greater than 0.";
+            }
+            if (variant.getLatestCost() < 0 || variant.getStock() < 0) {
+                return row + "cost and stock cannot be negative.";
             }
 
             String imageError = validateImage(row, variant.getImage(), "front");
@@ -260,15 +363,184 @@ public class ManagerProductController extends HttpServlet {
         if (!name.matches("(?i)^[a-z0-9][a-z0-9._-]*\\.(webp|png|jpg|jpeg)$")) {
             return row + view + " image must be a file name ending in webp, png, jpg or jpeg.";
         }
+        return null;
+    }
+
+    private String assignPriceSegment(ProductModel product) throws SQLException {
+        int lowestPrice = product.getVariants().stream()
+                .mapToInt(ProductVariantModel::getSellingPrice)
+                .min()
+                .orElse(0);
+
+        String categoryName;
+        if (lowestPrice < 5_000_000) {
+            categoryName = "Budget";
+        } else if (lowestPrice < 10_000_000) {
+            categoryName = "Mid-range";
+        } else if (lowestPrice < 20_000_000) {
+            categoryName = "Upper mid-range";
+        } else {
+            categoryName = "High-end";
+        }
+
+        CategoryModel category = categoryDAO.findActiveByName(categoryName);
+        if (category == null) {
+            return "Cannot assign price segment. Active category '"
+                    + categoryName + "' was not found.";
+        }
+
+        product.setCategoryId(category.getId());
+        product.setCategoryName(category.getName());
+        return null;
+    }
+
+    private String saveUploadedImages(HttpServletRequest request,
+            ProductModel product, List<Path> uploadedFiles) {
         try {
-            if (getServletContext().getResource(
-                    "/assets/images/products/" + name) == null) {
-                return row + view + " image does not exist in assets/images/products.";
+            List<Part> frontParts = partsByName(request, "variantImageFile");
+            List<Part> backParts = partsByName(request, "variantBackImageFile");
+
+            for (int index = 0; index < product.getVariants().size(); index++) {
+                ProductVariantModel variant = product.getVariants().get(index);
+                String row = "Variant " + (index + 1) + ": ";
+
+                String error = saveImagePart(partAt(frontParts, index),
+                        variant.getImage(), row + "front image", uploadedFiles);
+                if (error != null) {
+                    return error;
+                }
+                error = saveImagePart(partAt(backParts, index),
+                        variant.getBackImage(), row + "back image", uploadedFiles);
+                if (error != null) {
+                    return error;
+                }
             }
-        } catch (java.net.MalformedURLException exception) {
-            return row + "invalid " + view + " image file name.";
+            return null;
+        } catch (IOException exception) {
+            return "Cannot save image files: " + exception.getMessage();
+        }
+    }
+
+    private Part partAt(List<Part> parts, int index) {
+        return index < parts.size() ? parts.get(index) : null;
+    }
+
+    private String saveImagePart(Part part, String fileName, String label,
+            List<Path> uploadedFiles) throws IOException {
+        if (part == null || part.getSize() == 0) {
+            return imageExists(fileName) ? null
+                    : label + " is required. Please choose an image file.";
+        }
+        if (part.getSize() > 5L * 1024 * 1024) {
+            return label + " must be 5 MB or smaller.";
+        }
+        if (!validImageContent(part, fileName)) {
+            return label + " must be a real JPG, JPEG, PNG or WEBP image.";
+        }
+
+        List<Path> directories = uploadDirectories();
+        for (Path directory : directories) {
+            Files.createDirectories(directory);
+            Path target = directory.resolve(fileName).normalize();
+            if (!target.getParent().equals(directory.normalize())) {
+                return label + " has an invalid file name.";
+            }
+            if (Files.exists(target)) {
+                return label + " file name already exists. Rename the file and try again.";
+            }
+        }
+
+        for (Path directory : directories) {
+            Path target = directory.resolve(fileName);
+            try (InputStream input = part.getInputStream()) {
+                Files.copy(input, target);
+            }
+            uploadedFiles.add(target);
         }
         return null;
+    }
+
+    private boolean validImageContent(Part part, String fileName) throws IOException {
+        String lowerName = fileName.toLowerCase();
+        byte[] header = new byte[12];
+        int length;
+        try (InputStream input = part.getInputStream()) {
+            length = input.read(header);
+        }
+        if ((lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg"))) {
+            return length >= 3 && (header[0] & 255) == 255
+                    && (header[1] & 255) == 216 && (header[2] & 255) == 255;
+        }
+        if (lowerName.endsWith(".png")) {
+            return length >= 8 && (header[0] & 255) == 137
+                    && header[1] == 80 && header[2] == 78 && header[3] == 71
+                    && header[4] == 13 && header[5] == 10
+                    && header[6] == 26 && header[7] == 10;
+        }
+        return length >= 12 && header[0] == 'R' && header[1] == 'I'
+                && header[2] == 'F' && header[3] == 'F'
+                && header[8] == 'W' && header[9] == 'E'
+                && header[10] == 'B' && header[11] == 'P';
+    }
+
+    private List<Path> uploadDirectories() throws IOException {
+        String realPath = getServletContext().getRealPath(IMAGE_FOLDER);
+        if (realPath == null) {
+            throw new IOException("The image upload folder is unavailable.");
+        }
+
+        List<Path> directories = new ArrayList<>();
+        Path runtimeDirectory = Paths.get(realPath).toAbsolutePath().normalize();
+        directories.add(runtimeDirectory);
+
+        Path imagesDirectory = runtimeDirectory.getParent();
+        Path assetsDirectory = imagesDirectory == null ? null : imagesDirectory.getParent();
+        Path webDirectory = assetsDirectory == null ? null : assetsDirectory.getParent();
+        if (webDirectory != null && "web".equalsIgnoreCase(
+                webDirectory.getFileName().toString())) {
+            Path buildDirectory = webDirectory.getParent();
+            if (buildDirectory != null && "build".equalsIgnoreCase(
+                    buildDirectory.getFileName().toString())) {
+                Path sourceDirectory = buildDirectory.getParent().resolve(
+                        "web/assets/images/products").toAbsolutePath().normalize();
+                if (!sourceDirectory.equals(runtimeDirectory)) {
+                    directories.add(sourceDirectory);
+                }
+            }
+        }
+        return directories;
+    }
+
+    private boolean imageExists(String fileName) {
+        if (fileName == null || fileName.isBlank()) {
+            return false;
+        }
+        try {
+            return getServletContext().getResource(
+                    IMAGE_FOLDER + "/" + fileName) != null;
+        } catch (java.net.MalformedURLException exception) {
+            return false;
+        }
+    }
+
+    private String safeFileName(String submittedName) {
+        if (submittedName == null || submittedName.isBlank()) {
+            return "";
+        }
+        try {
+            return Paths.get(submittedName).getFileName().toString();
+        } catch (RuntimeException exception) {
+            return "";
+        }
+    }
+
+    private void deleteUploadedFiles(List<Path> files) {
+        for (Path file : files) {
+            try {
+                Files.deleteIfExists(file);
+            } catch (IOException ignored) {
+            }
+        }
     }
 
     private void forwardFormWithError(HttpServletRequest request,
@@ -286,6 +558,20 @@ public class ManagerProductController extends HttpServlet {
 
     private String friendly(SQLException exception) {
         if (exception.getErrorCode() == 1062) {
+            String detail = exception.getMessage() == null
+                    ? "" : exception.getMessage().toLowerCase();
+            if (detail.contains("uk_productvariant_sku")) {
+                return "SKU already belongs to another product variant.";
+            }
+            if (detail.contains("uk_productvariant_barcode")) {
+                return "Barcode already belongs to another product variant.";
+            }
+            if (detail.contains("uk_productvariant_image")) {
+                return "Front image name already belongs to another product variant.";
+            }
+            if (detail.contains("uk_productvariant_option")) {
+                return "This RAM, storage and color variant already exists.";
+            }
             return "Product name, variant option, SKU, barcode or front image name already exists.";
         }
         return "Database error: " + exception.getMessage();

@@ -78,6 +78,11 @@
     <servlet>
         <servlet-name>ManagerProductController</servlet-name>
         <servlet-class>controller.ManagerProductController</servlet-class>
+        <multipart-config>
+            <file-size-threshold>1048576</file-size-threshold>
+            <max-file-size>5242880</max-file-size>
+            <max-request-size>62914560</max-request-size>
+        </multipart-config>
     </servlet>
     <servlet>
         <servlet-name>ManagerDashboardController</servlet-name>

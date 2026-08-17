@@ -57,6 +57,30 @@ public class CategoryDAO {
         }
     }
 
+    public CategoryModel findActiveByName(String name) throws SQLException {
+        String sql = "SELECT ID, Name, Description, Status "
+                + "FROM Category WHERE LOWER(Name) = LOWER(?) "
+                + "AND Status = 'ACTIVE'";
+
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, name);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (!resultSet.next()) {
+                    return null;
+                }
+
+                CategoryModel category = new CategoryModel();
+                category.setId(resultSet.getInt("ID"));
+                category.setName(resultSet.getString("Name"));
+                category.setDescription(resultSet.getString("Description"));
+                category.setActive(true);
+                return category;
+            }
+        }
+    }
+
     public void save(CategoryModel category) throws SQLException {
         boolean isNew = category.getId() == 0;
         String sql = isNew
