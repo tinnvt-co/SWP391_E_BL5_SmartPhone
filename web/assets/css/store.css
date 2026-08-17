@@ -336,6 +336,118 @@ textarea {
     flex-wrap: wrap;
 }
 
+.catalog-heading-label {
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: var(--blue-soft);
+    color: var(--blue);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.catalog-controls {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-left: auto;
+}
+
+.search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: clamp(320px, 34vw, 470px);
+    min-height: 54px;
+    padding: 5px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+    box-shadow: var(--shadow-xs);
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.search-box:focus-within {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 4px rgba(29, 78, 216, .1);
+}
+
+.search-box .search-icon {
+    position: absolute;
+    left: 17px;
+    color: var(--muted);
+    font-size: 17px;
+    pointer-events: none;
+}
+
+.search-box input {
+    width: 100%;
+    min-width: 0;
+    height: 42px;
+    padding: 0 14px 0 42px;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--text);
+    font-size: 14px;
+}
+
+.search-box input::placeholder {
+    color: var(--muted-2);
+}
+
+.search-button {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    height: 42px;
+    padding: 0 17px;
+    border: 0;
+    border-radius: 10px;
+    background: var(--blue);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .15s ease, transform .15s ease;
+}
+
+.search-button:hover {
+    background: var(--blue-hover);
+    transform: translateY(-1px);
+}
+
+.sort-box {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.sort-box > i {
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    left: 16px;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+}
+
+.sort-box .dark-select {
+    min-width: 190px;
+    min-height: 54px;
+    padding-left: 42px;
+    padding-right: 38px;
+    border-radius: 14px;
+    box-shadow: var(--shadow-xs);
+}
+
 .filter-pills {
     display: flex;
     gap: 10px;
@@ -1832,18 +1944,51 @@ td small {
     font-size: 1rem;
 }
 
+.detail-page .spec-grid {
+    column-gap: 20px;
+    row-gap: 12px;
+}
+
 .detail-page .spec {
-    background: var(--surface2);
-    color: var(--muted);
-    border-radius: 6px;
-    padding: 0.32rem 0.58rem;
-    font-weight: 700;
-    display: inline-flex;
-    margin-right: 0.4rem;
-    font-size: 13px;
+    display: grid;
+    grid-template-columns: minmax(110px, 150px) minmax(0, 1fr);
+    align-items: center;
+    gap: 18px;
+    min-width: 0;
+    margin: 0;
+    padding: 15px 18px;
+    color: var(--text);
+    background: #fff;
     border: 1px solid var(--line);
-    grid-template-columns: none;
-    border-bottom: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.detail-page .spec span {
+    color: #64748b;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: .01em;
+}
+
+.detail-page .spec b {
+    min-width: 0;
+    color: #0f172a;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 575.98px) {
+    .detail-page .spec {
+        grid-template-columns: 1fr;
+        gap: 4px;
+        padding: 13px 14px;
+    }
 }
 
 .detail-page .primary-action {
@@ -2198,5 +2343,45 @@ td small {
 
     .catalog-page .toolbar > * {
         margin-bottom: 0.7rem;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .catalog-toolbar {
+        align-items: stretch;
+    }
+
+    .catalog-controls {
+        width: 100%;
+        justify-content: flex-start;
+        margin-left: 0;
+    }
+
+    .search-box {
+        flex: 1 1 360px;
+        width: auto;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .catalog-controls {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .search-box,
+    .sort-box,
+    .sort-box .dark-select {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .search-button span {
+        display: none;
+    }
+
+    .search-button {
+        width: 42px;
+        padding: 0;
     }
 }

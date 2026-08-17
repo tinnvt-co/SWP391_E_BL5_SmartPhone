@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
 import java.util.Map;
+import model.CategoryModel;
 import model.FeedbackWithReplies;
 import model.ProductModel;
 
@@ -69,10 +70,25 @@ public class ProductController extends HttpServlet {
                 request.setAttribute("endPage", endPage);
             }
 
+            List<CategoryModel> categories = categoryDAO.findAll(true);
+            String catalogTitle = "All Smartphones";
+            String selectedCategoryName = null;
+            if (categoryId != null) {
+                for (CategoryModel category : categories) {
+                    if (category.getId() == categoryId) {
+                        selectedCategoryName = category.getName();
+                        catalogTitle = category.getName() + " Smartphones";
+                        break;
+                    }
+                }
+            }
+
             request.setAttribute("brands", brandDAO.findAll(true));
-            request.setAttribute("categories", categoryDAO.findAll(true));
+            request.setAttribute("categories", categories);
             request.setAttribute("selectedBrand", brandId);
             request.setAttribute("selectedCategory", categoryId);
+            request.setAttribute("selectedCategoryName", selectedCategoryName);
+            request.setAttribute("catalogTitle", catalogTitle);
             request.setAttribute("keyword", keyword);
             request.setAttribute("selectedSort", sort);
             request.setAttribute("pageSize", PAGE_SIZE);

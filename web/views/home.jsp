@@ -196,9 +196,14 @@
                                         </div>
                                     </c:if>
                                     <div class="home-warranty">B&#7843;o h&agrave;nh ch&iacute;nh h&atilde;ng ${product.warrantyMonths} th&aacute;ng</div>
-                                    <div class="product-rating-row">
-                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                                    </div>
+                                    <c:if test="${product.reviewCount > 0}">
+                                        <div class="product-rating-row" aria-label="${product.rating} out of 5 stars from ${product.reviewCount} reviews">
+                                            <c:forEach begin="1" end="5" var="star">
+                                                <i class="bi ${star <= product.rating ? 'bi-star-fill' : 'bi-star'}"></i>
+                                            </c:forEach>
+                                            <span>${product.rating}/5 (${product.reviewCount})</span>
+                                        </div>
+                                    </c:if>
                                 </div>
                             </a>
                         </c:forEach>
