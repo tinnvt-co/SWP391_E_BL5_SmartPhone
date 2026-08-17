@@ -158,15 +158,63 @@ public class VnpayService {
     }
 
     private String property(String key, String fallback) {
-        String system = System.getProperty(key);
-        if (system != null && !system.isBlank()) {
-            return system.trim();
+        String value = firstNonBlank(
+                systemProperty(key),
+                environment(key),
+                properties.getProperty(key));
+        if (!value.isBlank()) {
+            return value;
         }
-        String env = System.getenv(key.toUpperCase().replace('.', '_'));
-        if (env != null && !env.isBlank()) {
-            return env.trim();
+        for (String alias : aliases(key)) {
+            value = firstNonBlank(
+                    systemProperty(alias),
+                    environment(alias),
+                    properties.getProperty(alias));
+            if (!value.isBlank()) {
+                return value;
+            }
         }
-        return properties.getProperty(key, fallback).trim();
+        return fallback.trim();
+    }
+
+    private String systemProperty(String key) {
+        return System.getProperty(key);
+    }
+
+    private String environment(String key) {
+        return System.getenv(key.toUpperCase().replace('.', '_').replace('-', '_'));
+    }
+
+    private String firstNonBlank(String... values) {
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value.trim();
+            }
+        }
+        return "";
+    }
+
+    private String[] aliases(String key) {
+        switch (key) {
+            case "vnpay.payUrl":
+                return new String[]{"vnp_Url", "VNPAY_URL"};
+            case "vnpay.returnUrl":
+                return new String[]{"vnp_ReturnUrl", "VNPAY_RETURN_URL"};
+            case "vnpay.ipnUrl":
+                return new String[]{"vnp_IpnUrl", "VNPAY_IPN_URL"};
+            case "vnpay.browserReturnBaseUrl":
+                return new String[]{"VNPAY_BROWSER_RETURN_BASE_URL"};
+            case "vnpay.tmnCode":
+                return new String[]{"vnp_TmnCode", "VNPAY_TMN_CODE", "VNPAY_TMNCODE"};
+            case "vnpay.hashSecret":
+                return new String[]{"vnp_HashSecret", "VNPAY_HASH_SECRET"};
+            case "vnpay.locale":
+                return new String[]{"vnp_Locale", "VNPAY_LOCALE"};
+            case "vnpay.orderType":
+                return new String[]{"vnp_OrderType", "VNPAY_ORDER_TYPE"};
+            default:
+                return new String[0];
+        }
     }
 
     private Properties loadProperties() {
