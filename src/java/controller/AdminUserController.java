@@ -143,9 +143,9 @@ public class AdminUserController extends HttpServlet {
             user.setPhone(phone);
             user.setAge(age);
             user.setAddress(address);
-            
+
             userDAO.createUser(user, password, roleId);
-            
+
             response.sendRedirect(request.getContextPath() + "/admin/users");
         } catch (SQLException ex) {
             throw new ServletException(ex);

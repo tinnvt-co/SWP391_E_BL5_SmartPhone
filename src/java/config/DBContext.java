@@ -44,5 +44,6 @@ public final class DBContext {
         return "";
     }
 
-    private DBContext() {}
+    private DBContext() {
+    }
 }

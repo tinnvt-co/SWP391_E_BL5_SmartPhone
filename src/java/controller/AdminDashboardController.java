@@ -23,20 +23,20 @@ public class AdminDashboardController extends HttpServlet {
             java.util.List<model.UserModel> allUsers = userDAO.findAll();
             int totalUsers = allUsers.size();
             int totalRoles = roleDAO.findAll().size();
-            
+
             // Calculate users by role
             java.util.Map<String, Long> usersByRole = allUsers.stream()
-                .collect(java.util.stream.Collectors.groupingBy(
-                    u -> u.getRoleName() != null ? u.getRoleName() : "Unknown",
-                    java.util.stream.Collectors.counting()
-                ));
-                
+                    .collect(java.util.stream.Collectors.groupingBy(
+                            u -> u.getRoleName() != null ? u.getRoleName() : "Unknown",
+                            java.util.stream.Collectors.counting()
+                    ));
+
             // Calculate users by status
             java.util.Map<String, Long> usersByStatus = allUsers.stream()
-                .collect(java.util.stream.Collectors.groupingBy(
-                    u -> u.isActive() ? "Active" : "Inactive",
-                    java.util.stream.Collectors.counting()
-                ));
+                    .collect(java.util.stream.Collectors.groupingBy(
+                            u -> u.isActive() ? "Active" : "Inactive",
+                            java.util.stream.Collectors.counting()
+                    ));
 
             // Convert to JSON strings manually for JSP (since we don't have GSON imported directly here, we'll format it simply)
             StringBuilder roleLabels = new StringBuilder("[");
@@ -50,8 +50,8 @@ public class AdminDashboardController extends HttpServlet {
 
             StringBuilder statusLabels = new StringBuilder("['Active', 'Inactive']");
             StringBuilder statusData = new StringBuilder("[")
-                .append(usersByStatus.getOrDefault("Active", 0L)).append(",")
-                .append(usersByStatus.getOrDefault("Inactive", 0L)).append("]");
+                    .append(usersByStatus.getOrDefault("Active", 0L)).append(",")
+                    .append(usersByStatus.getOrDefault("Inactive", 0L)).append("]");
 
             request.setAttribute("totalUsers", totalUsers);
             request.setAttribute("totalRoles", totalRoles);
@@ -59,7 +59,7 @@ public class AdminDashboardController extends HttpServlet {
             request.setAttribute("roleData", roleData.toString());
             request.setAttribute("statusLabels", statusLabels.toString());
             request.setAttribute("statusData", statusData.toString());
-            
+
             request.getRequestDispatcher("/views/admin/dashboard.jsp").forward(request, response);
         } catch (SQLException ex) {
             throw new ServletException(ex);

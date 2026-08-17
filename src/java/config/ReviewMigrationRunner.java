@@ -12,16 +12,15 @@ import java.util.List;
 /**
  * Boot-time schema migrator for the review/feedback system.
  *
- * Why a hand-rolled migrator (instead of Flyway/Liquibase)?
- *   - The app has zero other migrations, and Flyway would add another moving
- *     part to the NetBeans project.
- *   - Every statement below is idempotent: it checks INFORMATION_SCHEMA first
- *     and skips when the column / index / constraint already exists. This is
- *     safe to run on every Tomcat restart.
+ * Why a hand-rolled migrator (instead of Flyway/Liquibase)? - The app has zero
+ * other migrations, and Flyway would add another moving part to the NetBeans
+ * project. - Every statement below is idempotent: it checks INFORMATION_SCHEMA
+ * first and skips when the column / index / constraint already exists. This is
+ * safe to run on every Tomcat restart.
  *
  * Wiring: registered via {@link ReviewMigrationListener}, which Tomcat calls
- * before any servlet receives its first request. Failures are logged loudly
- * so the operator can intervene.
+ * before any servlet receives its first request. Failures are logged loudly so
+ * the operator can intervene.
  */
 public final class ReviewMigrationRunner {
 
@@ -43,8 +42,7 @@ public final class ReviewMigrationRunner {
         ));
 
         for (Step step : steps) {
-            try (Connection connection = DBContext.getConnection();
-                 Statement statement = connection.createStatement()) {
+            try (Connection connection = DBContext.getConnection(); Statement statement = connection.createStatement()) {
                 statement.executeUpdate(step.sql);
             } catch (SQLException ex) {
                 // 1060 = duplicate column, 1061 = duplicate key name, 1062 = duplicate entry,
@@ -102,8 +100,10 @@ public final class ReviewMigrationRunner {
     }
 
     private static final class Step {
+
         final String name;
         final String sql;
+
         Step(String name, String sql) {
             this.name = name;
             this.sql = sql;
