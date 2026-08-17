@@ -23,9 +23,9 @@ import java.util.List;
 /**
  * Manager-side refund approval queue.
  *
- *  GET  /manager/return-request                          -> list pending + filter
- *  GET  /manager/return-request?action=view&id=N         -> detail + thread
- *  POST /manager/return-request?action=decide&id=N&...   -> approve or reject
+ * GET /manager/return-request -> list pending + filter GET
+ * /manager/return-request?action=view&id=N -> detail + thread POST
+ * /manager/return-request?action=decide&id=N&... -> approve or reject
  */
 @WebServlet(name = "ManagerReturnRequestController", urlPatterns = {"/manager/return-request"})
 public class ManagerReturnRequestController extends HttpServlet {
@@ -38,7 +38,9 @@ public class ManagerReturnRequestController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         UserModel manager = requireManager(request, response);
-        if (manager == null) return;
+        if (manager == null) {
+            return;
+        }
 
         String action = request.getParameter("action");
 
@@ -80,7 +82,9 @@ public class ManagerReturnRequestController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         UserModel manager = requireManager(request, response);
-        if (manager == null) return;
+        if (manager == null) {
+            return;
+        }
 
         String action = request.getParameter("action");
         if (!"decide".equalsIgnoreCase(action)) {
@@ -172,8 +176,14 @@ public class ManagerReturnRequestController extends HttpServlet {
     }
 
     private static int parseInt(String value) {
-        if (value == null || value.isBlank()) return 0;
-        try { return Integer.parseInt(value.trim()); } catch (NumberFormatException ex) { return 0; }
+        if (value == null || value.isBlank()) {
+            return 0;
+        }
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException ex) {
+            return 0;
+        }
     }
 
     private static String encode(String value) {
@@ -186,10 +196,16 @@ public class ManagerReturnRequestController extends HttpServlet {
     }
 
     public static class FilterState {
+
         public String keyword;
         public String status;
 
-        public String getKeyword() { return keyword; }
-        public String getStatus() { return status; }
+        public String getKeyword() {
+            return keyword;
+        }
+
+        public String getStatus() {
+            return status;
+        }
     }
 }

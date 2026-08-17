@@ -21,11 +21,10 @@ import java.util.Map;
 /**
  * Customer-facing review flow.
  *
- * GET  /feedback?orderId=N              -> list of variants in the order, each
- *                                          in "create" or "edit" mode
- * GET  /feedback?orderId=N&variantId=V  -> jump straight to that variant's form
- * POST /feedback                        -> save (insert or update) one review
- * POST /feedback?action=delete          -> soft-delete (within 15-day window)
+ * GET /feedback?orderId=N -> list of variants in the order, each in "create" or
+ * "edit" mode GET /feedback?orderId=N&variantId=V -> jump straight to that
+ * variant's form POST /feedback -> save (insert or update) one review POST
+ * /feedback?action=delete -> soft-delete (within 15-day window)
  */
 @WebServlet(name = "FeedbackController", urlPatterns = {"/feedback"})
 public class FeedbackController extends HttpServlet {
@@ -86,18 +85,18 @@ public class FeedbackController extends HttpServlet {
             if (returnDAO.hasBlockingRefundForTransaction(user.getId(), orderId)) {
                 response.sendRedirect(
                         request.getContextPath()
-                                + "/return-request?orderId="
-                                + orderId
-                                + "&flash="
-                                + encode(
-                                        "This order is being refunded, so reviews are disabled."
-                                )
+                        + "/return-request?orderId="
+                        + orderId
+                        + "&flash="
+                        + encode(
+                                "This order is being refunded, so reviews are disabled."
+                        )
                 );
                 return;
             }
 
-            List<Map<String, Object>> items =
-                    dao.findReviewableItems(user.getId(), orderId);
+            List<Map<String, Object>> items
+                    = dao.findReviewableItems(user.getId(), orderId);
 
             request.setAttribute("order", order);
             request.setAttribute("items", items);
@@ -208,12 +207,12 @@ public class FeedbackController extends HttpServlet {
             if (returnDAO.hasBlockingRefundForTransaction(user.getId(), orderId)) {
                 response.sendRedirect(
                         request.getContextPath()
-                                + "/return-request?orderId="
-                                + orderId
-                                + "&flash="
-                                + encode(
-                                        "This order is being refunded, so reviews are disabled."
-                                )
+                        + "/return-request?orderId="
+                        + orderId
+                        + "&flash="
+                        + encode(
+                                "This order is being refunded, so reviews are disabled."
+                        )
                 );
                 return;
             }
@@ -232,8 +231,8 @@ public class FeedbackController extends HttpServlet {
                 return;
             }
 
-            FeedbackModel existing =
-                    dao.findByUserVariantOrder(
+            FeedbackModel existing
+                    = dao.findByUserVariantOrder(
                             user.getId(),
                             variantId,
                             orderId
@@ -296,11 +295,11 @@ public class FeedbackController extends HttpServlet {
 
                 dao.saveCustomerFeedback(toSave);
 
-                long remaining =
-                        existing.getEditWindowRemainingDays();
+                long remaining
+                        = existing.getEditWindowRemainingDays();
 
-                flash =
-                        "Review updated. You can still edit it for about "
+                flash
+                        = "Review updated. You can still edit it for about "
                         + remaining
                         + " more day(s).";
             }
@@ -327,9 +326,8 @@ public class FeedbackController extends HttpServlet {
     /**
      * Delete customer's review.
      *
-     * FIX:
-     * Added ServletException to the throws declaration because
-     * the SQLException catch block throws ServletException.
+     * FIX: Added ServletException to the throws declaration because the
+     * SQLException catch block throws ServletException.
      */
     private void handleDelete(
             HttpServletRequest request,
@@ -337,11 +335,11 @@ public class FeedbackController extends HttpServlet {
             UserModel user
     ) throws ServletException, IOException {
 
-        int feedbackId =
-                parseInt(request.getParameter("feedbackId"));
+        int feedbackId
+                = parseInt(request.getParameter("feedbackId"));
 
-        int orderId =
-                parseInt(request.getParameter("orderId"));
+        int orderId
+                = parseInt(request.getParameter("orderId"));
 
         if (feedbackId <= 0) {
 
@@ -354,8 +352,8 @@ public class FeedbackController extends HttpServlet {
         }
 
         try {
-            FeedbackModel existing =
-                    dao.findById(feedbackId);
+            FeedbackModel existing
+                    = dao.findById(feedbackId);
 
             if (existing == null
                     || existing.getUserId() != user.getId()) {
@@ -409,8 +407,8 @@ public class FeedbackController extends HttpServlet {
             HttpServletResponse response
     ) throws IOException {
 
-        HttpSession session =
-                request.getSession(false);
+        HttpSession session
+                = request.getSession(false);
 
         if (session == null) {
 
@@ -422,8 +420,8 @@ public class FeedbackController extends HttpServlet {
             return null;
         }
 
-        UserModel user =
-                (UserModel) session.getAttribute(
+        UserModel user
+                = (UserModel) session.getAttribute(
                         "currentUser"
                 );
 
@@ -437,8 +435,8 @@ public class FeedbackController extends HttpServlet {
             return null;
         }
 
-        String role =
-                (String) session.getAttribute(
+        String role
+                = (String) session.getAttribute(
                         "currentRole"
                 );
 

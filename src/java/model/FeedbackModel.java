@@ -28,56 +28,141 @@ public class FeedbackModel implements Serializable {
     public FeedbackModel() {
     }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public int getId() {
+        return id;
+    }
 
-    public int getRating() { return rating; }
-    public void setRating(int rating) { this.rating = rating; }
+    public void setId(int id) {
+        this.id = id;
+    }
 
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
+    public int getRating() {
+        return rating;
+    }
 
-    public Timestamp getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
+    public void setRating(int rating) {
+        this.rating = rating;
+    }
 
-    public Timestamp getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(Timestamp updatedAt) { this.updatedAt = updatedAt; }
+    public String getContent() {
+        return content;
+    }
 
-    public boolean isDeleted() { return deleted; }
-    public void setDeleted(boolean deleted) { this.deleted = deleted; }
+    public void setContent(String content) {
+        this.content = content;
+    }
 
-    public int getUserId() { return userId; }
-    public void setUserId(int userId) { this.userId = userId; }
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
 
-    public String getUserName() { return userName; }
-    public void setUserName(String userName) { this.userName = userName; }
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
 
-    public String getUserImage() { return userImage; }
-    public void setUserImage(String userImage) { this.userImage = userImage; }
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
 
-    public int getProductVariantId() { return productVariantId; }
-    public void setProductVariantId(int productVariantId) { this.productVariantId = productVariantId; }
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 
-    public int getTransactionId() { return transactionId; }
-    public void setTransactionId(int transactionId) { this.transactionId = transactionId; }
+    public boolean isDeleted() {
+        return deleted;
+    }
 
-    public int getProductId() { return productId; }
-    public void setProductId(int productId) { this.productId = productId; }
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
 
-    public String getProductName() { return productName; }
-    public void setProductName(String productName) { this.productName = productName; }
+    public int getUserId() {
+        return userId;
+    }
 
-    public String getVariantLabel() { return variantLabel; }
-    public void setVariantLabel(String variantLabel) { this.variantLabel = variantLabel; }
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
 
-    public String getVariantImage() { return variantImage; }
-    public void setVariantImage(String variantImage) { this.variantImage = variantImage; }
+    public String getUserName() {
+        return userName;
+    }
 
-    public int getReplyCount() { return replyCount; }
-    public void setReplyCount(int replyCount) { this.replyCount = replyCount; }
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
 
-    public Timestamp getLatestReplyAt() { return latestReplyAt; }
-    public void setLatestReplyAt(Timestamp latestReplyAt) { this.latestReplyAt = latestReplyAt; }
+    public String getUserImage() {
+        return userImage;
+    }
+
+    public void setUserImage(String userImage) {
+        this.userImage = userImage;
+    }
+
+    public int getProductVariantId() {
+        return productVariantId;
+    }
+
+    public void setProductVariantId(int productVariantId) {
+        this.productVariantId = productVariantId;
+    }
+
+    public int getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(int transactionId) {
+        this.transactionId = transactionId;
+    }
+
+    public int getProductId() {
+        return productId;
+    }
+
+    public void setProductId(int productId) {
+        this.productId = productId;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public String getVariantLabel() {
+        return variantLabel;
+    }
+
+    public void setVariantLabel(String variantLabel) {
+        this.variantLabel = variantLabel;
+    }
+
+    public String getVariantImage() {
+        return variantImage;
+    }
+
+    public void setVariantImage(String variantImage) {
+        this.variantImage = variantImage;
+    }
+
+    public int getReplyCount() {
+        return replyCount;
+    }
+
+    public void setReplyCount(int replyCount) {
+        this.replyCount = replyCount;
+    }
+
+    public Timestamp getLatestReplyAt() {
+        return latestReplyAt;
+    }
+
+    public void setLatestReplyAt(Timestamp latestReplyAt) {
+        this.latestReplyAt = latestReplyAt;
+    }
 
     /**
      * Returns true while the customer is still within the 15-day edit window.
@@ -101,7 +186,9 @@ public class FeedbackModel implements Serializable {
         long now = System.currentTimeMillis();
         long deadline = createdAt.getTime() + EDIT_WINDOW_DAYS * 24L * 60L * 60L * 1000L;
         long diff = deadline - now;
-        if (diff <= 0) return 0;
+        if (diff <= 0) {
+            return 0;
+        }
         return (diff + 24L * 60L * 60L * 1000L - 1) / (24L * 60L * 60L * 1000L);
     }
 

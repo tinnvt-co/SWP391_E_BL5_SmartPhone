@@ -32,10 +32,10 @@ public class ShipperOrderController extends HttpServlet {
             List<OrderModel> availableOrders = orderDAO.findAvailableShippingOrders();
             hydrateItems(assignedOrders);
             hydrateItems(availableOrders);
-            
+
             request.setAttribute("orders", assignedOrders);
             request.setAttribute("availableOrders", availableOrders);
-            
+
             request.getRequestDispatcher("/views/shipper/delivery-order-list.jsp").forward(request, response);
         } catch (SQLException ex) {
             throw new ServletException(ex);
@@ -73,12 +73,12 @@ public class ShipperOrderController extends HttpServlet {
             try {
                 int orderId = Integer.parseInt(request.getParameter("orderId"));
                 String status = request.getParameter("status"); // Expected: DELIVERED or COMPLETED
-                
+
                 UserModel currentUser = (UserModel) request.getSession().getAttribute("currentUser");
                 Integer updatedBy = (currentUser != null) ? currentUser.getId() : null;
-                
+
                 orderDAO.updateStatus(orderId, status, updatedBy);
-                
+
                 request.getSession().setAttribute("message", "Order #" + orderId + " marked as " + status + ".");
                 response.sendRedirect(request.getContextPath() + "/shipper/orders");
             } catch (Exception ex) {
@@ -89,12 +89,12 @@ public class ShipperOrderController extends HttpServlet {
             try {
                 int orderId = Integer.parseInt(request.getParameter("orderId"));
                 String note = request.getParameter("note");
-                
+
                 UserModel currentUser = (UserModel) request.getSession().getAttribute("currentUser");
                 Integer updatedBy = (currentUser != null) ? currentUser.getId() : null;
-                
+
                 orderDAO.updateStatusWithNote(orderId, "DELIVERED", updatedBy, note);
-                
+
                 request.getSession().setAttribute("message", "Note added to Order #" + orderId + " and marked as delivered.");
                 response.sendRedirect(request.getContextPath() + "/shipper/orders");
             } catch (Exception ex) {

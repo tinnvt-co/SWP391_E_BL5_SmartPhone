@@ -154,6 +154,7 @@ public class VnpayReturnController extends HttpServlet {
     }
 
     private static class RefundRef {
+
         int requestId;
         int managerId;
     }

@@ -20,9 +20,9 @@ import java.util.List;
 /**
  * Manager-side review queue.
  *
- *  GET  /manager/feedback                    -> list of all reviews (filter, search)
- *  GET  /manager/feedback?action=view&id=N   -> show one review + its thread
- *  POST /manager/feedback?action=reply&id=N  -> post a reply (insert new Answer row)
+ * GET /manager/feedback -> list of all reviews (filter, search) GET
+ * /manager/feedback?action=view&id=N -> show one review + its thread POST
+ * /manager/feedback?action=reply&id=N -> post a reply (insert new Answer row)
  *
  * Why a unique thread URL per review: keeps the JSP bookmarkable and lets the
  * manager hand a permalink to a colleague.
@@ -36,12 +36,17 @@ public class ManagerFeedbackController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         UserModel user = requireManager(request, response);
-        if (user == null) return;
+        if (user == null) {
+            return;
+        }
 
         String action = request.getParameter("action");
         if ("view".equalsIgnoreCase(action)) {
             int id = parseInt(request.getParameter("id"));
-            if (id <= 0) { response.sendRedirect(request.getContextPath() + "/manager/feedback"); return; }
+            if (id <= 0) {
+                response.sendRedirect(request.getContextPath() + "/manager/feedback");
+                return;
+            }
             try {
                 FeedbackWithReplies item = dao.loadFeedbackWithReplies(id);
                 if (item == null) {
@@ -76,7 +81,9 @@ public class ManagerFeedbackController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         UserModel user = requireManager(request, response);
-        if (user == null) return;
+        if (user == null) {
+            return;
+        }
 
         String action = request.getParameter("action");
         if (!"reply".equalsIgnoreCase(action)) {
@@ -90,7 +97,9 @@ public class ManagerFeedbackController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/manager/feedback");
             return;
         }
-        if (content == null) content = "";
+        if (content == null) {
+            content = "";
+        }
         content = content.trim();
         if (content.length() < 3) {
             response.sendRedirect(request.getContextPath() + "/manager/feedback?action=view&id=" + feedbackId
@@ -150,13 +159,25 @@ public class ManagerFeedbackController extends HttpServlet {
     }
 
     private static int parseInt(String value) {
-        if (value == null || value.isBlank()) return 0;
-        try { return Integer.parseInt(value.trim()); } catch (NumberFormatException ex) { return 0; }
+        if (value == null || value.isBlank()) {
+            return 0;
+        }
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException ex) {
+            return 0;
+        }
     }
 
     private static Integer parseNullableInt(String value) {
-        if (value == null || value.isBlank()) return null;
-        try { return Integer.parseInt(value.trim()); } catch (NumberFormatException ex) { return null; }
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException ex) {
+            return null;
+        }
     }
 
     private static String encode(String value) {
@@ -164,12 +185,21 @@ public class ManagerFeedbackController extends HttpServlet {
     }
 
     public static class FilterState {
+
         public String keyword;
         public String rating;
         public String onlyUnanswered;
 
-        public String getKeyword() { return keyword; }
-        public String getRating() { return rating; }
-        public String getOnlyUnanswered() { return onlyUnanswered; }
+        public String getKeyword() {
+            return keyword;
+        }
+
+        public String getRating() {
+            return rating;
+        }
+
+        public String getOnlyUnanswered() {
+            return onlyUnanswered;
+        }
     }
 }
