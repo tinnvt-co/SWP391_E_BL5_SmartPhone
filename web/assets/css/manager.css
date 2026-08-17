@@ -222,6 +222,20 @@
     color: var(--mgr-blue);
 }
 
+.side-nav > a.nav-logout {
+    color: #dc2626;
+}
+
+.side-nav > a.nav-logout .nav-icon {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.side-nav > a.nav-logout:hover {
+    color: #b91c1c;
+    background: #fef2f2;
+}
+
 /* =============================================================
    STATUS PILLS (refined)
    ============================================================= */

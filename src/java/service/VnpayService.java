@@ -6,6 +6,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
@@ -41,7 +42,9 @@ public class VnpayService {
         params.put("vnp_Locale", property("vnpay.locale", "vn"));
         params.put("vnp_ReturnUrl", required("vnpay.returnUrl"));
         params.put("vnp_IpAddr", clientIp(request));
-        params.put("vnp_CreateDate", vnpDate(new Date()));
+        Date createDate = new Date();
+        params.put("vnp_CreateDate", vnpDate(createDate));
+        params.put("vnp_ExpireDate", vnpDate(expireDate(createDate)));
 
         String query = queryString(params);
         String secureHash = hmacSha512(required("vnpay.hashSecret"), query);
@@ -69,6 +72,17 @@ public class VnpayService {
                 && "00".equals(request.getParameter("vnp_TransactionStatus"));
     }
 
+    public String browserRedirectUrl(HttpServletRequest request, String path) {
+        String base = property("vnpay.browserReturnBaseUrl", "");
+        if (base.isBlank()) {
+            return request.getContextPath() + path;
+        }
+        while (base.endsWith("/")) {
+            base = base.substring(0, base.length() - 1);
+        }
+        return base + path;
+    }
+
     private String transactionReference() {
         return "SP" + System.currentTimeMillis();
     }
@@ -77,6 +91,13 @@ public class VnpayService {
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
         format.setTimeZone(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
         return format.format(date);
+    }
+
+    private Date expireDate(Date createDate) {
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
+        calendar.setTime(createDate);
+        calendar.add(Calendar.MINUTE, 15);
+        return calendar.getTime();
     }
 
     private String clientIp(HttpServletRequest request) {

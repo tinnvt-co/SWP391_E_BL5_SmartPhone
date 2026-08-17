@@ -109,6 +109,13 @@ public class FeedbackModel implements Serializable {
         return updatedAt != null && createdAt != null && updatedAt.getTime() - createdAt.getTime() > 1000;
     }
 
+    public boolean isManagerReplyAllowed() {
+        if (!isEdited()) {
+            return false;
+        }
+        return latestReplyAt == null || updatedAt.after(latestReplyAt);
+    }
+
     public String getRatingStars() {
         int r = Math.max(1, Math.min(5, rating));
         StringBuilder sb = new StringBuilder();

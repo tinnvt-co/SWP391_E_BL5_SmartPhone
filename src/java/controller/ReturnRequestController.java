@@ -17,6 +17,7 @@ import jakarta.servlet.http.Part;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -89,6 +90,7 @@ public class ReturnRequestController extends HttpServlet {
                 }
                 boolean alreadyRequested = returnDAO.hasActiveForTransaction(user.getId(), orderId);
                 request.setAttribute("order", order);
+                request.setAttribute("bankRequired", isPaidOrder(order));
                 request.setAttribute("alreadyRequested", alreadyRequested);
                 request.setAttribute("flash", request.getParameter("flash"));
                 if (alreadyRequested) {
@@ -160,9 +162,19 @@ public class ReturnRequestController extends HttpServlet {
             }
 
             String savedFileName = saveImageIfAny(request);
+            boolean bankRequired = isPaidOrder(order);
+            String bankName = trimToNull(request.getParameter("bankName"));
+            String bankAccountNumber = trimToNull(request.getParameter("bankAccountNumber"));
+            String bankAccountHolder = trimToNull(request.getParameter("bankAccountHolder"));
+            if (bankRequired && (bankName == null || bankAccountNumber == null || bankAccountHolder == null)) {
+                response.sendRedirect(request.getContextPath() + "/return-request?orderId=" + orderId
+                        + "&flash=" + encode("Please enter bank information for the refund transfer."));
+                return;
+            }
 
             ReturnRequestModel created = returnDAO.createForOrder(
-                    user.getId(), orderId, description, savedFileName);
+                    user.getId(), orderId, description, savedFileName,
+                    bankName, bankAccountNumber, bankAccountHolder);
 
             response.sendRedirect(request.getContextPath() + "/return-request?id=" + created.getId()
                     + "&flash=" + encode("Your refund request has been submitted. We'll review it shortly."));
@@ -250,6 +262,11 @@ public class ReturnRequestController extends HttpServlet {
         if (value == null) return null;
         String t = value.trim();
         return t.isEmpty() ? null : t;
+    }
+
+    private static boolean isPaidOrder(OrderModel order) {
+        BigDecimal paid = order == null ? null : order.getPaidAmount();
+        return paid != null && paid.compareTo(BigDecimal.ZERO) > 0;
     }
 
     private static String encode(String value) {

@@ -1,5 +1,7 @@
 package filter;
 
+import DAO.CartDAO;
+import DAO.WishlistDAO;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
@@ -16,9 +18,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import model.UserModel;
 
 @WebFilter(filterName = "AuthFilter", urlPatterns = {"/*"})
 public class AuthFilter implements Filter {
+
+    private final CartDAO cartDAO = new CartDAO();
+    private final WishlistDAO wishlistDAO = new WishlistDAO();
 
     private static final List<String> PUBLIC_PATHS = List.of(
             "",
@@ -204,6 +210,17 @@ public class AuthFilter implements Filter {
         }
         if (permissions != null) {
             request.setAttribute("permissions", permissions);
+        }
+        if (currentUser instanceof UserModel
+                && "CUSTOMER".equals(normalizeRole(currentRole))) {
+            UserModel user = (UserModel) currentUser;
+            try {
+                request.setAttribute("cartCount", cartDAO.countItems(user.getId()));
+                request.setAttribute("wishlistCount", wishlistDAO.countItems(user.getId()));
+            } catch (Exception ex) {
+                request.setAttribute("cartCount", 0);
+                request.setAttribute("wishlistCount", 0);
+            }
         }
     }
 

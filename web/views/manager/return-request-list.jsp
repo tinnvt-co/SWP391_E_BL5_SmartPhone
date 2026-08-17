@@ -39,6 +39,9 @@
         .item-thumb { width:60px; height:60px; border-radius:6px; overflow:hidden; background:#fff; flex:0 0 60px; display:flex; align-items:center; justify-content:center; }
         .item-thumb img { max-width:100%; max-height:100%; }
         .item-meta { color:#64748b; font-size:.85rem; }
+        .refund-payment-card { border:1px solid #bfdbfe; border-radius:12px; padding:16px; background:#eff6ff; margin:18px 0; }
+        .refund-payment-card h5 { margin:0 0 6px; color:#1e3a8a; font-weight:900; }
+        .refund-payment-card p { margin:0 0 12px; color:#475569; }
 
         .flash-message { padding:12px 14px; background:#ecfdf5; border:1px solid #bbf7d0; border-radius:8px; color:#166534; margin-bottom:14px; }
         .flash-message.error { background:#fef2f2; border-color:#fecaca; color:#991b1b; }
@@ -91,6 +94,18 @@
                         <div class="thread-bubble-content"><c:out value="${request.description}"/></div>
                     </div>
 
+                    <c:if test="${request.hasBankInfo}">
+                        <div class="refund-payment-card">
+                            <h5><i class="bi bi-bank"></i> Customer refund bank information</h5>
+                            <p>Use this account for the refund transfer after VNPay sandbox confirmation.</p>
+                            <div class="row g-2">
+                                <div class="col-md-4"><b>Bank</b><br><c:out value="${request.bankName}"/></div>
+                                <div class="col-md-4"><b>Account number</b><br><c:out value="${request.bankAccountNumber}"/></div>
+                                <div class="col-md-4"><b>Account holder</b><br><c:out value="${request.bankAccountHolder}"/></div>
+                            </div>
+                        </div>
+                    </c:if>
+
                     <c:if test="${not empty request.image}">
                         <h5 style="font-weight:900; margin-top:18px;">Photo evidence</h5>
                         <img src="${pageContext.request.contextPath}/assets/images/refund/${request.image}"
@@ -130,8 +145,8 @@
                                     <i class="bi bi-x-lg"></i> Reject
                                 </button>
                                 <button type="submit" name="decision" value="approve" class="btn btn-success"
-                                        onclick="return confirm('Approve this refund request?');">
-                                    <i class="bi bi-check2"></i> Approve
+                                        onclick="return confirm('Approve this refund request and continue to VNPay sandbox if payment is required?');">
+                                    <i class="bi bi-credit-card"></i> Approve / VNPay refund
                                 </button>
                             </div>
                         </form>

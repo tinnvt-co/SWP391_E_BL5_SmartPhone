@@ -2,6 +2,7 @@
 vnpay.payUrl=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
 vnpay.returnUrl=https://your-ngrok-domain.ngrok-free.dev/SWP391_E_BL5_SmartPhone/vnpay-return
 vnpay.ipnUrl=https://your-ngrok-domain.ngrok-free.dev/SWP391_E_BL5_SmartPhone/vnpay-ipn
+vnpay.browserReturnBaseUrl=http://localhost:8080/SWP391_E_BL5_SmartPhone
 vnpay.tmnCode=YOUR_TMN_CODE
 vnpay.hashSecret=YOUR_HASH_SECRET
 vnpay.locale=vn

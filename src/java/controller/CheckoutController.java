@@ -54,9 +54,10 @@ public class CheckoutController extends HttpServlet {
             if ("ONLINE".equals(paymentMethod)) {
                 int orderId = checkoutDAO.createOrder(currentUser.getId(), checkoutItems,
                         checkoutInfo, "VNPAY", "PENDING", false, false);
+                String vnpTxnRef = orderId + "-" + System.currentTimeMillis();
                 String paymentUrl = vnpayService.createPaymentUrl(request, checkoutTotal,
                         "Thanh toan SmartPhone store don hang " + orderId,
-                        String.valueOf(orderId));
+                        vnpTxnRef);
                 response.sendRedirect(paymentUrl);
                 return;
             }

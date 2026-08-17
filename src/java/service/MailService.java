@@ -55,6 +55,23 @@ public class MailService {
         Transport.send(message);
     }
 
+    public void sendRefundPaymentNotification(String to, String name, int refundId,
+            int orderId, String amount, String bankName, String accountNumber,
+            String accountHolder, String vnpayTransactionNo) throws MessagingException {
+        if (username.isBlank() || password.isBlank() || from.isBlank()) {
+            throw new MessagingException("SMTP email is not configured.");
+        }
+
+        Message message = new MimeMessage(session());
+        message.setFrom(new InternetAddress(from, false));
+        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to, false));
+        message.setSubject("SmartPhone store refund payment confirmation");
+        message.setContent(refundHtmlBody(name, refundId, orderId, amount,
+                bankName, accountNumber, accountHolder, vnpayTransactionNo),
+                "text/html; charset=UTF-8");
+        Transport.send(message);
+    }
+
     private Session session() {
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
@@ -84,6 +101,33 @@ public class MailService {
                 + "<p style=\"color:#657486;font-size:13px\">If the button does not work, copy this link:<br>"
                 + safeLink + "</p>"
                 + "</div>";
+    }
+
+    private String refundHtmlBody(String name, int refundId, int orderId,
+            String amount, String bankName, String accountNumber,
+            String accountHolder, String vnpayTransactionNo) {
+        String displayName = escape(name == null || name.isBlank() ? "customer" : name);
+        return "<div style=\"font-family:Arial,sans-serif;line-height:1.6;color:#17202a\">"
+                + "<h2>Refund payment simulated successfully</h2>"
+                + "<p>Hello " + displayName + ",</p>"
+                + "<p>Your refund request <b>#" + refundId + "</b> for order <b>#" + orderId
+                + "</b> has been approved and processed through VNPay sandbox.</p>"
+                + "<table style=\"border-collapse:collapse;width:100%;max-width:560px\">"
+                + row("Refund amount", amount)
+                + row("Bank", bankName)
+                + row("Account number", accountNumber)
+                + row("Account holder", accountHolder)
+                + row("VNPay transaction", vnpayTransactionNo == null || vnpayTransactionNo.isBlank()
+                        ? "Sandbox confirmation" : vnpayTransactionNo)
+                + "</table>"
+                + "<p style=\"color:#657486;font-size:13px\">This is a sandbox payment notification for the SWP project.</p>"
+                + "</div>";
+    }
+
+    private String row(String label, String value) {
+        return "<tr><td style=\"padding:8px;border:1px solid #e5e7eb;background:#f8fafc\"><b>"
+                + escape(label) + "</b></td><td style=\"padding:8px;border:1px solid #e5e7eb\">"
+                + escape(value == null ? "" : value) + "</td></tr>";
     }
 
     private String escape(String value) {

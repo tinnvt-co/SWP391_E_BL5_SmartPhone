@@ -33,6 +33,9 @@
             .upload-card label { cursor:pointer; color:#1d4ed8; font-weight:700; }
             .upload-card .preview { margin-top:12px; }
             .upload-card .preview img { max-height:160px; border-radius:8px; border:1px solid #e2e8f0; }
+            .bank-card { border:1px solid #bfdbfe; border-radius:12px; padding:18px; background:#eff6ff; margin-bottom:18px; }
+            .bank-card h5 { margin:0 0 6px; font-weight:900; color:#1e3a8a; }
+            .bank-card p { margin:0 0 14px; color:#475569; }
 
             .status-active   { background:#fef3c7; color:#92400e; border-color:#fde68a; }
             .status-approved { background:#dcfce7; color:#166534; border-color:#86efac; }
@@ -141,6 +144,17 @@
                             <div style="font-weight:800; color:#0f172a;">Your reason</div>
                             <div style="white-space:pre-wrap; color:#0f172a; margin-top:6px;"><c:out value="${request.description}"/></div>
                         </div>
+
+                        <c:if test="${request.hasBankInfo}">
+                            <div class="bank-card">
+                                <h5><i class="bi bi-bank"></i> Refund bank information</h5>
+                                <div class="row g-2">
+                                    <div class="col-md-4"><b>Bank</b><br><c:out value="${request.bankName}"/></div>
+                                    <div class="col-md-4"><b>Account number</b><br><c:out value="${request.bankAccountNumber}"/></div>
+                                    <div class="col-md-4"><b>Account holder</b><br><c:out value="${request.bankAccountHolder}"/></div>
+                                </div>
+                            </div>
+                        </c:if>
 
                         <c:if test="${not empty request.image}">
                             <h5 style="font-weight:900; margin-top:18px;">Attached image</h5>
@@ -269,6 +283,27 @@
                                                       placeholder="Tell us what happened (e.g. wrong item, arrived broken, etc.)"></textarea>
                                             <div class="form-text">5 to 255 characters.</div>
                                         </div>
+
+                                        <c:if test="${bankRequired}">
+                                            <div class="bank-card">
+                                                <h5><i class="bi bi-bank"></i> Bank information for refund</h5>
+                                                <p>This order has been paid, so please provide the bank account that should receive the refund.</p>
+                                                <div class="row g-3">
+                                                    <div class="col-md-4">
+                                                        <label class="form-label" for="bankName">Bank name*</label>
+                                                        <input id="bankName" name="bankName" class="form-control" maxlength="80" required placeholder="NCB, Vietcombank...">
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-label" for="bankAccountNumber">Account number*</label>
+                                                        <input id="bankAccountNumber" name="bankAccountNumber" class="form-control" maxlength="40" required placeholder="Account number">
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-label" for="bankAccountHolder">Account holder*</label>
+                                                        <input id="bankAccountHolder" name="bankAccountHolder" class="form-control" maxlength="80" required placeholder="Full account name">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </c:if>
 
                                         <div class="mb-3">
                                             <label class="form-label" style="font-weight:700;">Photo evidence (optional)</label>

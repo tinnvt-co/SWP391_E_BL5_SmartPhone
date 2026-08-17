@@ -159,13 +159,170 @@
                 padding: 0.42em 0.75em;
             }
 
+            .shipper-order-row {
+                cursor: pointer;
+            }
+
+            .shipper-order-row:hover td {
+                background: #f8fbff;
+            }
+
+            .payment-pill {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 0.42em 0.75em;
+                border-radius: 999px;
+                font-size: 0.78rem;
+                font-weight: 900;
+                letter-spacing: .02em;
+                text-transform: uppercase;
+                white-space: nowrap;
+            }
+
+            .payment-pill.cod {
+                background: #fef3c7;
+                color: #92400e;
+            }
+
+            .payment-pill.vnpay,
+            .payment-pill.online {
+                background: #dbeafe;
+                color: #1d4ed8;
+            }
+
+            .payment-note {
+                margin-top: 6px;
+                color: #64748b;
+                font-size: .78rem;
+            }
+
+            .detail-summary-grid {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 12px;
+            }
+
+            .detail-summary-box {
+                padding: 12px;
+                border: 1px solid #e5e7eb;
+                border-radius: 8px;
+                background: #f8fafc;
+            }
+
+            .detail-summary-box span {
+                display: block;
+                color: #64748b;
+                font-size: .75rem;
+                font-weight: 800;
+                text-transform: uppercase;
+            }
+
+            .detail-summary-box strong {
+                display: block;
+                margin-top: 4px;
+                color: #0f172a;
+            }
+
+            .modal-item-img {
+                width: 92px;
+                height: 92px;
+                border-radius: 10px;
+                object-fit: cover;
+                background: #f1f5f9;
+                border: 1px solid #e5e7eb;
+            }
+
+            .shipper-detail-modal .modal-dialog {
+                max-width: min(1080px, calc(100vw - 32px));
+            }
+
+            .shipper-detail-modal .modal-content {
+                border: 0;
+                border-radius: 14px;
+                overflow: hidden;
+                box-shadow: 0 24px 70px rgba(15, 23, 42, .22);
+            }
+
+            .shipper-detail-modal .modal-header {
+                padding: 20px 24px;
+                background: linear-gradient(180deg, #ffffff, #f8fafc);
+            }
+
+            .shipper-detail-modal .modal-body {
+                padding: 22px 24px;
+            }
+
+            .shipper-modal-products {
+                display: grid;
+                gap: 12px;
+            }
+
+            .shipper-modal-product {
+                display: grid;
+                grid-template-columns: 92px minmax(0, 1fr) auto;
+                gap: 14px;
+                align-items: center;
+                padding: 12px;
+                border: 1px solid #e5e7eb;
+                border-radius: 10px;
+                background: #ffffff;
+            }
+
+            .shipper-modal-product-title {
+                margin: 0 0 4px;
+                color: #0f172a;
+                font-weight: 900;
+            }
+
+            .shipper-modal-product-meta {
+                color: #64748b;
+                font-size: .88rem;
+            }
+
+            .shipper-modal-product-money {
+                min-width: 150px;
+                text-align: right;
+            }
+
+            .shipper-modal-product-money strong {
+                display: block;
+                color: #0f172a;
+                font-size: 1rem;
+            }
+
+            .shipper-modal-product-money span {
+                display: block;
+                color: #64748b;
+                font-size: .82rem;
+            }
+
             @media (max-width: 991.98px) {
                 .dashboard-grid {
                     grid-template-columns: 1fr;
                 }
 
-                .profile-card {
+            .profile-card {
                     position: static;
+                }
+
+                .detail-summary-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .shipper-modal-product {
+                    grid-template-columns: 72px minmax(0, 1fr);
+                }
+
+                .modal-item-img {
+                    width: 72px;
+                    height: 72px;
+                }
+
+                .shipper-modal-product-money {
+                    grid-column: 1 / -1;
+                    text-align: left;
+                    min-width: 0;
                 }
             }
         </style>
@@ -245,6 +402,7 @@
                                     <tr>
                                         <th class="text-nowrap">Customer Info</th>
                                         <th class="text-nowrap">Total Price</th>
+                                        <th class="text-nowrap">Payment</th>
                                         <th class="text-nowrap">Status</th>
                                         <th class="text-nowrap">Note</th>
                                         <th class="text-end text-nowrap">Actions</th>
@@ -252,14 +410,26 @@
                                 </thead>
                                 <tbody>
                                     <c:forEach items="${availableOrders}" var="order">
-                                        <tr>
+                                        <tr class="shipper-order-row" data-order-modal="#orderDetailModal${order.id}">
                                             <td>
                                                 <div class="fw-bold">${empty order.recipientName ? order.userName : order.recipientName}</div>
                                                 <div class="text-muted small"><i class="bi bi-telephone-fill me-1"></i>${empty order.recipientPhone ? order.userPhone : order.recipientPhone}</div>
                                                 <div class="text-muted small mt-1"><i class="bi bi-geo-alt-fill me-1"></i>${empty order.deliveryAddress ? 'No address provided' : order.deliveryAddress}</div>
                                             </td>
                                             <td class="text-nowrap fw-bold text-primary">
-                                                <fmt:formatNumber value="${order.totalPrice}" type="currency" currencySymbol="₫" maxFractionDigits="0"/>
+                                                <fmt:formatNumber value="${order.totalPrice}" pattern="#,##0"/> &#273;
+                                            </td>
+                                            <td class="text-nowrap">
+                                                <span class="payment-pill ${fn:toLowerCase(order.method)}">
+                                                    <i class="bi ${fn:toLowerCase(order.method) == 'vnpay' ? 'bi-credit-card' : 'bi-cash-coin'}"></i>
+                                                    <c:out value="${order.method}"/>
+                                                </span>
+                                                <div class="payment-note">
+                                                    <c:choose>
+                                                        <c:when test="${order.paidAmount gt 0}">Paid</c:when>
+                                                        <c:otherwise>Collect on delivery</c:otherwise>
+                                                    </c:choose>
+                                                </div>
                                             </td>
                                             <td class="text-nowrap">
                                                 <span class="badge rounded-pill badge-soft-warning">
@@ -281,10 +451,11 @@
                                                 </form>
                                             </td>
                                         </tr>
+                                        <%@ include file="/views/shipper/order-detail-modal.jsp" %>
                                     </c:forEach>
                                     <c:if test="${empty availableOrders}">
                                         <tr>
-                                            <td colspan="5" class="text-center py-4 text-muted">No available orders at the moment.</td>
+                                            <td colspan="6" class="text-center py-4 text-muted">No available orders at the moment.</td>
                                         </tr>
                                     </c:if>
                                 </tbody>
@@ -313,6 +484,7 @@
                                     <tr>
                                         <th class="text-nowrap">Customer Info</th>
                                         <th class="text-nowrap">Total Price</th>
+                                        <th class="text-nowrap">Payment</th>
                                         <th class="text-nowrap">Status</th>
                                         <th class="text-nowrap">Note</th>
                                         <th class="text-end text-nowrap">Actions</th>
@@ -320,14 +492,26 @@
                                 </thead>
                                 <tbody>
                                     <c:forEach items="${orders}" var="order">
-                                        <tr>
+                                        <tr class="shipper-order-row" data-order-modal="#orderDetailModal${order.id}">
                                             <td>
                                                 <div class="fw-bold">${empty order.recipientName ? order.userName : order.recipientName}</div>
                                                 <div class="text-muted small"><i class="bi bi-telephone-fill me-1"></i>${empty order.recipientPhone ? order.userPhone : order.recipientPhone}</div>
                                                 <div class="text-muted small mt-1"><i class="bi bi-geo-alt-fill me-1"></i>${empty order.deliveryAddress ? 'No address provided' : order.deliveryAddress}</div>
                                             </td>
                                             <td class="text-nowrap fw-bold text-primary">
-                                                <fmt:formatNumber value="${order.totalPrice}" type="currency" currencySymbol="₫" maxFractionDigits="0"/>
+                                                <fmt:formatNumber value="${order.totalPrice}" pattern="#,##0"/> &#273;
+                                            </td>
+                                            <td class="text-nowrap">
+                                                <span class="payment-pill ${fn:toLowerCase(order.method)}">
+                                                    <i class="bi ${fn:toLowerCase(order.method) == 'vnpay' ? 'bi-credit-card' : 'bi-cash-coin'}"></i>
+                                                    <c:out value="${order.method}"/>
+                                                </span>
+                                                <div class="payment-note">
+                                                    <c:choose>
+                                                        <c:when test="${order.paidAmount gt 0}">Paid</c:when>
+                                                        <c:otherwise>Collect on delivery</c:otherwise>
+                                                    </c:choose>
+                                                </div>
                                             </td>
                                             <td class="text-nowrap">
                                                 <span class="badge rounded-pill badge-soft-warning">
@@ -414,10 +598,11 @@
                                                 </c:if>
                                             </td>
                                         </tr>
+                                        <%@ include file="/views/shipper/order-detail-modal.jsp" %>
                                     </c:forEach>
                                     <c:if test="${empty orders}">
                                         <tr>
-                                            <td colspan="5" class="text-center py-4 text-muted">No active deliveries at the moment.</td>
+                                            <td colspan="6" class="text-center py-4 text-muted">No active deliveries at the moment.</td>
                                         </tr>
                                     </c:if>
                                 </tbody>
@@ -430,5 +615,19 @@
 
         <%@ include file="/views/common/footer.jsp" %>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            document.querySelectorAll('[data-order-modal]').forEach(function (row) {
+                row.addEventListener('click', function (event) {
+                    if (event.target.closest('a, button, input, textarea, select, form, .dropdown-menu')) {
+                        return;
+                    }
+                    var modalSelector = row.getAttribute('data-order-modal');
+                    var modalElement = document.querySelector(modalSelector);
+                    if (modalElement && window.bootstrap) {
+                        bootstrap.Modal.getOrCreateInstance(modalElement).show();
+                    }
+                });
+            });
+        </script>
     </body>
 </html>

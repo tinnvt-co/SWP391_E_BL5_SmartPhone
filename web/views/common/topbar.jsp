@@ -65,4 +65,9 @@
             </a>
         </c:otherwise>
     </c:choose>
+
+    <p class="manager-nav-label">ACCOUNT</p>
+    <a class="nav-logout" href="${pageContext.request.contextPath}/logout">
+        <span class="nav-icon"></span>Logout
+    </a>
 </aside>

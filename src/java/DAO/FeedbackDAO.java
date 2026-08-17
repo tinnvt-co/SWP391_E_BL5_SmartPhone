@@ -514,12 +514,6 @@ public class FeedbackDAO {
                     ps.setInt(4, userId);
                     ps.executeUpdate();
                 }
-                // Touch the parent so the latest-reply timestamp stays accurate
-                try (PreparedStatement ps = c.prepareStatement(
-                        "UPDATE Feedback SET Updated_at = CURRENT_TIMESTAMP WHERE ID = ?")) {
-                    ps.setInt(1, feedbackId);
-                    ps.executeUpdate();
-                }
                 c.commit();
                 return id;
             } catch (SQLException ex) {

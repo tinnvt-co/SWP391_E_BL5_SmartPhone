@@ -22,7 +22,7 @@
 
             <div class="swp-layout-collapse collapse navbar-collapse" id="mainNav">
                 <ul class="swp-layout-links">
-                    <c:if test="${currentRole ne 'Admin' and currentRole ne 'ADMIN' and currentRole ne 'Shipper' and currentRole ne 'SHIPPER'}">
+                    <c:if test="${currentRole ne 'Admin' and currentRole ne 'ADMIN' and currentRole ne 'Shipper' and currentRole ne 'SHIPPER' and currentRole ne 'Staff' and currentRole ne 'STAFF'}">
                         <li>
                             <a class="swp-layout-link ${activePage == 'home' ? 'is-active' : ''}"
                                href="${pageContext.request.contextPath}/home">Home</a>
@@ -51,6 +51,14 @@
                             <a class="swp-layout-link ${activePage == 'shipper-orders' ? 'is-active' : ''}" href="${pageContext.request.contextPath}/shipper/orders">Assigned Orders</a>
                         </li>
                     </c:if>
+                    <c:if test="${currentRole == 'Staff' or currentRole == 'STAFF'}">
+                        <li>
+                            <a class="swp-layout-link ${activePage == 'staff-dashboard' ? 'is-active' : ''}" href="${pageContext.request.contextPath}/staff">Dashboard</a>
+                        </li>
+                        <li>
+                            <a class="swp-layout-link ${activePage == 'staff-orders' ? 'is-active' : ''}" href="${pageContext.request.contextPath}/staff/orders">Manage Orders</a>
+                        </li>
+                    </c:if>
                 </ul>
 
                 <div class="swp-layout-actions">
@@ -61,7 +69,14 @@
                         </a>
                     </c:if>
 
-                    <c:if test="${currentRole ne 'Admin' and currentRole ne 'ADMIN' and currentRole ne 'Shipper' and currentRole ne 'SHIPPER'}">
+                    <c:if test="${currentRole == 'Staff' or currentRole == 'STAFF'}">
+                        <a class="swp-layout-action swp-layout-action-staff"
+                           href="${pageContext.request.contextPath}/staff">
+                            <i class="bi bi-clipboard-check"></i> Staff manager
+                        </a>
+                    </c:if>
+
+                    <c:if test="${currentRole ne 'Admin' and currentRole ne 'ADMIN' and currentRole ne 'Shipper' and currentRole ne 'SHIPPER' and currentRole ne 'Staff' and currentRole ne 'STAFF'}">
                         <button class="swp-layout-icon-btn" type="button" title="Search">
                             <i class="bi bi-search"></i>
                         </button>
@@ -69,10 +84,16 @@
                             <a class="swp-layout-icon-btn ${activePage == 'wishlist' ? 'is-active' : ''}"
                                href="${pageContext.request.contextPath}/wishlist" title="Wishlist">
                                 <i class="bi bi-heart"></i>
+                                <c:if test="${wishlistCount > 0}">
+                                    <span class="badge-count">${wishlistCount}</span>
+                                </c:if>
                             </a>
                         </c:if>
-                        <a class="swp-layout-icon-btn" href="${pageContext.request.contextPath}/cart" title="Cart">
+                        <a class="swp-layout-icon-btn ${activePage == 'cart' ? 'is-active' : ''}" href="${pageContext.request.contextPath}/cart" title="Cart">
                             <i class="bi bi-bag"></i>
+                            <c:if test="${cartCount > 0}">
+                                <span class="badge-count">${cartCount}</span>
+                            </c:if>
                         </a>
                     </c:if>
 
@@ -116,7 +137,7 @@
                         </c:otherwise>
                     </c:choose>
 
-                    <c:if test="${currentRole ne 'Admin' and currentRole ne 'ADMIN' and currentRole ne 'Shipper' and currentRole ne 'SHIPPER'}">
+                    <c:if test="${currentRole ne 'Admin' and currentRole ne 'ADMIN' and currentRole ne 'Shipper' and currentRole ne 'SHIPPER' and currentRole ne 'Staff' and currentRole ne 'STAFF'}">
                         <a class="swp-layout-action swp-layout-action-primary"
                            href="${pageContext.request.contextPath}/products">
                             <i class="bi bi-grid"></i> Shop
@@ -127,3 +148,43 @@
         </div>
     </nav>
 </header>
+<script>
+    (function () {
+        document.addEventListener('click', function (event) {
+            if (window.bootstrap) {
+                return;
+            }
+
+            var dropdownButton = event.target.closest('[data-bs-toggle="dropdown"]');
+            if (dropdownButton) {
+                event.preventDefault();
+                var menu = dropdownButton.parentElement ? dropdownButton.parentElement.querySelector('.dropdown-menu') : null;
+                document.querySelectorAll('.dropdown-menu.show').forEach(function (openMenu) {
+                    if (openMenu !== menu) {
+                        openMenu.classList.remove('show');
+                    }
+                });
+                if (menu) {
+                    menu.classList.toggle('show');
+                    dropdownButton.setAttribute('aria-expanded', menu.classList.contains('show') ? 'true' : 'false');
+                }
+                return;
+            }
+
+            var collapseButton = event.target.closest('[data-bs-toggle="collapse"]');
+            if (collapseButton) {
+                event.preventDefault();
+                var target = document.querySelector(collapseButton.getAttribute('data-bs-target'));
+                if (target) {
+                    target.classList.toggle('show');
+                    collapseButton.setAttribute('aria-expanded', target.classList.contains('show') ? 'true' : 'false');
+                }
+                return;
+            }
+
+            document.querySelectorAll('.dropdown-menu.show').forEach(function (openMenu) {
+                openMenu.classList.remove('show');
+            });
+        });
+    })();
+</script>
