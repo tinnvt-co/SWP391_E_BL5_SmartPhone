@@ -30,21 +30,19 @@ import java.util.UUID;
 /**
  * Customer-facing refund/return request flow.
  *
- *  GET  /return-request?orderId=N           -> open the form (or list existing
- *                                              refund requests for this user)
- *  GET  /return-request?id=N                -> detail of one of the user's
- *                                              previous requests
- *  POST /return-request                    -> submit a new request
- *                                              (multipart: reason text + image)
+ * GET /return-request?orderId=N -> open the form (or list existing refund
+ * requests for this user) GET /return-request?id=N -> detail of one of the
+ * user's previous requests POST /return-request -> submit a new request
+ * (multipart: reason text + image)
  *
  * Image uploads land in {@code <webroot>/assets/images/refund/}. File names are
  * randomised so we don't expose the customer's original filename.
  */
 @WebServlet(name = "ReturnRequestController", urlPatterns = {"/return-request"})
 @MultipartConfig(
-        fileSizeThreshold = 1024 * 1024,        // 1MB spill to disk
-        maxFileSize = 5L * 1024 * 1024,         // 5MB per file
-        maxRequestSize = 10L * 1024 * 1024       // 10MB total
+        fileSizeThreshold = 1024 * 1024, // 1MB spill to disk
+        maxFileSize = 5L * 1024 * 1024, // 5MB per file
+        maxRequestSize = 10L * 1024 * 1024 // 10MB total
 )
 public class ReturnRequestController extends HttpServlet {
 
@@ -58,7 +56,9 @@ public class ReturnRequestController extends HttpServlet {
             throws ServletException, IOException {
 
         UserModel user = requireCustomer(request, response);
-        if (user == null) return;
+        if (user == null) {
+            return;
+        }
 
         try {
             int id = parseInt(request.getParameter("id"));
@@ -124,7 +124,9 @@ public class ReturnRequestController extends HttpServlet {
             throws ServletException, IOException {
 
         UserModel user = requireCustomer(request, response);
-        if (user == null) return;
+        if (user == null) {
+            return;
+        }
 
         int orderId = parseInt(request.getParameter("orderId"));
         if (orderId <= 0) {
@@ -185,8 +187,8 @@ public class ReturnRequestController extends HttpServlet {
 
     /**
      * Saves the {@code image} part of the form (if any) to
-     * {@code assets/images/refund/} under the web root and returns the new
-     * file name. Returns {@code null} when no file was uploaded.
+     * {@code assets/images/refund/} under the web root and returns the new file
+     * name. Returns {@code null} when no file was uploaded.
      */
     private String saveImageIfAny(HttpServletRequest request) throws IOException, ServletException {
         Part part;
@@ -223,17 +225,18 @@ public class ReturnRequestController extends HttpServlet {
 
     private static String guessExtension(String contentType) {
         switch (contentType.toLowerCase()) {
-            case "image/png":  return ".png";
-            case "image/gif":  return ".gif";
-            case "image/webp": return ".webp";
-            default:           return ".jpg";
+            case "image/png":
+                return ".png";
+            case "image/gif":
+                return ".gif";
+            case "image/webp":
+                return ".webp";
+            default:
+                return ".jpg";
         }
     }
 
-    /* -------------------------------------------------------------------- */
-    /*  Filters / helpers                                                   */
-    /* -------------------------------------------------------------------- */
-
+    //  Filters / helpers                                                 
     private UserModel requireCustomer(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession(false);
         if (session == null) {
@@ -254,12 +257,20 @@ public class ReturnRequestController extends HttpServlet {
     }
 
     private static int parseInt(String value) {
-        if (value == null || value.isBlank()) return 0;
-        try { return Integer.parseInt(value.trim()); } catch (NumberFormatException ex) { return 0; }
+        if (value == null || value.isBlank()) {
+            return 0;
+        }
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException ex) {
+            return 0;
+        }
     }
 
     private static String trimToNull(String value) {
-        if (value == null) return null;
+        if (value == null) {
+            return null;
+        }
         String t = value.trim();
         return t.isEmpty() ? null : t;
     }
