@@ -21,15 +21,14 @@ import java.util.Set;
  * `ReturnRequest` and `ReturnRequest_ProductVariant` tables (no schema change
  * required).
  *
- * Lifecycle:
- *   ACTIVE   -> created by customer, waiting for manager
- *   APPROVED -> manager approved the refund
- *   REJECTED -> manager rejected the refund
+ * Lifecycle: ACTIVE -> created by customer, waiting for manager APPROVED ->
+ * manager approved the refund REJECTED -> manager rejected the refund
  *
  * The customer only creates requests; only the manager can transition to
  * APPROVED/REJECTED.
  */
 public class ReturnRequestDAO {
+
     private static final String BANK_PREFIX = "BANK|";
 
     private static final Set<String> VALID_STATUSES = new LinkedHashSet<>(java.util.Arrays.asList(
@@ -38,16 +37,14 @@ public class ReturnRequestDAO {
             ReturnRequestModel.STATUS_REJECTED));
 
     /* -------------------------------------------------------------------- */
-    /*  ID generation                                                       */
-    /* -------------------------------------------------------------------- */
-
+ /*  ID generation                                                       */
+ /* -------------------------------------------------------------------- */
     private int nextReturnRequestId(Connection conn) throws SQLException {
         try (Statement lock = conn.createStatement()) {
             lock.executeUpdate("LOCK TABLES `ReturnRequest` WRITE");
         }
         try {
-            try (Statement read = conn.createStatement();
-                 ResultSet rs = read.executeQuery("SELECT COALESCE(MAX(ID), 0) FROM `ReturnRequest`")) {
+            try (Statement read = conn.createStatement(); ResultSet rs = read.executeQuery("SELECT COALESCE(MAX(ID), 0) FROM `ReturnRequest`")) {
                 return rs.next() ? rs.getInt(1) + 1 : 1;
             }
         } finally {
@@ -58,9 +55,8 @@ public class ReturnRequestDAO {
     }
 
     /* -------------------------------------------------------------------- */
-    /*  Mapping helpers                                                     */
-    /* -------------------------------------------------------------------- */
-
+ /*  Mapping helpers                                                     */
+ /* -------------------------------------------------------------------- */
     private ReturnRequestItemModel mapItem(ResultSet rs) throws SQLException {
         ReturnRequestItemModel it = new ReturnRequestItemModel();
         it.setReturnRequestId(rs.getInt("ReturnRequestID"));
@@ -76,10 +72,11 @@ public class ReturnRequestDAO {
     }
 
     /* -------------------------------------------------------------------- */
-    /*  Customer-side reads                                                 */
-    /* -------------------------------------------------------------------- */
-
-    /** All refund requests submitted by a customer (history). */
+ /*  Customer-side reads                                                 */
+ /* -------------------------------------------------------------------- */
+    /**
+     * All refund requests submitted by a customer (history).
+     */
     public List<ReturnRequestModel> findByUserId(int userId) throws SQLException {
         String sql = "SELECT r.ID, r.Status, r.Description, r.Image, r.BackImage, "
                 + "r.Created_at, r.Updated_at, r.UserID, r.TransactionID, "
@@ -90,8 +87,7 @@ public class ReturnRequestDAO {
                 + "WHERE r.UserID = ? AND r.Status IN ('ACTIVE','APPROVED','REJECTED') "
                 + "ORDER BY r.Created_at DESC, r.ID DESC";
         List<ReturnRequestModel> list = new ArrayList<>();
-        try (Connection c = DBContext.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql)) {
+        try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, userId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -115,11 +111,13 @@ public class ReturnRequestDAO {
         return list;
     }
 
-    /** Active (still waiting) refund requests for a given order id (used to lock the form). */
+    /**
+     * Active (still waiting) refund requests for a given order id (used to lock
+     * the form).
+     */
     public boolean hasActiveForTransaction(int userId, int transactionId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM `ReturnRequest` WHERE UserID = ? AND TransactionID = ? AND Status = 'ACTIVE'";
-        try (Connection c = DBContext.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql)) {
+        try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, userId);
             ps.setInt(2, transactionId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -129,14 +127,13 @@ public class ReturnRequestDAO {
     }
 
     /**
-     * A "blocking" refund is any non-rejected request (ACTIVE or APPROVED). When
-     * a customer has already started or completed a refund for an order we must
-     * hide the review controls for that order's products.
+     * A "blocking" refund is any non-rejected request (ACTIVE or APPROVED).
+     * When a customer has already started or completed a refund for an order we
+     * must hide the review controls for that order's products.
      */
     public boolean hasBlockingRefundForTransaction(int userId, int transactionId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM `ReturnRequest` WHERE UserID = ? AND TransactionID = ? AND Status IN ('ACTIVE','APPROVED')";
-        try (Connection c = DBContext.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql)) {
+        try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, userId);
             ps.setInt(2, transactionId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -145,7 +142,9 @@ public class ReturnRequestDAO {
         }
     }
 
-    /** Single request with all its items (used by JSP detail pages). */
+    /**
+     * Single request with all its items (used by JSP detail pages).
+     */
     public ReturnRequestModel findDetail(int id) throws SQLException {
         String sql = "SELECT r.ID, r.Status, r.Description, r.Image, r.BackImage, "
                 + "r.Created_at, r.Updated_at, r.UserID, r.TransactionID, "
@@ -153,11 +152,12 @@ public class ReturnRequestDAO {
                 + "FROM `ReturnRequest` r "
                 + "JOIN `User` u ON u.ID = r.UserID "
                 + "WHERE r.ID = ?";
-        try (Connection c = DBContext.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql)) {
+        try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
-                if (!rs.next()) return null;
+                if (!rs.next()) {
+                    return null;
+                }
                 ReturnRequestModel r = new ReturnRequestModel();
                 r.setId(rs.getInt("ID"));
                 r.setStatus(rs.getString("Status"));
@@ -174,9 +174,9 @@ public class ReturnRequestDAO {
                 // row tied to this order. We don't alter the schema, so we use this audit trail.
                 try (PreparedStatement ps2 = c.prepareStatement(
                         "SELECT rev.Name, h.Updated_at FROM `TransactionStatusHistory` h "
-                                + "JOIN `User` rev ON rev.ID = h.UserID "
-                                + "WHERE h.TransactionID = (SELECT TransactionID FROM `ReturnRequest` WHERE ID = ?) "
-                                + "ORDER BY h.Updated_at DESC LIMIT 1")) {
+                        + "JOIN `User` rev ON rev.ID = h.UserID "
+                        + "WHERE h.TransactionID = (SELECT TransactionID FROM `ReturnRequest` WHERE ID = ?) "
+                        + "ORDER BY h.Updated_at DESC LIMIT 1")) {
                     ps2.setInt(1, id);
                     try (ResultSet rs2 = ps2.executeQuery()) {
                         if (rs2.next()) {
@@ -191,7 +191,9 @@ public class ReturnRequestDAO {
         }
     }
 
-    /** Items (variants) attached to a single refund request. */
+    /**
+     * Items (variants) attached to a single refund request.
+     */
     public List<ReturnRequestItemModel> findItems(int returnRequestId) throws SQLException {
         String sql = "SELECT rpv.ReturnRequestID, rpv.ProductVariantID, "
                 + "tp.Amount, tp.UnitPrice, "
@@ -205,20 +207,20 @@ public class ReturnRequestDAO {
                 + "JOIN Product p ON p.ID = pv.ProductID "
                 + "WHERE rpv.ReturnRequestID = ?";
         List<ReturnRequestItemModel> list = new ArrayList<>();
-        try (Connection c = DBContext.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql)) {
+        try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, returnRequestId);
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) list.add(mapItem(rs));
+                while (rs.next()) {
+                    list.add(mapItem(rs));
+                }
             }
         }
         return list;
     }
 
     /* -------------------------------------------------------------------- */
-    /*  Manager-side reads                                                  */
-    /* -------------------------------------------------------------------- */
-
+ /*  Manager-side reads                                                  */
+ /* -------------------------------------------------------------------- */
     public List<ReturnRequestModel> findAllForManager(String keyword, String status) throws SQLException {
         StringBuilder sql = new StringBuilder(
                 "SELECT r.ID, r.Status, r.Description, r.Image, r.BackImage, "
@@ -232,7 +234,9 @@ public class ReturnRequestDAO {
         if (keyword != null && !keyword.isBlank()) {
             sql.append("AND (u.Name LIKE ? OR r.Description LIKE ? OR CAST(r.TransactionID AS CHAR) LIKE ?) ");
             String like = "%" + keyword.trim() + "%";
-            params.add(like); params.add(like); params.add(like);
+            params.add(like);
+            params.add(like);
+            params.add(like);
         }
         if (status != null && VALID_STATUSES.contains(status)) {
             sql.append("AND r.Status = ? ");
@@ -240,9 +244,10 @@ public class ReturnRequestDAO {
         }
         sql.append("ORDER BY r.Created_at DESC, r.ID DESC");
         List<ReturnRequestModel> list = new ArrayList<>();
-        try (Connection c = DBContext.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql.toString())) {
-            for (int i = 0; i < params.size(); i++) ps.setObject(i + 1, params.get(i));
+        try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     ReturnRequestModel r = new ReturnRequestModel();
@@ -266,9 +271,8 @@ public class ReturnRequestDAO {
     }
 
     /* -------------------------------------------------------------------- */
-    /*  Writes                                                              */
-    /* -------------------------------------------------------------------- */
-
+ /*  Writes                                                              */
+ /* -------------------------------------------------------------------- */
     /**
      * Creates a refund request for an entire order. The order's items are
      * mirrored into ReturnRequest_ProductVariant so the manager sees what the
@@ -280,7 +284,7 @@ public class ReturnRequestDAO {
     }
 
     public ReturnRequestModel createForOrder(int userId, int transactionId, String description, String imageFile,
-                                             String bankName, String bankAccountNumber, String bankAccountHolder)
+            String bankName, String bankAccountNumber, String bankAccountHolder)
             throws SQLException {
         try (Connection c = DBContext.getConnection()) {
             c.setAutoCommit(false);
@@ -309,10 +313,10 @@ public class ReturnRequestDAO {
                 // Mirror every line of the order into ReturnRequest_ProductVariant
                 try (PreparedStatement ps = c.prepareStatement(
                         "INSERT INTO ReturnRequest_ProductVariant(ReturnRequestID, ProductVariantID) "
-                                + "SELECT ?, tpv.ProductVariantID "
-                                + "FROM Transaction_ProductVariant tpv "
-                                + "JOIN `Transaction` t ON t.ID = tpv.TransactionID "
-                                + "WHERE tpv.TransactionID = ? AND t.UserID = ?")) {
+                        + "SELECT ?, tpv.ProductVariantID "
+                        + "FROM Transaction_ProductVariant tpv "
+                        + "JOIN `Transaction` t ON t.ID = tpv.TransactionID "
+                        + "WHERE tpv.TransactionID = ? AND t.UserID = ?")) {
                     ps.setInt(1, id);
                     ps.setInt(2, transactionId);
                     ps.setInt(3, userId);
@@ -364,9 +368,8 @@ public class ReturnRequestDAO {
                 // SELECT against ReturnRequest + INSERT into TransactionStatusHistory
                 // happen inside the same transaction, so concurrency is fine.
                 int historyId;
-                try (Statement read = c.createStatement();
-                     ResultSet rs = read.executeQuery(
-                             "SELECT COALESCE(MAX(ID), 0) FROM `TransactionStatusHistory`")) {
+                try (Statement read = c.createStatement(); ResultSet rs = read.executeQuery(
+                        "SELECT COALESCE(MAX(ID), 0) FROM `TransactionStatusHistory`")) {
                     historyId = rs.next() ? rs.getInt(1) + 1 : 1;
                 }
                 int txId;
@@ -400,12 +403,12 @@ public class ReturnRequestDAO {
         return new LinkedHashSet<>(VALID_STATUSES);
     }
 
-    /** Total refund requests currently waiting for a manager to decide. */
+    /**
+     * Total refund requests currently waiting for a manager to decide.
+     */
     public int countPending() throws SQLException {
-        try (Connection c = DBContext.getConnection();
-             PreparedStatement ps = c.prepareStatement(
-                     "SELECT COUNT(*) FROM `ReturnRequest` WHERE Status = 'ACTIVE'");
-             ResultSet rs = ps.executeQuery()) {
+        try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(
+                "SELECT COUNT(*) FROM `ReturnRequest` WHERE Status = 'ACTIVE'"); ResultSet rs = ps.executeQuery()) {
             return rs.next() ? rs.getInt(1) : 0;
         }
     }
@@ -426,9 +429,15 @@ public class ReturnRequestDAO {
             return;
         }
         String[] parts = payload.substring(BANK_PREFIX.length()).split("\\|", -1);
-        if (parts.length > 0) request.setBankName(parts[0]);
-        if (parts.length > 1) request.setBankAccountNumber(parts[1]);
-        if (parts.length > 2) request.setBankAccountHolder(parts[2]);
+        if (parts.length > 0) {
+            request.setBankName(parts[0]);
+        }
+        if (parts.length > 1) {
+            request.setBankAccountNumber(parts[1]);
+        }
+        if (parts.length > 2) {
+            request.setBankAccountHolder(parts[2]);
+        }
     }
 
     private String cleanBankPart(String value) {

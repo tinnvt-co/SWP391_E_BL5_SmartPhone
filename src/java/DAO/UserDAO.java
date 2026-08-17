@@ -200,6 +200,7 @@ public class UserDAO {
             }
         }
     }
+
     public UserModel findOrCreateGoogleCustomer(String email, String name, String image) throws SQLException {
         UserModel existing = findActiveByEmail(email);
         if (existing != null) {
