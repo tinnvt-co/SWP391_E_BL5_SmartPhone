@@ -50,9 +50,7 @@ public final class SchemaInspector {
             feedbackColumns.clear();
             String sql = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS "
                     + "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'Feedback'";
-            try (Connection c = DBContext.getConnection();
-                 PreparedStatement ps = c.prepareStatement(sql);
-                 ResultSet rs = ps.executeQuery()) {
+            try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     feedbackColumns.add(rs.getString(1).toLowerCase());
                 }
