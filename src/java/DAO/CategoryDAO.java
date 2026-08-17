@@ -62,8 +62,7 @@ public class CategoryDAO {
                 + "FROM Category WHERE LOWER(Name) = LOWER(?) "
                 + "AND Status = 'ACTIVE'";
 
-        try (Connection connection = DBContext.getConnection();
-                PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, name);
 
             try (ResultSet resultSet = statement.executeQuery()) {
