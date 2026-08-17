@@ -109,6 +109,11 @@ public class ManagerFeedbackController extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/manager/feedback");
                 return;
             }
+            if (!existing.isManagerReplyAllowed()) {
+                response.sendRedirect(request.getContextPath() + "/manager/feedback?action=view&id=" + feedbackId
+                        + "&flash=" + encode("Manager can reply only after the customer updates this review."));
+                return;
+            }
             dao.reply(feedbackId, user.getId(), content);
             response.sendRedirect(request.getContextPath() + "/manager/feedback?action=view&id=" + feedbackId
                     + "&flash=" + encode("Reply posted."));

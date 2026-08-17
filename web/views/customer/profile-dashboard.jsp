@@ -67,6 +67,9 @@
                                 <a href="${pageContext.request.contextPath}/wishlist">
                                     <i class="bi bi-heart"></i> Wishlist
                                 </a>
+                                <a href="${pageContext.request.contextPath}/cart">
+                                    <i class="bi bi-bag"></i> Cart
+                                </a>
                                 <a href="${pageContext.request.contextPath}/checkout">
                                     <i class="bi bi-bag-check"></i> Checkout
                                 </a>

@@ -1,5 +1,5 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%><%@taglib prefix="c" uri="jakarta.tags.core"%><%@taglib prefix="fmt" uri="jakarta.tags.fmt"%>
-<!DOCTYPE html><html><head><title>Order #${order.code}</title><%@include file="../common/head.jsp"%>
+<!DOCTYPE html><html><head><title>Order #${order.code}</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"><link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"><link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css"><%@include file="../common/head.jsp"%>
         <style>
             .order-detail{
                 max-width:760px;
@@ -483,7 +483,7 @@
             }
         </style>
     </head><body>
-        <c:set var="pageRole" value="Staff"/><c:set var="pageName" value="Order Detail"/><%@include file="../common/topbar.jsp"%>
+        <c:set var="activePage" value="staff-orders" scope="request"/><%@ include file="/views/common/header.jsp" %>
         <main class="page-shell">
             <div class="order-detail">
 
@@ -584,4 +584,4 @@
 
             </div>
         </main>
-        <script src="${pageContext.request.contextPath}/assets/js/store.js"></script></body></html>
+        <script src="${pageContext.request.contextPath}/assets/js/store.js"></script><%@ include file="/views/common/footer.jsp" %><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script></body></html>

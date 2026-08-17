@@ -27,6 +27,8 @@
         .badge-status { padding:3px 9px; border-radius:999px; font-weight:700; font-size:.72rem; }
         .badge-status.answered { background:#dcfce7; color:#166534; }
         .badge-status.unanswered { background:#fee2e2; color:#991b1b; }
+        .badge-status.pending-update { background:#e0f2fe; color:#075985; }
+        .badge-status.ready-reply { background:#fef3c7; color:#92400e; }
         .review-content { color:#0f172a; white-space:pre-wrap; max-width:420px; }
         .review-actions a { color:#1665d8; text-decoration:none; font-weight:700; }
         .review-actions a:hover { text-decoration:underline; }
@@ -119,19 +121,29 @@
                         </div>
                     </c:forEach>
 
-                    <form method="post" action="${pageContext.request.contextPath}/manager/feedback" class="mt-3">
-                        <input type="hidden" name="action" value="reply">
-                        <input type="hidden" name="id" value="${item.feedback.id}">
-                        <label class="form-label" style="font-weight:700;">Reply as manager</label>
-                        <textarea name="content" class="form-control" maxlength="255" minlength="3" required
-                                  placeholder="Thank the customer, address concerns, share follow-up next steps..."></textarea>
-                        <div class="form-text">Up to 255 characters. A new reply is appended every time you post, so the customer sees the full thread (initial reply plus any follow-ups after the customer edits their review).</div>
-                        <div class="d-flex justify-content-end mt-3">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-send"></i> Post reply
-                            </button>
-                        </div>
-                    </form>
+                    <c:choose>
+                        <c:when test="${item.feedback.managerReplyAllowed}">
+                            <form method="post" action="${pageContext.request.contextPath}/manager/feedback" class="mt-3">
+                                <input type="hidden" name="action" value="reply">
+                                <input type="hidden" name="id" value="${item.feedback.id}">
+                                <label class="form-label" style="font-weight:700;">Reply as manager</label>
+                                <textarea name="content" class="form-control" maxlength="255" minlength="3" required
+                                          placeholder="Thank the customer, address concerns, share follow-up next steps..."></textarea>
+                                <div class="form-text">Up to 255 characters. Manager can reply only after the customer updates this review.</div>
+                                <div class="d-flex justify-content-end mt-3">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-send"></i> Post reply
+                                    </button>
+                                </div>
+                            </form>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="alert alert-info mt-3 mb-0">
+                                <i class="bi bi-info-circle"></i>
+                                Manager reply is available only after the customer updates this review.
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
             </c:when>
 
@@ -192,11 +204,14 @@
                                             <td><div class="review-content"><c:out value="${rv.content}"/></div></td>
                                             <td>
                                                 <c:choose>
+                                                    <c:when test="${rv.managerReplyAllowed}">
+                                                        <span class="badge-status ready-reply">Ready to reply</span>
+                                                    </c:when>
                                                     <c:when test="${rv.replyCount > 0}">
                                                         <span class="badge-status answered">${rv.replyCount} reply<c:if test="${rv.replyCount > 1}">s</c:if></span>
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <span class="badge-status unanswered">No reply</span>
+                                                        <span class="badge-status pending-update">Waiting update</span>
                                                     </c:otherwise>
                                                 </c:choose>
                                             </td>

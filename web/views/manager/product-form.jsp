@@ -29,7 +29,7 @@
                 <div class="alert error"><c:out value="${error}"/></div>
             </c:if>
 
-            <form class="entity-form product-form" method="post">
+            <form class="entity-form product-form" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="save">
                 <input type="hidden" name="id" value="${product.id}">
 
@@ -54,40 +54,15 @@
                     </label>
 
                     <label>
-                        Price segment *
-                        <select name="categoryId" required>
-                            <option value="">Choose price segment</option>
-                            <c:forEach items="${categories}" var="category">
-                                <option value="${category.id}"
-                                        ${product.categoryId == category.id ? 'selected' : ''}>
-                                    <c:out value="${category.name}"/>
-                                </option>
-                            </c:forEach>
-                        </select>
-                    </label>
-
-                    <label>
                         Release year
-                        <input type="number" name="releaseYear" min="2000" max="2100"
+                        <input type="number" name="releaseYear" min="2007" max="${maxReleaseYear}"
                                value="${product.releaseYear}">
                     </label>
 
                     <label>
                         Warranty period (months)
-                        <input type="number" name="warrantyMonths" min="0"
+                        <input type="number" name="warrantyMonths" min="0" max="36"
                                value="${product.warrantyMonths == 0 ? 12 : product.warrantyMonths}">
-                    </label>
-
-                    <label>
-                        Rating
-                        <select name="rating">
-                            <c:forEach begin="0" end="5" var="rating">
-                                <option value="${rating}"
-                                        ${product.rating == rating ? 'selected' : ''}>
-                                    ${rating}
-                                </option>
-                            </c:forEach>
-                        </select>
                     </label>
 
                     <label>
@@ -108,7 +83,6 @@
                     <div class="variant-editor-heading">
                         <div>
                             <h2>Product variants</h2>
-                            <p>Add only the RAM, storage and colors that this phone actually has.</p>
                         </div>
                         <button class="btn subtle" type="button" data-add-variant>+ Add variant</button>
                     </div>
@@ -129,9 +103,25 @@
                                     <tr class="variant-row">
                                         <td>
                                             <input type="hidden" name="variantId" value="${variant.id}">
-                                            <label>RAM (GB) *<input type="number" name="variantRam" min="1" value="${variant.ramGb}" required></label>
-                                            <label>Storage (GB) *<input type="number" name="variantStorage" min="1" value="${variant.storageGb}" required></label>
-                                            <label>Color name *<input name="variantColorName" maxlength="50" value="<c:out value='${variant.colorName}'/>" placeholder="Black Titanium" required></label>
+                                            <label>RAM (GB) *
+                                                <select name="variantRam" required>
+                                                    <option value="">Choose RAM</option>
+                                                    <c:forEach items="${ramOptions}" var="ram">
+                                                        <option value="${ram}" ${variant.ramGb == ram ? 'selected' : ''}>${ram} GB</option>
+                                                    </c:forEach>
+                                                </select>
+                                            </label>
+                                            <label>Storage (GB) *
+                                                <select name="variantStorage" required>
+                                                    <option value="">Choose storage</option>
+                                                    <c:forEach items="${storageOptions}" var="storage">
+                                                        <option value="${storage}" ${variant.storageGb == storage ? 'selected' : ''}>
+                                                            <c:choose><c:when test="${storage == 1024}">1 TB</c:when><c:when test="${storage == 2048}">2 TB</c:when><c:otherwise>${storage} GB</c:otherwise></c:choose>
+                                                        </option>
+                                                    </c:forEach>
+                                                </select>
+                                            </label>
+                                            <label>Color name *<input name="variantColorName" maxlength="50" value="<c:out value='${variant.colorName}'/>" placeholder="Black Titanium" pattern="[A-Za-zÀ-ỹ]+(?:[ -][A-Za-zÀ-ỹ]+)*" title="Use letters, spaces and hyphens only." required></label>
                                         </td>
                                         <td>
                                             <label>SKU *<input name="variantSku" maxlength="255" value="<c:out value='${variant.sku}'/>" required></label>
@@ -143,9 +133,13 @@
                                             <label>Stock *<input type="number" name="variantStock" min="0" value="${variant.stock}" required></label>
                                         </td>
                                         <td>
-                                            <label>Front image *<input name="variantImage" maxlength="255" value="<c:out value='${variant.image}'/>" pattern="[A-Za-z0-9][A-Za-z0-9._-]*\.(webp|png|jpg|jpeg|WEBP|PNG|JPG|JPEG)" required></label>
-                                            <label>Back image *<input name="variantBackImage" maxlength="255" value="<c:out value='${variant.backImage}'/>" pattern="[A-Za-z0-9][A-Za-z0-9._-]*\.(webp|png|jpg|jpeg|WEBP|PNG|JPG|JPEG)" required></label>
-                                            <small>File names inside assets/images/products</small>
+                                            <input type="hidden" name="existingVariantImage" value="<c:out value='${variant.image}'/>">
+                                            <input type="hidden" name="existingVariantBackImage" value="<c:out value='${variant.backImage}'/>">
+                                            <label>Front image *<input type="file" name="variantImageFile" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" ${variant.id == 0 ? 'required' : ''}></label>
+                                            <c:if test="${not empty variant.image}"><small class="current-image"><i class="bi bi-image"></i> Current: <c:out value="${variant.image}"/></small></c:if>
+                                            <label>Back image *<input type="file" name="variantBackImageFile" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" ${variant.id == 0 ? 'required' : ''}></label>
+                                            <c:if test="${not empty variant.backImage}"><small class="current-image"><i class="bi bi-image"></i> Current: <c:out value="${variant.backImage}"/></small></c:if>
+                                            <small>JPG, PNG or WEBP. Maximum 5 MB per image. File names must be unique.</small>
                                         </td>
                                         <td><button class="variant-remove" type="button" data-remove-variant aria-label="Remove variant">Remove</button></td>
                                     </tr>
@@ -168,9 +162,23 @@
             <tr class="variant-row">
                 <td>
                     <input type="hidden" name="variantId" value="0">
-                    <label>RAM (GB) *<input type="number" name="variantRam" min="1" required></label>
-                    <label>Storage (GB) *<input type="number" name="variantStorage" min="1" required></label>
-                    <label>Color name *<input name="variantColorName" maxlength="50" placeholder="Black Titanium" required></label>
+                    <label>RAM (GB) *
+                        <select name="variantRam" required>
+                            <option value="">Choose RAM</option>
+                            <c:forEach items="${ramOptions}" var="ram">
+                                <option value="${ram}">${ram} GB</option>
+                            </c:forEach>
+                        </select>
+                    </label>
+                    <label>Storage (GB) *
+                        <select name="variantStorage" required>
+                            <option value="">Choose storage</option>
+                            <c:forEach items="${storageOptions}" var="storage">
+                                <option value="${storage}"><c:choose><c:when test="${storage == 1024}">1 TB</c:when><c:when test="${storage == 2048}">2 TB</c:when><c:otherwise>${storage} GB</c:otherwise></c:choose></option>
+                            </c:forEach>
+                        </select>
+                    </label>
+                    <label>Color name *<input name="variantColorName" maxlength="50" placeholder="Black Titanium" pattern="[A-Za-zÀ-ỹ]+(?:[ -][A-Za-zÀ-ỹ]+)*" title="Use letters, spaces and hyphens only." required></label>
                 </td>
                 <td>
                     <label>SKU *<input name="variantSku" maxlength="255" required></label>
@@ -182,9 +190,11 @@
                     <label>Stock *<input type="number" name="variantStock" min="0" required></label>
                 </td>
                 <td>
-                    <label>Front image *<input name="variantImage" maxlength="255" pattern="[A-Za-z0-9][A-Za-z0-9._-]*\.(webp|png|jpg|jpeg|WEBP|PNG|JPG|JPEG)" required></label>
-                    <label>Back image *<input name="variantBackImage" maxlength="255" pattern="[A-Za-z0-9][A-Za-z0-9._-]*\.(webp|png|jpg|jpeg|WEBP|PNG|JPG|JPEG)" required></label>
-                    <small>File names inside assets/images/products</small>
+                    <input type="hidden" name="existingVariantImage" value="">
+                    <input type="hidden" name="existingVariantBackImage" value="">
+                    <label>Front image *<input type="file" name="variantImageFile" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required></label>
+                    <label>Back image *<input type="file" name="variantBackImageFile" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required></label>
+                    <small>JPG, PNG or WEBP. Maximum 5 MB per image. File names must be unique.</small>
                 </td>
                 <td><button class="variant-remove" type="button" data-remove-variant aria-label="Remove variant">Remove</button></td>
             </tr>

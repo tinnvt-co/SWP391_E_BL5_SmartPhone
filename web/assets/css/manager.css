@@ -222,6 +222,20 @@
     color: var(--mgr-blue);
 }
 
+.side-nav > a.nav-logout {
+    color: #dc2626;
+}
+
+.side-nav > a.nav-logout .nav-icon {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.side-nav > a.nav-logout:hover {
+    color: #b91c1c;
+    background: #fef2f2;
+}
+
 /* =============================================================
    STATUS PILLS (refined)
    ============================================================= */
@@ -971,7 +985,8 @@
     font-weight: 700;
 }
 
-.variant-table input {
+.variant-table input,
+.variant-table select {
     width: 100%;
     margin-top: 4px;
     padding: 9px 11px;
@@ -982,10 +997,35 @@
     font-size: 13px;
 }
 
-.variant-table input:focus {
+.variant-table input:focus,
+.variant-table select:focus {
     border-color: var(--mgr-blue);
     box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
     outline: 0;
+}
+
+.variant-table input[type="file"] {
+    padding: 6px;
+    color: #475569;
+    background: #f8fafc;
+    cursor: pointer;
+}
+
+.variant-table input[type="file"]::file-selector-button {
+    margin-right: 9px;
+    padding: 7px 10px;
+    color: #1d4ed8;
+    border: 0;
+    border-radius: 6px;
+    background: #eaf1ff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.variant-table .current-image {
+    margin: -2px 0 10px;
+    color: #1d4ed8;
+    overflow-wrap: anywhere;
 }
 
 .variant-table small {
@@ -1016,6 +1056,86 @@
 
 .product-form .form-actions {
     margin-top: 24px;
+}
+
+.manager-empty-row {
+    padding: 44px 20px !important;
+    color: #64748b;
+    text-align: center;
+}
+
+.manager-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 18px 20px;
+    border-top: 1px solid var(--line);
+    background: #fff;
+}
+
+.manager-page-summary {
+    color: #64748b;
+    font-size: 14px;
+}
+
+.manager-page-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.manager-page-button,
+.manager-page-current {
+    min-width: 40px;
+    height: 40px;
+    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #dbe2ea;
+    border-radius: 9px;
+    background: #fff;
+    color: #334155;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.manager-page-button.wide {
+    min-width: 82px;
+}
+
+.manager-page-button:hover {
+    color: #1d4ed8;
+    border-color: #1d4ed8;
+    background: #eff6ff;
+}
+
+.manager-page-button.disabled {
+    opacity: .42;
+    pointer-events: none;
+}
+
+.manager-page-current {
+    color: #fff;
+    border-color: #1d4ed8;
+    background: #1d4ed8;
+}
+
+@media (max-width: 760px) {
+    .manager-pagination {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .manager-page-controls {
+        justify-content: space-between;
+    }
+
+    .manager-page-button.wide {
+        min-width: 0;
+    }
 }
 
 /* =============================================================

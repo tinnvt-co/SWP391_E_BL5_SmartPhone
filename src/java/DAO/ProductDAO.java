@@ -21,7 +21,7 @@ public class ProductDAO {
             "SELECT p.ID, p.Name, p.Description, p.Release_Year, "
             + "COALESCE((SELECT ROUND(AVG(f.Rating)) FROM Feedback f "
             + "          JOIN ProductVariant pv2 ON pv2.ID = f.ProductVariantID "
-            + "          WHERE pv2.ProductID = p.ID), p.Rating) AS Rating, "
+            + "          WHERE pv2.ProductID = p.ID AND f.IsDeleted = 0), 0) AS Rating, "
             + "p.warranty_months, p.CategoryID, c.Name AS CategoryName, "
             + "p.BrandID, b.Name AS BrandName, p.Status, p.Created_at, "
             + "COALESCE((SELECT MIN(pv.Selling_price) FROM ProductVariant pv "
@@ -46,7 +46,7 @@ public class ProductDAO {
             + "WHERE pv.ProductID = p.ID AND pv.Status = 'ACTIVE'), 0) AS Stock, "
             + "(SELECT COUNT(*) FROM Feedback f "
             + "JOIN ProductVariant pv ON pv.ID = f.ProductVariantID "
-            + "WHERE pv.ProductID = p.ID) AS ReviewCount "
+            + "WHERE pv.ProductID = p.ID AND f.IsDeleted = 0) AS ReviewCount "
             + "FROM Product p "
             + "JOIN Category c ON c.ID = p.CategoryID "
             + "JOIN Brand b ON b.ID = p.BrandID ";
@@ -277,16 +277,26 @@ public class ProductDAO {
 
     private void update(ProductModel product) throws SQLException {
         String sql = "UPDATE Product SET Name = ?, Description = ?, Release_Year = ?, "
-                + "Rating = ?, warranty_months = ?, CategoryID = ?, "
-                + "BrandID = ?, Status = ? WHERE ID = ?";
+                + "warranty_months = ?, CategoryID = ?, BrandID = ?, Status = ? "
+                + "WHERE ID = ?";
 
         try (Connection connection = DBContext.getConnection()) {
             connection.setAutoCommit(false);
 
             try {
                 try (PreparedStatement statement = connection.prepareStatement(sql)) {
-                    setProductParameters(statement, product);
-                    statement.setInt(9, product.getId());
+                    statement.setString(1, product.getName());
+                    statement.setString(2, product.getDescription());
+                    if (product.getReleaseYear() == null) {
+                        statement.setNull(3, Types.INTEGER);
+                    } else {
+                        statement.setInt(3, product.getReleaseYear());
+                    }
+                    statement.setInt(4, product.getWarrantyMonths());
+                    statement.setInt(5, product.getCategoryId());
+                    statement.setInt(6, product.getBrandId());
+                    statement.setString(7, product.getStatus());
+                    statement.setInt(8, product.getId());
                     statement.executeUpdate();
                 }
 

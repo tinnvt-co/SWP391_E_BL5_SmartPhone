@@ -30,6 +30,7 @@ import java.util.Set;
  * APPROVED/REJECTED.
  */
 public class ReturnRequestDAO {
+    private static final String BANK_PREFIX = "BANK|";
 
     private static final Set<String> VALID_STATUSES = new LinkedHashSet<>(java.util.Arrays.asList(
             ReturnRequestModel.STATUS_ACTIVE,
@@ -100,6 +101,7 @@ public class ReturnRequestDAO {
                     r.setDescription(rs.getString("Description"));
                     r.setImage(rs.getString("Image"));
                     r.setBackImage(rs.getString("BackImage"));
+                    applyBankInfo(r);
                     r.setCreatedAt(rs.getTimestamp("Created_at"));
                     r.setUpdatedAt(rs.getTimestamp("Updated_at"));
                     r.setUserId(rs.getInt("UserID"));
@@ -162,6 +164,7 @@ public class ReturnRequestDAO {
                 r.setDescription(rs.getString("Description"));
                 r.setImage(rs.getString("Image"));
                 r.setBackImage(rs.getString("BackImage"));
+                applyBankInfo(r);
                 r.setCreatedAt(rs.getTimestamp("Created_at"));
                 r.setUpdatedAt(rs.getTimestamp("Updated_at"));
                 r.setUserId(rs.getInt("UserID"));
@@ -248,6 +251,7 @@ public class ReturnRequestDAO {
                     r.setDescription(rs.getString("Description"));
                     r.setImage(rs.getString("Image"));
                     r.setBackImage(rs.getString("BackImage"));
+                    applyBankInfo(r);
                     r.setCreatedAt(rs.getTimestamp("Created_at"));
                     r.setUpdatedAt(rs.getTimestamp("Updated_at"));
                     r.setUserId(rs.getInt("UserID"));
@@ -272,12 +276,18 @@ public class ReturnRequestDAO {
      */
     public ReturnRequestModel createForOrder(int userId, int transactionId, String description, String imageFile)
             throws SQLException {
+        return createForOrder(userId, transactionId, description, imageFile, null, null, null);
+    }
+
+    public ReturnRequestModel createForOrder(int userId, int transactionId, String description, String imageFile,
+                                             String bankName, String bankAccountNumber, String bankAccountHolder)
+            throws SQLException {
         try (Connection c = DBContext.getConnection()) {
             c.setAutoCommit(false);
             try {
                 int id = nextReturnRequestId(c);
-                String sql = "INSERT INTO `ReturnRequest`(ID, Status, Description, Image, UserID, TransactionID) "
-                        + "VALUES(?, 'ACTIVE', ?, ?, ?, ?)";
+                String sql = "INSERT INTO `ReturnRequest`(ID, Status, Description, Image, BackImage, UserID, TransactionID) "
+                        + "VALUES(?, 'ACTIVE', ?, ?, ?, ?, ?)";
                 try (PreparedStatement ps = c.prepareStatement(sql)) {
                     ps.setInt(1, id);
                     ps.setString(2, description);
@@ -286,8 +296,14 @@ public class ReturnRequestDAO {
                     } else {
                         ps.setString(3, imageFile);
                     }
-                    ps.setInt(4, userId);
-                    ps.setInt(5, transactionId);
+                    String bankPayload = bankPayload(bankName, bankAccountNumber, bankAccountHolder);
+                    if (bankPayload == null) {
+                        ps.setNull(4, Types.VARCHAR);
+                    } else {
+                        ps.setString(4, bankPayload);
+                    }
+                    ps.setInt(5, userId);
+                    ps.setInt(6, transactionId);
                     ps.executeUpdate();
                 }
                 // Mirror every line of the order into ReturnRequest_ProductVariant
@@ -308,6 +324,8 @@ public class ReturnRequestDAO {
                 r.setStatus("ACTIVE");
                 r.setDescription(description);
                 r.setImage(imageFile);
+                r.setBackImage(bankPayload(bankName, bankAccountNumber, bankAccountHolder));
+                applyBankInfo(r);
                 r.setUserId(userId);
                 r.setTransactionId(transactionId);
                 return r;
@@ -390,5 +408,34 @@ public class ReturnRequestDAO {
              ResultSet rs = ps.executeQuery()) {
             return rs.next() ? rs.getInt(1) : 0;
         }
+    }
+
+    private String bankPayload(String bankName, String bankAccountNumber, String bankAccountHolder) {
+        if (isBlank(bankName) && isBlank(bankAccountNumber) && isBlank(bankAccountHolder)) {
+            return null;
+        }
+        String value = BANK_PREFIX + cleanBankPart(bankName) + "|"
+                + cleanBankPart(bankAccountNumber) + "|"
+                + cleanBankPart(bankAccountHolder);
+        return value.length() > 255 ? value.substring(0, 255) : value;
+    }
+
+    private void applyBankInfo(ReturnRequestModel request) {
+        String payload = request.getBackImage();
+        if (payload == null || !payload.startsWith(BANK_PREFIX)) {
+            return;
+        }
+        String[] parts = payload.substring(BANK_PREFIX.length()).split("\\|", -1);
+        if (parts.length > 0) request.setBankName(parts[0]);
+        if (parts.length > 1) request.setBankAccountNumber(parts[1]);
+        if (parts.length > 2) request.setBankAccountHolder(parts[2]);
+    }
+
+    private String cleanBankPart(String value) {
+        return value == null ? "" : value.trim().replace("|", " ");
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 }

@@ -1,6 +1,6 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%><%@taglib prefix="c" uri="jakarta.tags.core"%><%@taglib prefix="fmt" uri="jakarta.tags.fmt"%>
-<!DOCTYPE html><html><head><title>Order Management</title><%@include file="../common/head.jsp"%></head><body>
-        <c:set var="pageRole" value="Staff"/><c:set var="pageName" value="Manage Orders"/><%@include file="../common/topbar.jsp"%>
+<!DOCTYPE html><html><head><title>Order Management</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"><link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"><link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css"><%@include file="../common/head.jsp"%></head><body>
+        <c:set var="activePage" value="staff-orders" scope="request"/><%@ include file="/views/common/header.jsp" %>
         <main class="page-shell">
             <div class="page-heading"><div><h1>Order Management</h1><p>${orders.size()} orders shown</p></div></div>
             <c:if test="${not empty param.message}"><div class="alert success"><c:out value="${param.message}"/></div></c:if>
@@ -63,4 +63,4 @@
                 </div>
             </div>
         </div>
-        <script src="${pageContext.request.contextPath}/assets/js/store.js"></script></body></html>
+        <script src="${pageContext.request.contextPath}/assets/js/store.js"></script><%@ include file="/views/common/footer.jsp" %><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script></body></html>

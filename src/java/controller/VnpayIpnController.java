@@ -23,7 +23,13 @@ public class VnpayIpnController extends HttpServlet {
             return;
         }
 
-        int orderId = integer(request.getParameter("vnp_TxnRef"));
+        String txnRef = request.getParameter("vnp_TxnRef");
+        if (txnRef != null && txnRef.startsWith("RF-")) {
+            response.getWriter().write("{\"RspCode\":\"00\",\"Message\":\"Confirm Success\"}");
+            return;
+        }
+
+        int orderId = integer(txnRef);
         if (orderId <= 0) {
             response.getWriter().write("{\"RspCode\":\"01\",\"Message\":\"Order not found\"}");
             return;
@@ -45,6 +51,9 @@ public class VnpayIpnController extends HttpServlet {
 
     private int integer(String input) {
         try {
+            if (input != null && input.contains("-")) {
+                input = input.substring(0, input.indexOf('-'));
+            }
             return Integer.parseInt(input);
         } catch (Exception exception) {
             return 0;

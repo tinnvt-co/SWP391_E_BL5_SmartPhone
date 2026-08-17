@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
@@ -17,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.List;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -212,9 +214,32 @@ public class GoogleLoginController extends HttpServlet {
     }
 
     private GoogleConfig readConfig() {
-        String clientId = firstNonBlank(System.getProperty("google.client.id"), System.getenv("GOOGLE_CLIENT_ID"));
-        String clientSecret = firstNonBlank(System.getProperty("google.client.secret"), System.getenv("GOOGLE_CLIENT_SECRET"));
+        Properties properties = loadMailProperties();
+        String clientId = firstNonBlank(
+                System.getProperty("google.client.id"),
+                System.getenv("GOOGLE_CLIENT_ID"),
+                properties.getProperty("google.client.id"),
+                properties.getProperty("GOOGLE_CLIENT_ID"));
+        String clientSecret = firstNonBlank(
+                System.getProperty("google.client.secret"),
+                System.getenv("GOOGLE_CLIENT_SECRET"),
+                properties.getProperty("google.client.secret"),
+                properties.getProperty("GOOGLE_CLIENT_SECRET"));
         return new GoogleConfig(clientId, clientSecret);
+    }
+
+    private Properties loadMailProperties() {
+        Properties properties = new Properties();
+        try (InputStream input = Thread.currentThread()
+                .getContextClassLoader()
+                .getResourceAsStream("mail.properties")) {
+            if (input != null) {
+                properties.load(input);
+            }
+        } catch (IOException ignored) {
+            // Google OAuth can still be configured by environment variables or system properties.
+        }
+        return properties;
     }
 
     private String redirectUri(HttpServletRequest request) {

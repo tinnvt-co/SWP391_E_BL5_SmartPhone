@@ -2,7 +2,15 @@
 vnpay.payUrl=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
 vnpay.returnUrl=https://your-ngrok-domain.ngrok-free.dev/SWP391_E_BL5_SmartPhone/vnpay-return
 vnpay.ipnUrl=https://your-ngrok-domain.ngrok-free.dev/SWP391_E_BL5_SmartPhone/vnpay-ipn
+vnpay.browserReturnBaseUrl=http://localhost:8080/SWP391_E_BL5_SmartPhone
 vnpay.tmnCode=YOUR_TMN_CODE
 vnpay.hashSecret=YOUR_HASH_SECRET
 vnpay.locale=vn
 vnpay.orderType=other
+
+# The app also accepts VNPay official key names if your team copies them from email:
+# vnp_Url=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+# vnp_ReturnUrl=https://your-ngrok-domain.ngrok-free.dev/SWP391_E_BL5_SmartPhone/vnpay-return
+# vnp_IpnUrl=https://your-ngrok-domain.ngrok-free.dev/SWP391_E_BL5_SmartPhone/vnpay-ipn
+# vnp_TmnCode=YOUR_TMN_CODE
+# vnp_HashSecret=YOUR_HASH_SECRET

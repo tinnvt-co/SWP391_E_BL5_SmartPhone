@@ -15,15 +15,17 @@
 <main class="page-shell detail-page" data-variant-picker><c:if test="${param.wishlistStatus == 'added'}"><div class="alert alert-success">Product added to wishlist.</div></c:if><c:if test="${not empty param.wishlistError}"><div class="alert alert-danger"><c:out value="${param.wishlistError}"/></div></c:if><section class="detail-hero">
  <div class="gallery"><div class="main-photo"><img id="mainProductImage" data-variant-image src="${pageContext.request.contextPath}${product.imageUrl}" alt="${product.name}" onerror="this.src='${pageContext.request.contextPath}/assets/images/product-placeholder.svg'"><c:if test="${product.hasDiscount()}"><span class="detail-discount-badge">-${product.discountPercent}%</span></c:if></div><div class="thumb-row"><button type="button" class="thumb active" data-gallery-view="front" data-gallery-image="${pageContext.request.contextPath}${product.variants[0].imageUrl}" aria-label="View front image"><img data-front-thumb src="${pageContext.request.contextPath}${product.variants[0].imageUrl}" alt="Front view"></button><button type="button" class="thumb" data-gallery-view="back" data-gallery-image="${pageContext.request.contextPath}${product.variants[0].backImageUrl}" aria-label="View back image"><img data-back-thumb src="${pageContext.request.contextPath}${product.variants[0].backImageUrl}" alt="Back view"></button></div><div class="gallery-caption" data-gallery-caption>Front view</div></div>
  <div class="detail-summary"><span class="brand-tag"><c:out value="${product.brandName}"/></span><h1><c:out value="${product.name}"/></h1><div class="detail-rating">
-  <c:set var="ratingForDisplay" value="${empty avgRating ? product.rating : avgRating}"/>
+  <c:set var="ratingForDisplay" value="${empty avgRating ? 0 : avgRating}"/>
   <c:set var="countForDisplay" value="${empty feedbackCount ? product.reviewCount : feedbackCount}"/>
-  <span class="review-summary-stars">
-   <c:forEach begin="1" end="5" var="s">
-    <c:choose><c:when test="${s <= ratingForDisplay}">&#9733;</c:when><c:otherwise>&#9734;</c:otherwise></c:choose>
-   </c:forEach>
-  </span>
-  ${avgRating != null ? avgRating : product.rating}.0
-  (${countForDisplay} reviews)
+  <c:if test="${countForDisplay > 0}">
+   <span class="review-summary-stars">
+    <c:forEach begin="1" end="5" var="s">
+     <c:choose><c:when test="${s <= ratingForDisplay}">&#9733;</c:when><c:otherwise>&#9734;</c:otherwise></c:choose>
+    </c:forEach>
+   </span>
+   <fmt:formatNumber value="${ratingForDisplay}" pattern="#.#" maxFractionDigits="1"/>
+   (${countForDisplay} reviews)
+  </c:if>
   <b data-stock-label class="stock ${product.stock==0?'danger':''}">${product.stock>0?'In stock ('.concat(product.stock).concat(')'):'Out of stock'}</b>
  </div>
   <c:set var="detailFinalPrice" value="${(not empty product.variants ? (product.variants[0].sellingPrice - (product.variants[0].sellingPrice * product.discount / 100)) : product.finalPrice)}"/><c:set var="detailOriginalPrice" value="${(not empty product.variants ? product.variants[0].sellingPrice : product.sellingPrice)}"/><div class="detail-price" data-variant-price><fmt:formatNumber value="${detailFinalPrice}" pattern="#,##0"/>₫</div><c:if test="${product.discount>0}"><del><fmt:formatNumber value="${detailOriginalPrice}" pattern="#,##0"/>₫</del><span class="discount-note">-${product.discountPercent}%</span></c:if>
@@ -32,7 +34,7 @@
   <div class="shipping">✓ <strong>Free shipping</strong> · Official warranty ${product.warrantyMonths} months</div>
  </div></section>
  <section class="spec-section"><div class="tabs"><button class="active">Specifications</button><button>Reviews (${countForDisplay})</button><button>Shipping & Returns</button></div><div class="spec-grid">
-  <div class="spec"><span>Brand</span><b><c:out value="${product.brandName}"/></b></div><div class="spec"><span>Category</span><b><c:out value="${product.categoryName}"/></b></div><div class="spec"><span>Release year</span><b>${product.releaseYear}</b></div><div class="spec"><span>Rating</span><b><fmt:formatNumber value="${countForDisplay > 0 ? avgRating : product.rating}" pattern="#.#" maxFractionDigits="1"/>/5</b></div><div class="spec"><span>SKU</span><b><c:out value="${product.sku}"/></b></div><div class="spec"><span>Barcode</span><b><c:out value="${product.barcode}"/></b></div><div class="spec"><span>Stock</span><b>${product.stock} units</b></div><div class="spec"><span>Warranty</span><b>${product.warrantyMonths} months</b></div>
+   <div class="spec"><span>Brand</span><b><c:out value="${product.brandName}"/></b></div><div class="spec"><span>Category</span><b><c:out value="${product.categoryName}"/></b></div><div class="spec"><span>Release year</span><b>${product.releaseYear}</b></div><c:if test="${countForDisplay > 0}"><div class="spec"><span>Rating</span><b><fmt:formatNumber value="${ratingForDisplay}" pattern="#.#" maxFractionDigits="1"/>/5</b></div></c:if><div class="spec"><span>Stock</span><b>${product.stock} units</b></div><div class="spec"><span>Warranty</span><b>${product.warrantyMonths} months</b></div>
  </div><c:if test="${not empty product.description}"><p class="description"><c:out value="${product.description}"/></p></c:if></section>
 
  <section class="reviews-section" id="reviews-section">
@@ -47,11 +49,13 @@
      </c:choose>
     </div>
     <div>
-     <div class="review-summary-stars">
-      <c:forEach begin="1" end="5" var="s">
-       <c:choose><c:when test="${s <= ratingForDisplay}">&#9733;</c:when><c:otherwise>&#9734;</c:otherwise></c:choose>
-      </c:forEach>
-     </div>
+     <c:if test="${countForDisplay > 0}">
+      <div class="review-summary-stars">
+       <c:forEach begin="1" end="5" var="s">
+        <c:choose><c:when test="${s <= ratingForDisplay}">&#9733;</c:when><c:otherwise>&#9734;</c:otherwise></c:choose>
+       </c:forEach>
+      </div>
+     </c:if>
      <div class="review-summary-count">${countForDisplay} review<c:if test="${countForDisplay != 1}">s</c:if></div>
     </div>
    </div>

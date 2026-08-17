@@ -1,8 +1,11 @@
 package controller;
 
 import DAO.ReturnRequestDAO;
+import DAO.OrderDAO;
+import model.OrderModel;
 import model.ReturnRequestModel;
 import model.UserModel;
+import service.VnpayService;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -13,6 +16,7 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -27,6 +31,8 @@ import java.util.List;
 public class ManagerReturnRequestController extends HttpServlet {
 
     private final ReturnRequestDAO dao = new ReturnRequestDAO();
+    private final OrderDAO orderDAO = new OrderDAO();
+    private final VnpayService vnpayService = new VnpayService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -107,6 +113,24 @@ public class ManagerReturnRequestController extends HttpServlet {
         }
 
         try {
+            if (approve) {
+                ReturnRequestModel refund = dao.findDetail(id);
+                OrderModel order = refund == null ? null : orderDAO.findOrderDetail(refund.getTransactionId());
+                if (order != null && isPaidOrder(order)) {
+                    if (!refund.isHasBankInfo()) {
+                        response.sendRedirect(request.getContextPath() + "/manager/return-request?action=view&id=" + id
+                                + "&flash=" + encode("Customer bank information is required before VNPay refund."));
+                        return;
+                    }
+                    String txnRef = "RF-" + id + "-" + manager.getId() + "-" + System.currentTimeMillis();
+                    String paymentUrl = vnpayService.createPaymentUrl(request,
+                            order.getPaidAmount().intValue(),
+                            "Hoan tien SmartPhone store refund " + id,
+                            txnRef);
+                    response.sendRedirect(paymentUrl);
+                    return;
+                }
+            }
             boolean ok = dao.decide(id, approve, manager.getId());
             if (!ok) {
                 response.sendRedirect(request.getContextPath() + "/manager/return-request?action=view&id=" + id
@@ -154,6 +178,11 @@ public class ManagerReturnRequestController extends HttpServlet {
 
     private static String encode(String value) {
         return URLEncoder.encode(value, java.nio.charset.StandardCharsets.UTF_8);
+    }
+
+    private static boolean isPaidOrder(OrderModel order) {
+        BigDecimal paid = order == null ? null : order.getPaidAmount();
+        return paid != null && paid.compareTo(BigDecimal.ZERO) > 0;
     }
 
     public static class FilterState {

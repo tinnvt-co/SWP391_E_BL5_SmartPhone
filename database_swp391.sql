@@ -360,9 +360,9 @@ CREATE INDEX `idx_ReturnRequest_status` ON `ReturnRequest` (`Status`, `Created_a
 
 INSERT INTO `Category` (`ID`, `Name`, `Description`, `Status`) VALUES
 (1, 'High-end', 'Phones priced from 20,000,000 VND', 'ACTIVE'),
-(2, 'Upper mid-range', 'Phones priced from 13,000,000 to under 20,000,000 VND', 'ACTIVE'),
-(3, 'Mid-range', 'Phones priced from 7,000,000 to under 13,000,000 VND', 'ACTIVE'),
-(4, 'Budget', 'Phones priced under 7,000,000 VND', 'ACTIVE');
+(2, 'Upper mid-range', 'Phones priced from 10,000,000 to under 20,000,000 VND', 'ACTIVE'),
+(3, 'Mid-range', 'Phones priced from 5,000,000 to under 10,000,000 VND', 'ACTIVE'),
+(4, 'Budget', 'Phones priced under 5,000,000 VND', 'ACTIVE');
 
 INSERT INTO `Brand` (`ID`, `Name`, `Description`, `Status`) VALUES
 (1, 'Apple', 'Apple iPhone products', 'ACTIVE'),
@@ -2832,6 +2832,19 @@ INSERT INTO `ProductVariant` (`ID`, `ProductID`, `RAM_GB`, `Storage_GB`, `ColorN
 (2397, 200, 6, 128, 'Black', '8900000002397', 'OPP-200-6R-128G-C1', 8490000, 6961800, 'oppo-a57-6gb-128gb-black.jpg', 'oppo-a57-black-back.jpg', 'ACTIVE'),
 (2398, 200, 6, 128, 'White', '8900000002398', 'OPP-200-6R-128G-C2', 8490000, 6961800, 'oppo-a57-6gb-128gb-white.jpg', 'oppo-a57-white-back.jpg', 'ACTIVE'),
 (2400, 200, 6, 128, 'Gold', '8900000002400', 'OPP-200-6R-128G-C4', 8490000, 6961800, 'oppo-a57-6gb-128gb-gold.jpg', 'oppo-a57-gold-back.jpg', 'ACTIVE');
+UPDATE Product p
+JOIN (
+  SELECT ProductID, MIN(SellingPrice) AS LowestPrice
+  FROM ProductVariant
+  GROUP BY ProductID
+) price ON price.ProductID = p.ID
+SET p.CategoryID = CASE
+  WHEN price.LowestPrice < 5000000 THEN 4
+  WHEN price.LowestPrice < 10000000 THEN 3
+  WHEN price.LowestPrice < 20000000 THEN 2
+  ELSE 1
+END;
+
 INSERT INTO Inventory (ProductVariantID, Amount, Min_amount, Max_amount, Status)
 SELECT pv.ID, 8 + ((pv.ProductID + pv.ID) MOD 13), 2, 50, 'ACTIVE' FROM ProductVariant pv;
 

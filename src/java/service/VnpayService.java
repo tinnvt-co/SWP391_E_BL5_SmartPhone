@@ -6,6 +6,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
@@ -41,7 +42,9 @@ public class VnpayService {
         params.put("vnp_Locale", property("vnpay.locale", "vn"));
         params.put("vnp_ReturnUrl", required("vnpay.returnUrl"));
         params.put("vnp_IpAddr", clientIp(request));
-        params.put("vnp_CreateDate", vnpDate(new Date()));
+        Date createDate = new Date();
+        params.put("vnp_CreateDate", vnpDate(createDate));
+        params.put("vnp_ExpireDate", vnpDate(expireDate(createDate)));
 
         String query = queryString(params);
         String secureHash = hmacSha512(required("vnpay.hashSecret"), query);
@@ -69,6 +72,17 @@ public class VnpayService {
                 && "00".equals(request.getParameter("vnp_TransactionStatus"));
     }
 
+    public String browserRedirectUrl(HttpServletRequest request, String path) {
+        String base = property("vnpay.browserReturnBaseUrl", "");
+        if (base.isBlank()) {
+            return request.getContextPath() + path;
+        }
+        while (base.endsWith("/")) {
+            base = base.substring(0, base.length() - 1);
+        }
+        return base + path;
+    }
+
     private String transactionReference() {
         return "SP" + System.currentTimeMillis();
     }
@@ -77,6 +91,13 @@ public class VnpayService {
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
         format.setTimeZone(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
         return format.format(date);
+    }
+
+    private Date expireDate(Date createDate) {
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
+        calendar.setTime(createDate);
+        calendar.add(Calendar.MINUTE, 15);
+        return calendar.getTime();
     }
 
     private String clientIp(HttpServletRequest request) {
@@ -137,15 +158,63 @@ public class VnpayService {
     }
 
     private String property(String key, String fallback) {
-        String system = System.getProperty(key);
-        if (system != null && !system.isBlank()) {
-            return system.trim();
+        String value = firstNonBlank(
+                systemProperty(key),
+                environment(key),
+                properties.getProperty(key));
+        if (!value.isBlank()) {
+            return value;
         }
-        String env = System.getenv(key.toUpperCase().replace('.', '_'));
-        if (env != null && !env.isBlank()) {
-            return env.trim();
+        for (String alias : aliases(key)) {
+            value = firstNonBlank(
+                    systemProperty(alias),
+                    environment(alias),
+                    properties.getProperty(alias));
+            if (!value.isBlank()) {
+                return value;
+            }
         }
-        return properties.getProperty(key, fallback).trim();
+        return fallback.trim();
+    }
+
+    private String systemProperty(String key) {
+        return System.getProperty(key);
+    }
+
+    private String environment(String key) {
+        return System.getenv(key.toUpperCase().replace('.', '_').replace('-', '_'));
+    }
+
+    private String firstNonBlank(String... values) {
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value.trim();
+            }
+        }
+        return "";
+    }
+
+    private String[] aliases(String key) {
+        switch (key) {
+            case "vnpay.payUrl":
+                return new String[]{"vnp_Url", "VNPAY_URL"};
+            case "vnpay.returnUrl":
+                return new String[]{"vnp_ReturnUrl", "VNPAY_RETURN_URL"};
+            case "vnpay.ipnUrl":
+                return new String[]{"vnp_IpnUrl", "VNPAY_IPN_URL"};
+            case "vnpay.browserReturnBaseUrl":
+                return new String[]{"VNPAY_BROWSER_RETURN_BASE_URL"};
+            case "vnpay.tmnCode":
+                return new String[]{"vnp_TmnCode", "VNPAY_TMN_CODE", "VNPAY_TMNCODE"};
+            case "vnpay.hashSecret":
+                return new String[]{"vnp_HashSecret", "VNPAY_HASH_SECRET"};
+            case "vnpay.locale":
+                return new String[]{"vnp_Locale", "VNPAY_LOCALE"};
+            case "vnpay.orderType":
+                return new String[]{"vnp_OrderType", "VNPAY_ORDER_TYPE"};
+            default:
+                return new String[0];
+        }
     }
 
     private Properties loadProperties() {
