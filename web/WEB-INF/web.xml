@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<web-app version="6.0"
-         xmlns="https://jakarta.ee/xml/ns/jakartaee"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
-         metadata-complete="true">
+<web-app metadata-complete="true" version="6.0" xmlns="https://jakarta.ee/xml/ns/jakartaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd">
     <display-name>SmartPhone store</display-name>
-
     <filter>
         <filter-name>AuthFilter</filter-name>
         <filter-class>filter.AuthFilter</filter-class>
@@ -14,7 +9,6 @@
         <filter-name>AuthFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
-
     <servlet>
         <servlet-name>HomeController</servlet-name>
         <servlet-class>controller.HomeController</servlet-class>
@@ -124,7 +118,6 @@
         <servlet-name>StaffDashboardController</servlet-name>
         <servlet-class>controller.StaffDashboardController</servlet-class>
     </servlet>
-
     <servlet>
         <servlet-name>OrderHistoryController</servlet-name>
         <servlet-class>controller.OrderHistoryController</servlet-class>
@@ -149,7 +142,6 @@
         <servlet-name>ManagerReturnRequestController</servlet-name>
         <servlet-class>controller.ManagerReturnRequestController</servlet-class>
     </servlet>
-
     <servlet>
         <servlet-name>AdminUserController</servlet-name>
         <servlet-class>controller.AdminUserController</servlet-class>
@@ -166,7 +158,10 @@
         <servlet-name>ShipperOrderController</servlet-name>
         <servlet-class>controller.ShipperOrderController</servlet-class>
     </servlet>
-
+    <servlet>
+        <servlet-name>ImportOrderController</servlet-name>
+        <servlet-class>controller.ImportOrderController</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>HomeController</servlet-name>
         <url-pattern>/home</url-pattern>
@@ -283,7 +278,6 @@
         <servlet-name>StaffDashboardController</servlet-name>
         <url-pattern>/staff</url-pattern>
     </servlet-mapping>
-
     <servlet-mapping>
         <servlet-name>OrderHistoryController</servlet-name>
         <url-pattern>/order-history</url-pattern>
@@ -308,7 +302,6 @@
         <servlet-name>ManagerReturnRequestController</servlet-name>
         <url-pattern>/manager/return-request</url-pattern>
     </servlet-mapping>
-
     <servlet-mapping>
         <servlet-name>AdminUserController</servlet-name>
         <url-pattern>/admin/users</url-pattern>
@@ -325,10 +318,13 @@
         <servlet-name>ShipperOrderController</servlet-name>
         <url-pattern>/shipper/orders</url-pattern>
     </servlet-mapping>
-
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
+    <servlet-mapping>
+        <servlet-name>ImportOrderController</servlet-name>
+        <url-pattern>/import</url-pattern>
+    </servlet-mapping>
     <session-config>
         <session-timeout>30</session-timeout>
     </session-config>
