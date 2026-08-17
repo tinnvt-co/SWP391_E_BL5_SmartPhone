@@ -21,19 +21,18 @@ import java.util.Map;
 /**
  * Review/Feedback persistence layer.
  *
- * Domain rules encoded here:
- * - One review per (user, variant, transaction). Enforced by UNIQUE constraint
- *   uq_Feedback_user_variant_tx (created in review_migration.sql).
- * - Customer can edit up to 15 days after Created_at. Computed via
- *   FeedbackModel.isWithinEditWindow().
- * - Manager/reply history is preserved: every save inserts a new row in
- *   Answer so the customer can see the full thread.
+ * Domain rules encoded here: - One review per (user, variant, transaction).
+ * Enforced by UNIQUE constraint uq_Feedback_user_variant_tx (created in
+ * review_migration.sql). - Customer can edit up to 15 days after Created_at.
+ * Computed via FeedbackModel.isWithinEditWindow(). - Manager/reply history is
+ * preserved: every save inserts a new row in Answer so the customer can see the
+ * full thread.
  *
  * Self-migrating: the static block below checks for the review columns
- * (TransactionID, IsDeleted) on Feedback and creates them in-place if
- * missing. This keeps the DAO runnable against legacy schemas without any
- * manual SQL step. Errors are logged but do not abort the load, so a missing
- * privilege doesn't break unrelated parts of the app.
+ * (TransactionID, IsDeleted) on Feedback and creates them in-place if missing.
+ * This keeps the DAO runnable against legacy schemas without any manual SQL
+ * step. Errors are logged but do not abort the load, so a missing privilege
+ * doesn't break unrelated parts of the app.
  */
 public class FeedbackDAO {
 
@@ -44,8 +43,7 @@ public class FeedbackDAO {
     }
 
     private static void ensureSchemaUpToDate() {
-        try (Connection c = DBContext.getConnection();
-             Statement s = c.createStatement()) {
+        try (Connection c = DBContext.getConnection(); Statement s = c.createStatement()) {
 
             if (!SchemaInspector.feedbackHasColumn("TransactionID")) {
                 try {
@@ -75,15 +73,13 @@ public class FeedbackDAO {
     }
 
     /* -------------------------------------------------------------------- */
-    /*  Helpers                                                             */
-    /* -------------------------------------------------------------------- */
-
+ /*  Helpers                                                             */
+ /* -------------------------------------------------------------------- */
     private int nextFeedbackId(Connection connection) throws SQLException {
         try (Statement lock = connection.createStatement()) {
             lock.executeUpdate("LOCK TABLES `Feedback` WRITE");
         }
-        try (Statement read = connection.createStatement();
-             ResultSet rs = read.executeQuery("SELECT COALESCE(MAX(ID), 0) FROM `Feedback`")) {
+        try (Statement read = connection.createStatement(); ResultSet rs = read.executeQuery("SELECT COALESCE(MAX(ID), 0) FROM `Feedback`")) {
             return rs.next() ? rs.getInt(1) + 1 : 1;
         } finally {
             try (Statement unlock = connection.createStatement()) {
@@ -96,8 +92,7 @@ public class FeedbackDAO {
         try (Statement lock = connection.createStatement()) {
             lock.executeUpdate("LOCK TABLES `Answer` WRITE");
         }
-        try (Statement read = connection.createStatement();
-             ResultSet rs = read.executeQuery("SELECT COALESCE(MAX(ID), 0) FROM `Answer`")) {
+        try (Statement read = connection.createStatement(); ResultSet rs = read.executeQuery("SELECT COALESCE(MAX(ID), 0) FROM `Answer`")) {
             return rs.next() ? rs.getInt(1) + 1 : 1;
         } finally {
             try (Statement unlock = connection.createStatement()) {
@@ -163,13 +158,11 @@ public class FeedbackDAO {
     }
 
     /* -------------------------------------------------------------------- */
-    /*  Reads                                                               */
-    /* -------------------------------------------------------------------- */
-
+ /*  Reads                                                               */
+ /* -------------------------------------------------------------------- */
     public FeedbackModel findById(int id) throws SQLException {
         String sql = selectFeedbackBase("f") + fromFeedbackJoin() + "WHERE f.IsDeleted = 0 AND f.ID = ?";
-        try (Connection c = DBContext.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql)) {
+        try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next() ? mapRow(rs) : null;
@@ -178,15 +171,14 @@ public class FeedbackDAO {
     }
 
     /**
-     * Looks up the buyer's existing review for a specific line of an order
-     * (one variant inside one transaction). Used by the review form to decide
+     * Looks up the buyer's existing review for a specific line of an order (one
+     * variant inside one transaction). Used by the review form to decide
      * whether to show "create" or "edit" mode.
      */
     public FeedbackModel findByUserVariantOrder(int userId, int productVariantId, int transactionId) throws SQLException {
         String sql = selectFeedbackBase("f") + fromFeedbackJoin()
                 + "WHERE f.IsDeleted = 0 AND f.UserID = ? AND f.ProductVariantID = ? AND f.TransactionID = ?";
-        try (Connection c = DBContext.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql)) {
+        try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, userId);
             ps.setInt(2, productVariantId);
             ps.setInt(3, transactionId);
@@ -221,8 +213,7 @@ public class FeedbackDAO {
                 + "WHERE tpv.TransactionID = ? AND t.UserID = ? "
                 + "  AND t.Status IN ('DELIVERED','COMPLETED') "
                 + "ORDER BY tpv.ProductVariantID";
-        try (Connection c = DBContext.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql)) {
+        try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, userId);
             ps.setInt(2, transactionId);
             ps.setInt(3, userId);
@@ -258,12 +249,13 @@ public class FeedbackDAO {
         String sql = selectFeedbackBase("f") + fromFeedbackJoin()
                 + "WHERE f.ProductVariantID = ? " + (includeDeleted ? "" : "AND f.IsDeleted = 0 ")
                 + "ORDER BY f.Created_at DESC";
-        try (Connection c = DBContext.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql)) {
+        try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, productVariantId);
             try (ResultSet rs = ps.executeQuery()) {
                 List<FeedbackModel> list = new ArrayList<>();
-                while (rs.next()) list.add(mapRow(rs));
+                while (rs.next()) {
+                    list.add(mapRow(rs));
+                }
                 return list;
             }
         }
@@ -273,12 +265,13 @@ public class FeedbackDAO {
         String sql = selectFeedbackBase("f") + fromFeedbackJoin()
                 + "WHERE pv.ProductID = ? " + (includeDeleted ? "" : "AND f.IsDeleted = 0 ")
                 + "ORDER BY f.Created_at DESC";
-        try (Connection c = DBContext.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql)) {
+        try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, productId);
             try (ResultSet rs = ps.executeQuery()) {
                 List<FeedbackModel> list = new ArrayList<>();
-                while (rs.next()) list.add(mapRow(rs));
+                while (rs.next()) {
+                    list.add(mapRow(rs));
+                }
                 return list;
             }
         }
@@ -291,7 +284,9 @@ public class FeedbackDAO {
         if (keyword != null && !keyword.isBlank()) {
             sql.append("AND (p.Name LIKE ? OR u.Name LIKE ? OR f.Content LIKE ?) ");
             String like = "%" + keyword.trim() + "%";
-            params.add(like); params.add(like); params.add(like);
+            params.add(like);
+            params.add(like);
+            params.add(like);
         }
         if (rating != null) {
             sql.append("AND f.Rating = ? ");
@@ -301,12 +296,15 @@ public class FeedbackDAO {
             sql.append("AND NOT EXISTS (SELECT 1 FROM Answer a WHERE a.FeedbackID = f.ID) ");
         }
         sql.append("ORDER BY f.Created_at DESC");
-        try (Connection c = DBContext.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql.toString())) {
-            for (int i = 0; i < params.size(); i++) ps.setObject(i + 1, params.get(i));
+        try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
             try (ResultSet rs = ps.executeQuery()) {
                 List<FeedbackModel> list = new ArrayList<>();
-                while (rs.next()) list.add(mapRow(rs));
+                while (rs.next()) {
+                    list.add(mapRow(rs));
+                }
                 return list;
             }
         }
@@ -320,12 +318,13 @@ public class FeedbackDAO {
                 + "LEFT JOIN `Role` r ON r.ID = u.RoleID "
                 + "WHERE a.FeedbackID = ? "
                 + "ORDER BY a.Created_at ASC, a.ID ASC";
-        try (Connection c = DBContext.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql)) {
+        try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, feedbackId);
             try (ResultSet rs = ps.executeQuery()) {
                 List<FeedbackReplyModel> list = new ArrayList<>();
-                while (rs.next()) list.add(mapReply(rs));
+                while (rs.next()) {
+                    list.add(mapReply(rs));
+                }
                 return list;
             }
         }
@@ -333,12 +332,14 @@ public class FeedbackDAO {
 
     /**
      * Hydrates a (feedback, replies) pair for a single review. Used by the
-     * product-detail page so the JSP can render each review + its thread in
-     * one block.
+     * product-detail page so the JSP can render each review + its thread in one
+     * block.
      */
     public FeedbackWithReplies loadFeedbackWithReplies(int feedbackId) throws SQLException {
         FeedbackModel f = findById(feedbackId);
-        if (f == null) return null;
+        if (f == null) {
+            return null;
+        }
         FeedbackWithReplies fwr = new FeedbackWithReplies();
         fwr.setFeedback(f);
         fwr.setReplies(findRepliesByFeedback(feedbackId));
@@ -374,9 +375,10 @@ public class FeedbackDAO {
                 sql.append(i == 0 ? "?" : ",?");
             }
             sql.append(") ORDER BY a.FeedbackID, a.Created_at ASC, a.ID ASC");
-            try (Connection c = DBContext.getConnection();
-                 PreparedStatement ps = c.prepareStatement(sql.toString())) {
-                for (int i = 0; i < feedbacks.size(); i++) ps.setInt(i + 1, feedbacks.get(i).getId());
+            try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql.toString())) {
+                for (int i = 0; i < feedbacks.size(); i++) {
+                    ps.setInt(i + 1, feedbacks.get(i).getId());
+                }
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
                         FeedbackReplyModel r = mapReply(rs);
@@ -395,16 +397,14 @@ public class FeedbackDAO {
     }
 
     /* -------------------------------------------------------------------- */
-    /*  Aggregation                                                         */
-    /* -------------------------------------------------------------------- */
-
+ /*  Aggregation                                                         */
+ /* -------------------------------------------------------------------- */
     public Map<String, Double> aggregateForProduct(int productId) throws SQLException {
         String sql = "SELECT COUNT(*) AS total, AVG(f.Rating) AS avgRating "
                 + "FROM Feedback f "
                 + "JOIN ProductVariant pv ON pv.ID = f.ProductVariantID "
                 + "WHERE pv.ProductID = ? AND f.IsDeleted = 0";
-        try (Connection c = DBContext.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql)) {
+        try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, productId);
             try (ResultSet rs = ps.executeQuery()) {
                 Map<String, Double> out = new HashMap<>();
@@ -421,9 +421,8 @@ public class FeedbackDAO {
     }
 
     /* -------------------------------------------------------------------- */
-    /*  Writes                                                              */
-    /* -------------------------------------------------------------------- */
-
+ /*  Writes                                                              */
+ /* -------------------------------------------------------------------- */
     /**
      * Saves a customer review. Pass feedback.getId() == 0 to create, otherwise
      * updates (still subject to the 15-day window enforced by the caller).
@@ -481,7 +480,7 @@ public class FeedbackDAO {
             try {
                 try (PreparedStatement ps = c.prepareStatement(
                         "UPDATE Feedback SET IsDeleted = 1, Updated_at = CURRENT_TIMESTAMP "
-                                + "WHERE ID = ? AND UserID = ?")) {
+                        + "WHERE ID = ? AND UserID = ?")) {
                     ps.setInt(1, feedbackId);
                     ps.setInt(2, userId);
                     ps.executeUpdate();
@@ -497,9 +496,9 @@ public class FeedbackDAO {
     }
 
     /**
-     * Manager-side reply. Always inserts a new row so the customer can see
-     * the full history, even when the manager replies again after a customer
-     * edit. Returns the new row id.
+     * Manager-side reply. Always inserts a new row so the customer can see the
+     * full history, even when the manager replies again after a customer edit.
+     * Returns the new row id.
      */
     public int reply(int feedbackId, int userId, String content) throws SQLException {
         try (Connection c = DBContext.getConnection()) {
@@ -526,9 +525,8 @@ public class FeedbackDAO {
     }
 
     /* -------------------------------------------------------------------- */
-    /*  Order-authorization helpers                                         */
-    /* -------------------------------------------------------------------- */
-
+ /*  Order-authorization helpers                                         */
+ /* -------------------------------------------------------------------- */
     /**
      * True when (a) the order belongs to the user, (b) it's an ORDER (not
      * IMPORT), (c) it's in DELIVERED or COMPLETED, and (d) the variant is
@@ -540,8 +538,7 @@ public class FeedbackDAO {
                 + "WHERE t.ID = ? AND t.UserID = ? AND t.Type = 'ORDER' "
                 + "  AND t.Status IN ('DELIVERED','COMPLETED') "
                 + "  AND tpv.ProductVariantID = ?";
-        try (Connection c = DBContext.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql)) {
+        try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, transactionId);
             ps.setInt(2, userId);
             ps.setInt(3, productVariantId);
@@ -555,12 +552,13 @@ public class FeedbackDAO {
     public OrderSummary findOrderSummary(int transactionId, int userId) throws SQLException {
         String sql = "SELECT t.ID, t.Status, t.Type, t.Created_at FROM `Transaction` t "
                 + "WHERE t.ID = ? AND t.UserID = ?";
-        try (Connection c = DBContext.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql)) {
+        try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, transactionId);
             ps.setInt(2, userId);
             try (ResultSet rs = ps.executeQuery()) {
-                if (!rs.next()) return null;
+                if (!rs.next()) {
+                    return null;
+                }
                 OrderSummary s = new OrderSummary();
                 s.id = rs.getInt("ID");
                 s.status = rs.getString("Status");
@@ -571,11 +569,13 @@ public class FeedbackDAO {
         }
     }
 
-    /** Returns how many line items this transaction has (for debugging the "empty review" case). */
+    /**
+     * Returns how many line items this transaction has (for debugging the
+     * "empty review" case).
+     */
     public int countTransactionItems(int transactionId) throws SQLException {
-        try (Connection c = DBContext.getConnection();
-             PreparedStatement ps = c.prepareStatement(
-                     "SELECT COUNT(*) FROM Transaction_ProductVariant WHERE TransactionID = ?")) {
+        try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(
+                "SELECT COUNT(*) FROM Transaction_ProductVariant WHERE TransactionID = ?")) {
             ps.setInt(1, transactionId);
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next() ? rs.getInt(1) : 0;
@@ -584,6 +584,7 @@ public class FeedbackDAO {
     }
 
     public static final class OrderSummary {
+
         public int id;
         public String status;
         public String type;
@@ -591,9 +592,20 @@ public class FeedbackDAO {
 
         // Explicit getters so JSP EL can read fields even when the bean is
         // loaded by a stale classloader that predates a recompile.
-        public int getId() { return id; }
-        public String getStatus() { return status; }
-        public String getType() { return type; }
-        public java.sql.Timestamp getCreatedAt() { return createdAt; }
+        public int getId() {
+            return id;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public java.sql.Timestamp getCreatedAt() {
+            return createdAt;
+        }
     }
 }
