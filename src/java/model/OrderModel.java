@@ -216,17 +216,37 @@ public class OrderModel implements Serializable {
         this.deliveryAddress = deliveryAddress;
     }
 
-    public int getItemCount() { return itemCount; }
-    public void setItemCount(int itemCount) { this.itemCount = itemCount; }
+    public int getItemCount() {
+        return itemCount;
+    }
 
-    public Boolean getHasOpenRefund() { return hasOpenRefund; }
-    public void setHasOpenRefund(Boolean hasOpenRefund) { this.hasOpenRefund = hasOpenRefund; }
+    public void setItemCount(int itemCount) {
+        this.itemCount = itemCount;
+    }
 
-    public Boolean getHasBlockingRefund() { return hasBlockingRefund; }
-    public void setHasBlockingRefund(Boolean hasBlockingRefund) { this.hasBlockingRefund = hasBlockingRefund; }
+    public Boolean getHasOpenRefund() {
+        return hasOpenRefund;
+    }
 
-    public Integer getShipperId() { return shipperId; }
-    public void setShipperId(Integer shipperId) { this.shipperId = shipperId; }
+    public void setHasOpenRefund(Boolean hasOpenRefund) {
+        this.hasOpenRefund = hasOpenRefund;
+    }
+
+    public Boolean getHasBlockingRefund() {
+        return hasBlockingRefund;
+    }
+
+    public void setHasBlockingRefund(Boolean hasBlockingRefund) {
+        this.hasBlockingRefund = hasBlockingRefund;
+    }
+
+    public Integer getShipperId() {
+        return shipperId;
+    }
+
+    public void setShipperId(Integer shipperId) {
+        this.shipperId = shipperId;
+    }
 
     public List<OrderItemModel> getItems() {
         return items;

@@ -4,9 +4,9 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 /**
- * Lightweight DTO for one item of a return request. ReturnRequest_ProductVariant
- * is the backing table; we add the lookup fields so the JSP can render without
- * extra joins.
+ * Lightweight DTO for one item of a return request.
+ * ReturnRequest_ProductVariant is the backing table; we add the lookup fields
+ * so the JSP can render without extra joins.
  */
 public class ReturnRequestItemModel implements Serializable {
 
@@ -18,26 +18,62 @@ public class ReturnRequestItemModel implements Serializable {
     private Integer amount;
     private BigDecimal unitPrice;
 
-    public ReturnRequestItemModel() {}
+    public ReturnRequestItemModel() {
+    }
 
-    public int getReturnRequestId() { return returnRequestId; }
-    public void setReturnRequestId(int returnRequestId) { this.returnRequestId = returnRequestId; }
+    public int getReturnRequestId() {
+        return returnRequestId;
+    }
 
-    public int getProductVariantId() { return productVariantId; }
-    public void setProductVariantId(int productVariantId) { this.productVariantId = productVariantId; }
+    public void setReturnRequestId(int returnRequestId) {
+        this.returnRequestId = returnRequestId;
+    }
 
-    public String getProductName() { return productName; }
-    public void setProductName(String productName) { this.productName = productName; }
+    public int getProductVariantId() {
+        return productVariantId;
+    }
 
-    public String getVariantLabel() { return variantLabel; }
-    public void setVariantLabel(String variantLabel) { this.variantLabel = variantLabel; }
+    public void setProductVariantId(int productVariantId) {
+        this.productVariantId = productVariantId;
+    }
 
-    public String getVariantImage() { return variantImage; }
-    public void setVariantImage(String variantImage) { this.variantImage = variantImage; }
+    public String getProductName() {
+        return productName;
+    }
 
-    public Integer getAmount() { return amount; }
-    public void setAmount(Integer amount) { this.amount = amount; }
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
 
-    public BigDecimal getUnitPrice() { return unitPrice; }
-    public void setUnitPrice(BigDecimal unitPrice) { this.unitPrice = unitPrice; }
+    public String getVariantLabel() {
+        return variantLabel;
+    }
+
+    public void setVariantLabel(String variantLabel) {
+        this.variantLabel = variantLabel;
+    }
+
+    public String getVariantImage() {
+        return variantImage;
+    }
+
+    public void setVariantImage(String variantImage) {
+        this.variantImage = variantImage;
+    }
+
+    public Integer getAmount() {
+        return amount;
+    }
+
+    public void setAmount(Integer amount) {
+        this.amount = amount;
+    }
+
+    public BigDecimal getUnitPrice() {
+        return unitPrice;
+    }
+
+    public void setUnitPrice(BigDecimal unitPrice) {
+        this.unitPrice = unitPrice;
+    }
 }
