@@ -40,7 +40,7 @@ public class ImportOrderDAO {
 
         StringBuilder sql = new StringBuilder()
                 .append("SELECT t.ID, t.UserID, t.Total_price, t.Type, t.Status, ")
-                .append("       t.Paid_amount, t.Change_amount, t.Method, ")
+                .append("       t.Method, ")
                 .append("       t.Updated_by, t.Updated_at, t.Created_at, t.Note, ")
                 .append("       t.Reference_transactionID, t.DeliveryInfoID, t.ShipperID, ")
                 .append("       t.SupplierID, ")
@@ -122,7 +122,7 @@ public class ImportOrderDAO {
             throws SQLException {
 
         String sql = "SELECT t.ID, t.UserID, t.Total_price, t.Type, t.Status, "
-                + "       t.Paid_amount, t.Change_amount, t.Method, "
+                + "       t.Change_amount, t.Method, "
                 + "       t.Updated_by, t.Updated_at, t.Created_at, t.Note, "
                 + "       t.Reference_transactionID, t.DeliveryInfoID, t.ShipperID, "
                 + "       t.SupplierID, "
@@ -315,9 +315,9 @@ public class ImportOrderDAO {
 
         String sql = "INSERT INTO `Transaction` "
                 + "(UserID, Total_price, Type, Status, "
-                + " SupplierID, Paid_amount, Change_amount, "
+                + " SupplierID, "
                 + " Method, Note, Updated_by) "
-                + "VALUES (?, ?, 'IMPORT', 'ORDER', ?, ?, ?, ?, ?, ?)";
+                + "VALUES (?, ?, 'IMPORT', 'ORDER', ?, ?, ?, ?)";
 
         try (PreparedStatement statement = connection.prepareStatement(
                 sql,
@@ -326,27 +326,6 @@ public class ImportOrderDAO {
             statement.setInt(1, userId);
             statement.setBigDecimal(2, totalPrice);
             statement.setInt(3, supplierId);
-
-            if (paidAmount == null) {
-                statement.setNull(
-                        4,
-                        java.sql.Types.DECIMAL);
-            } else {
-                statement.setBigDecimal(
-                        4,
-                        paidAmount);
-            }
-
-            if (changeAmount == null) {
-                statement.setNull(
-                        5,
-                        java.sql.Types.DECIMAL);
-            } else {
-                statement.setBigDecimal(
-                        5,
-                        changeAmount);
-            }
-
             statement.setString(6, method);
             statement.setString(7, note);
             statement.setInt(8, userId);
@@ -719,13 +698,6 @@ public class ImportOrderDAO {
 
         order.setTotalPrice(
                 rs.getBigDecimal("Total_price"));
-
-        order.setPaidAmount(
-                rs.getBigDecimal("Paid_amount"));
-
-        order.setChangeAmount(
-                rs.getBigDecimal("Change_amount"));
-
         order.setType(
                 rs.getString("Type"));
 
