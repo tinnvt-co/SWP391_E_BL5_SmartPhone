@@ -137,11 +137,6 @@ public class FeedbackController extends HttpServlet {
 
         String action = request.getParameter("action");
 
-        if ("delete".equalsIgnoreCase(action)) {
-            handleDelete(request, response, user);
-            return;
-        }
-
         int orderId = parseInt(request.getParameter("orderId"));
         int variantId = parseInt(request.getParameter("variantId"));
         int rating = parseInt(request.getParameter("rating"));
@@ -318,85 +313,6 @@ public class FeedbackController extends HttpServlet {
 
             throw new ServletException(
                     "Cannot save review",
-                    ex
-            );
-        }
-    }
-
-    /**
-     * Delete customer's review.
-     *
-     * FIX: Added ServletException to the throws declaration because the
-     * SQLException catch block throws ServletException.
-     */
-    private void handleDelete(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            UserModel user
-    ) throws ServletException, IOException {
-
-        int feedbackId
-                = parseInt(request.getParameter("feedbackId"));
-
-        int orderId
-                = parseInt(request.getParameter("orderId"));
-
-        if (feedbackId <= 0) {
-
-            response.sendRedirect(
-                    request.getContextPath()
-                    + "/order-history"
-            );
-
-            return;
-        }
-
-        try {
-            FeedbackModel existing
-                    = dao.findById(feedbackId);
-
-            if (existing == null
-                    || existing.getUserId() != user.getId()) {
-
-                response.sendError(
-                        HttpServletResponse.SC_FORBIDDEN
-                );
-
-                return;
-            }
-
-            if (!existing.isWithinEditWindow()) {
-
-                response.sendRedirect(
-                        request.getContextPath()
-                        + "/feedback?orderId="
-                        + orderId
-                        + "&flash="
-                        + encode(
-                                "The 15-day edit window has expired."
-                        )
-                );
-
-                return;
-            }
-
-            dao.softDelete(
-                    feedbackId,
-                    user.getId()
-            );
-
-            response.sendRedirect(
-                    request.getContextPath()
-                    + "/feedback?orderId="
-                    + orderId
-                    + "&flash="
-                    + encode("Review removed.")
-            );
-
-        } catch (SQLException ex) {
-
-            throw new ServletException(
-                    "Cannot delete review",
                     ex
             );
         }
