@@ -28,11 +28,10 @@ import java.util.Map;
  * preserved: every save inserts a new row in Answer so the customer can see the
  * full thread.
  *
- * Self-migrating: the static block below checks for the review columns
- * (TransactionID, IsDeleted) on Feedback and creates them in-place if missing.
- * This keeps the DAO runnable against legacy schemas without any manual SQL
- * step. Errors are logged but do not abort the load, so a missing privilege
- * doesn't break unrelated parts of the app.
+ * Self-migrating: the static block below checks for the review columns This
+ * keeps the DAO runnable against legacy schemas without any manual SQL step.
+ * Errors are logged but do not abort the load, so a missing privilege doesn't
+ * break unrelated parts of the app.
  */
 public class FeedbackDAO {
 
@@ -57,16 +56,6 @@ public class FeedbackDAO {
                 }
             }
 
-            if (!SchemaInspector.feedbackHasColumn("IsDeleted")) {
-                try {
-                    s.executeUpdate("ALTER TABLE Feedback ADD COLUMN IsDeleted TINYINT(1) NOT NULL DEFAULT 0 AFTER Updated_at");
-                    System.out.println("[FeedbackDAO] Added Feedback.IsDeleted");
-                } catch (SQLException ex) {
-                    if (ex.getErrorCode() != 1060) {
-                        System.err.println("[FeedbackDAO] Could not add IsDeleted: " + ex.getMessage());
-                    }
-                }
-            }
         } catch (Exception ex) {
             System.err.println("[FeedbackDAO] Schema check failed: " + ex.getMessage());
         }
@@ -108,7 +97,6 @@ public class FeedbackDAO {
         f.setContent(rs.getString("Content"));
         f.setCreatedAt(rs.getTimestamp("Created_at"));
         f.setUpdatedAt(rs.getTimestamp("Updated_at"));
-        f.setDeleted(rs.getBoolean("IsDeleted"));
         f.setUserId(rs.getInt("UserID"));
         f.setUserName(rs.getString("UserName"));
         f.setUserImage(rs.getString("UserImage"));
@@ -140,7 +128,7 @@ public class FeedbackDAO {
     private String selectFeedbackBase(String alias) {
         String a = (alias == null || alias.isEmpty()) ? "" : alias + ".";
         return "SELECT " + a + "ID, " + a + "Rating, " + a + "Content, "
-                + a + "Created_at, " + a + "Updated_at, " + a + "IsDeleted, "
+                + a + "Created_at, " + a + "Updated_at, "
                 + a + "UserID, " + a + "ProductVariantID, " + a + "TransactionID, "
                 + "u.Name AS UserName, u.Image AS UserImage, "
                 + "pv.ProductID, p.Name AS ProductName, "
@@ -161,7 +149,7 @@ public class FeedbackDAO {
  /*  Reads                                                               */
  /* -------------------------------------------------------------------- */
     public FeedbackModel findById(int id) throws SQLException {
-        String sql = selectFeedbackBase("f") + fromFeedbackJoin() + "WHERE f.IsDeleted = 0 AND f.ID = ?";
+        String sql = selectFeedbackBase("f") + fromFeedbackJoin() + "WHERE f.ID = ?";
         try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
@@ -172,12 +160,18 @@ public class FeedbackDAO {
 
     /**
      * Looks up the buyer's existing review for a specific line of an order (one
-     * variant inside one transaction). Used by the review form to decide
-     * whether to show "create" or "edit" mode.
+     * variant inside one transaction).Used by the review form to decide whether
+     * to show "create" or "edit" mode.
+     *
+     * @param userId
+     * @param productVariantId
+     * @param transactionId
+     * @return
+     * @throws java.sql.SQLException
      */
     public FeedbackModel findByUserVariantOrder(int userId, int productVariantId, int transactionId) throws SQLException {
         String sql = selectFeedbackBase("f") + fromFeedbackJoin()
-                + "WHERE f.IsDeleted = 0 AND f.UserID = ? AND f.ProductVariantID = ? AND f.TransactionID = ?";
+                + "WHERE f.UserID = ? AND f.ProductVariantID = ? AND f.TransactionID = ?";
         try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, userId);
             ps.setInt(2, productVariantId);
@@ -190,9 +184,14 @@ public class FeedbackDAO {
 
     /**
      * All variants inside a transaction that the buyer is allowed to review
-     * (DELIVERED or COMPLETED). For each variant we also return the existing
+     * (DELIVERED or COMPLETED).For each variant we also return the existing
      * feedback (if any) so the JSP can split the list into "to review" vs
      * "already reviewed".
+     *
+     * @param userId
+     * @param transactionId
+     * @return
+     * @throws java.sql.SQLException
      */
     public List<Map<String, Object>> findReviewableItems(int userId, int transactionId) throws SQLException {
         // Relaxed filter: order ownership + status eligibility. We don't
@@ -209,7 +208,6 @@ public class FeedbackDAO {
                 + "JOIN Product p ON p.ID = pv.ProductID "
                 + "LEFT JOIN Feedback f ON f.UserID = ? AND f.ProductVariantID = tpv.ProductVariantID "
                 + "                         AND f.TransactionID = tpv.TransactionID "
-                + (SchemaInspector.feedbackHasColumn("IsDeleted") ? "AND f.IsDeleted = 0 " : "")
                 + "WHERE tpv.TransactionID = ? AND t.UserID = ? "
                 + "  AND t.Status IN ('DELIVERED','COMPLETED') "
                 + "ORDER BY tpv.ProductVariantID";
@@ -245,9 +243,9 @@ public class FeedbackDAO {
         }
     }
 
-    public List<FeedbackModel> findForVariant(int productVariantId, boolean includeDeleted) throws SQLException {
+    public List<FeedbackModel> findForVariant(int productVariantId) throws SQLException {
         String sql = selectFeedbackBase("f") + fromFeedbackJoin()
-                + "WHERE f.ProductVariantID = ? " + (includeDeleted ? "" : "AND f.IsDeleted = 0 ")
+                + "WHERE f.ProductVariantID = ? "
                 + "ORDER BY f.Created_at DESC";
         try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, productVariantId);
@@ -263,7 +261,7 @@ public class FeedbackDAO {
 
     public List<FeedbackModel> findForProduct(int productId, boolean includeDeleted) throws SQLException {
         String sql = selectFeedbackBase("f") + fromFeedbackJoin()
-                + "WHERE pv.ProductID = ? " + (includeDeleted ? "" : "AND f.IsDeleted = 0 ")
+                + "WHERE pv.ProductID = ? "
                 + "ORDER BY f.Created_at DESC";
         try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, productId);
@@ -278,8 +276,7 @@ public class FeedbackDAO {
     }
 
     public List<FeedbackModel> findAllForManager(String keyword, Integer rating, boolean onlyUnanswered) throws SQLException {
-        StringBuilder sql = new StringBuilder(selectFeedbackBase("f")).append(fromFeedbackJoin())
-                .append("WHERE f.IsDeleted = 0 ");
+        StringBuilder sql = new StringBuilder(selectFeedbackBase("f")).append(fromFeedbackJoin());
         List<Object> params = new ArrayList<>();
         if (keyword != null && !keyword.isBlank()) {
             sql.append("AND (p.Name LIKE ? OR u.Name LIKE ? OR f.Content LIKE ?) ");
@@ -331,9 +328,13 @@ public class FeedbackDAO {
     }
 
     /**
-     * Hydrates a (feedback, replies) pair for a single review. Used by the
+     * Hydrates a (feedback, replies) pair for a single review.Used by the
      * product-detail page so the JSP can render each review + its thread in one
      * block.
+     *
+     * @param feedbackId
+     * @return
+     * @throws java.sql.SQLException
      */
     public FeedbackWithReplies loadFeedbackWithReplies(int feedbackId) throws SQLException {
         FeedbackModel f = findById(feedbackId);
@@ -347,7 +348,7 @@ public class FeedbackDAO {
     }
 
     public List<FeedbackWithReplies> loadForVariant(int productVariantId) throws SQLException {
-        List<FeedbackModel> feedbacks = findForVariant(productVariantId, false);
+        List<FeedbackModel> feedbacks = findForVariant(productVariantId);
         List<FeedbackWithReplies> result = new ArrayList<>();
         for (FeedbackModel f : feedbacks) {
             FeedbackWithReplies fwr = new FeedbackWithReplies();
@@ -396,14 +397,12 @@ public class FeedbackDAO {
         return result;
     }
 
-    /* -------------------------------------------------------------------- */
- /*  Aggregation                                                         */
- /* -------------------------------------------------------------------- */
+    //Aggregation                                                   
     public Map<String, Double> aggregateForProduct(int productId) throws SQLException {
         String sql = "SELECT COUNT(*) AS total, AVG(f.Rating) AS avgRating "
                 + "FROM Feedback f "
                 + "JOIN ProductVariant pv ON pv.ID = f.ProductVariantID "
-                + "WHERE pv.ProductID = ? AND f.IsDeleted = 0";
+                + "WHERE pv.ProductID = ?";
         try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, productId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -420,12 +419,14 @@ public class FeedbackDAO {
         }
     }
 
-    /* -------------------------------------------------------------------- */
- /*  Writes                                                              */
- /* -------------------------------------------------------------------- */
+    //  Writes                                                              
     /**
-     * Saves a customer review. Pass feedback.getId() == 0 to create, otherwise
+     * Saves a customer review.Pass feedback.getId() == 0 to create, otherwise
      * updates (still subject to the 15-day window enforced by the caller).
+     *
+     * @param feedback
+     * @return
+     * @throws java.sql.SQLException
      */
     public FeedbackModel saveCustomerFeedback(FeedbackModel feedback) throws SQLException {
         boolean isNew = feedback.getId() == 0;
@@ -452,7 +453,7 @@ public class FeedbackDAO {
                     }
                 } else {
                     String sql = "UPDATE Feedback SET Rating = ?, Content = ?, Updated_at = CURRENT_TIMESTAMP "
-                            + "WHERE ID = ? AND UserID = ? AND IsDeleted = 0";
+                            + "WHERE ID = ? AND UserID = ?";
                     try (PreparedStatement ps = c.prepareStatement(sql)) {
                         ps.setInt(1, feedback.getRating());
                         ps.setString(2, feedback.getContent());
@@ -474,31 +475,16 @@ public class FeedbackDAO {
         }
     }
 
-    public void softDelete(int feedbackId, int userId) throws SQLException {
-        try (Connection c = DBContext.getConnection()) {
-            c.setAutoCommit(false);
-            try {
-                try (PreparedStatement ps = c.prepareStatement(
-                        "UPDATE Feedback SET IsDeleted = 1, Updated_at = CURRENT_TIMESTAMP "
-                        + "WHERE ID = ? AND UserID = ?")) {
-                    ps.setInt(1, feedbackId);
-                    ps.setInt(2, userId);
-                    ps.executeUpdate();
-                }
-                c.commit();
-            } catch (SQLException ex) {
-                c.rollback();
-                throw ex;
-            } finally {
-                c.setAutoCommit(true);
-            }
-        }
-    }
-
     /**
-     * Manager-side reply. Always inserts a new row so the customer can see the
-     * full history, even when the manager replies again after a customer edit.
-     * Returns the new row id.
+     * Manager-side reply.Always inserts a new row so the customer can see the
+     * full history, even when the manager replies again after a customer
+     * edit.Returns the new row id.
+     *
+     * @param feedbackId
+     * @param userId
+     * @param content
+     * @return
+     * @throws java.sql.SQLException
      */
     public int reply(int feedbackId, int userId, String content) throws SQLException {
         try (Connection c = DBContext.getConnection()) {
@@ -524,13 +510,17 @@ public class FeedbackDAO {
         }
     }
 
-    /* -------------------------------------------------------------------- */
- /*  Order-authorization helpers                                         */
- /* -------------------------------------------------------------------- */
+    //  Order-authorization helpers                                      
     /**
      * True when (a) the order belongs to the user, (b) it's an ORDER (not
      * IMPORT), (c) it's in DELIVERED or COMPLETED, and (d) the variant is
      * actually one of the line items of that order.
+     *
+     * @param userId
+     * @param transactionId
+     * @param productVariantId
+     * @return
+     * @throws java.sql.SQLException
      */
     public boolean canReview(int userId, int transactionId, int productVariantId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM `Transaction` t "
@@ -572,6 +562,10 @@ public class FeedbackDAO {
     /**
      * Returns how many line items this transaction has (for debugging the
      * "empty review" case).
+     *
+     * @param transactionId
+     * @return
+     * @throws java.sql.SQLException
      */
     public int countTransactionItems(int transactionId) throws SQLException {
         try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(

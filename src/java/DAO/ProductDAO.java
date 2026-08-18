@@ -22,7 +22,7 @@ public class ProductDAO {
             = "SELECT p.ID, p.Name, p.Description, p.Release_Year, "
             + "COALESCE((SELECT ROUND(AVG(f.Rating)) FROM Feedback f "
             + "          JOIN ProductVariant pv2 ON pv2.ID = f.ProductVariantID "
-            + "          WHERE pv2.ProductID = p.ID AND f.IsDeleted = 0), 0) AS Rating, "
+            + "          WHERE pv2.ProductID = p.ID), 0) AS Rating, "
             + "p.warranty_months, p.CategoryID, c.Name AS CategoryName, "
             + "p.BrandID, b.Name AS BrandName, p.Status, p.Created_at, "
             + "COALESCE((SELECT MIN(pv.Selling_price) FROM ProductVariant pv "
@@ -47,7 +47,7 @@ public class ProductDAO {
             + "WHERE pv.ProductID = p.ID AND pv.Status = 'ACTIVE'), 0) AS Stock, "
             + "(SELECT COUNT(*) FROM Feedback f "
             + "JOIN ProductVariant pv ON pv.ID = f.ProductVariantID "
-            + "WHERE pv.ProductID = p.ID AND f.IsDeleted = 0) AS ReviewCount "
+            + "WHERE pv.ProductID = p.ID) AS ReviewCount "
             + "FROM Product p "
             + "JOIN Category c ON c.ID = p.CategoryID "
             + "JOIN Brand b ON b.ID = p.BrandID ";
