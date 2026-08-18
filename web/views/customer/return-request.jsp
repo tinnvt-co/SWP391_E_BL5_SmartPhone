@@ -429,7 +429,7 @@
                                             </c:otherwise>
                                         </c:choose>
 
-                                        <c:if test="${!alreadyRequested && empty error}">
+                                        <c:if test="${!alreadyRequested}">
                                             <form method="post" action="${pageContext.request.contextPath}/return-request"
                                                   enctype="multipart/form-data" class="mt-4">
                                                 <input type="hidden" name="orderId" value="${order.id}">
@@ -437,9 +437,7 @@
                                                 <div class="mb-3">
                                                     <label for="description" class="form-label" style="font-weight:700;">Reason for refund</label>
                                                     <textarea id="description" name="description" class="form-control" maxlength="255" minlength="5" required
-                                                              placeholder="Tell us what happened (e.g. wrong item, arrived broken, etc.)">
-                                                        <c:out value="${description}"/>
-                                                    </textarea>
+                                                              placeholder="Tell us what happened (e.g. wrong item, arrived broken, etc.)"><c:out value="${description}"/></textarea>
                                                     <div class="form-text">5 to 255 characters.</div>
                                                 </div>
 

@@ -14,18 +14,22 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
+import java.io.ByteArrayInputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.sql.SQLException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 
 /**
  * Customer-facing refund/return request flow.
@@ -131,7 +135,7 @@ public class RefundController extends HttpServlet {
                     + "&flash=" + encode("Reason must be 255 characters or fewer."));
             return;
         }
-        
+
         String bankName = trimToNull(request.getParameter("bankName"));
         String bankAccountNumber = trimToNull(request.getParameter("bankAccountNumber"));
         String bankAccountHolder = trimToNull(request.getParameter("bankAccountHolder"));
@@ -141,7 +145,7 @@ public class RefundController extends HttpServlet {
             return;
         }
         OrderModel order = null;
-        
+
         try {
             order = orderDAO.findOrderDetail(orderId);
             if (order == null || order.getUserId() != user.getId()) {
@@ -277,18 +281,29 @@ public class RefundController extends HttpServlet {
         try {
             part = request.getPart("image");
         } catch (IllegalStateException ex) {
-            // request entity too large
             throw new ServletException("Upload is too large.");
         }
         if (part == null || part.getSize() == 0) {
-            return null;
-        }
-        String contentType = part.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
-            throw new ServletException("Only image uploads are allowed.");
+            throw new ServletException("Image is required.");
         }
 
-        // Folder target
+        // Đọc toàn bộ file vào bộ nhớ trước để vừa validate, vừa ghi file
+        byte[] data;
+        try (InputStream in = part.getInputStream()) {
+            data = in.readAllBytes();
+        }
+
+        // Xác thực thật sự đây là ảnh bằng cách thử decode nó,
+        // thay vì chỉ tin vào Content-Type do client gửi lên
+        String actualFormat;
+        try (InputStream in = new ByteArrayInputStream(data); ImageInputStream iis = ImageIO.createImageInputStream(in)) {
+            Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+            if (!readers.hasNext()) {
+                throw new ServletException("Only image uploads are allowed.");
+            }
+            actualFormat = readers.next().getFormatName().toLowerCase(); // "jpeg", "png", "gif", "webp"...
+        }
+
         String webRoot = request.getServletContext().getRealPath("/");
         if (webRoot == null) {
             throw new ServletException("Cannot resolve web root for upload.");
@@ -296,26 +311,25 @@ public class RefundController extends HttpServlet {
         Path folder = Paths.get(webRoot, "assets", "images", "refund");
         Files.createDirectories(folder);
 
-        String extension = guessExtension(contentType);
+        // Suy ra extension từ format ĐÃ ĐƯỢC XÁC THỰC, không dùng contentType của client nữa
+        String extension = switch (actualFormat) {
+            case "png" ->
+                ".png";
+            case "gif" ->
+                ".gif";
+            case "webp" ->
+                ".webp";
+            case "jpeg", "jpg" ->
+                ".jpg";
+            default ->
+                throw new ServletException("Unsupported image format.");
+        };
+
         String fileName = UUID.randomUUID().toString().replace("-", "") + extension;
         Path target = folder.resolve(fileName);
-        try (InputStream in = part.getInputStream()) {
-            Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
-        }
-        return fileName;
-    }
+        Files.write(target, data, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
-    private static String guessExtension(String contentType) {
-        return switch (contentType.toLowerCase()) {
-            case "image/png" ->
-                ".png";
-            case "image/gif" ->
-                ".gif";
-            case "image/webp" ->
-                ".webp";
-            default ->
-                ".jpg";
-        };
+        return fileName;
     }
 
     //  Filters / helpers                                                 
