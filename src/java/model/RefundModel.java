@@ -16,7 +16,7 @@ import java.util.List;
  * BackImage columns so we don't have to alter the schema. Only Image is used by
  * the customer flow; BackImage stays reserved for future use.
  */
-public class ReturnRequestModel implements Serializable {
+public class RefundModel implements Serializable {
 
     public static final String STATUS_ACTIVE = "ACTIVE";
     public static final String STATUS_APPROVED = "APPROVED";
@@ -39,9 +39,9 @@ public class ReturnRequestModel implements Serializable {
     private String bankAccountHolder;
 
     private int itemCount;
-    private List<ReturnRequestItemModel> items = new ArrayList<>();
+    private List<RefundItemModel> items = new ArrayList<>();
 
-    public ReturnRequestModel() {
+    public RefundModel() {
     }
 
     public int getId() {
@@ -178,11 +178,11 @@ public class ReturnRequestModel implements Serializable {
         this.itemCount = itemCount;
     }
 
-    public List<ReturnRequestItemModel> getItems() {
+    public List<RefundItemModel> getItems() {
         return items;
     }
 
-    public void setItems(List<ReturnRequestItemModel> items) {
+    public void setItems(List<RefundItemModel> items) {
         this.items = items;
     }
 

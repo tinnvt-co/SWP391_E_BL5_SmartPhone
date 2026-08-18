@@ -3,7 +3,7 @@ package controller;
 import DAO.RefundDAO;
 import DAO.OrderDAO;
 import model.OrderModel;
-import model.ReturnRequestModel;
+import model.RefundModel;
 import model.UserModel;
 import service.VnpayService;
 
@@ -51,7 +51,7 @@ public class ManagerReturnRequestController extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/manager/return-request");
                     return;
                 }
-                ReturnRequestModel r = dao.findDetail(id);
+                RefundModel r = dao.findDetail(id);
                 if (r == null) {
                     response.sendRedirect(request.getContextPath() + "/manager/return-request");
                     return;
@@ -68,7 +68,7 @@ public class ManagerReturnRequestController extends HttpServlet {
             if (status != null && !dao.findAllStatuses().contains(status)) {
                 status = null;
             }
-            List<ReturnRequestModel> requests = dao.findAllForManager(keyword, status);
+            List<RefundModel> requests = dao.findAllForManager(keyword, status);
             request.setAttribute("requests", requests);
             request.setAttribute("view", "list");
             request.setAttribute("filter", buildFilter(request));
@@ -118,7 +118,7 @@ public class ManagerReturnRequestController extends HttpServlet {
 
         try {
             if (approve) {
-                ReturnRequestModel refund = dao.findDetail(id);
+                RefundModel refund = dao.findDetail(id);
                 OrderModel order = refund == null ? null : orderDAO.findOrderDetail(refund.getTransactionId());
                 if (order != null && isPaidOrder(order)) {
                     if (!refund.isHasBankInfo()) {

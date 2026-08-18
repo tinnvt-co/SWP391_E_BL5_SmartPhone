@@ -3,7 +3,7 @@ package controller;
 import DAO.OrderDAO;
 import DAO.RefundDAO;
 import model.OrderModel;
-import model.ReturnRequestModel;
+import model.RefundModel;
 import model.UserModel;
 
 import jakarta.servlet.ServletException;
@@ -63,7 +63,7 @@ public class RefundController extends HttpServlet {
         try {
             int id = parseInt(request.getParameter("id"));
             if (id > 0) {
-                ReturnRequestModel r = returnDAO.findDetail(id);
+                RefundModel r = returnDAO.findDetail(id);
                 if (r == null || r.getUserId() != user.getId()) {
                     response.sendRedirect(request.getContextPath() + "/order-history");
                     return;
@@ -95,8 +95,8 @@ public class RefundController extends HttpServlet {
                 request.setAttribute("flash", request.getParameter("flash"));
                 if (alreadyRequested) {
                     // load the existing ACTIVE one so we can show its status
-                    List<ReturnRequestModel> mine = returnDAO.findByUserId(user.getId());
-                    for (ReturnRequestModel rr : mine) {
+                    List<RefundModel> mine = returnDAO.findByUserId(user.getId());
+                    for (RefundModel rr : mine) {
                         if (rr.getTransactionId() == orderId && rr.isPending()) {
                             request.setAttribute("activeRequest", returnDAO.findDetail(rr.getId()));
                             break;
@@ -109,7 +109,7 @@ public class RefundController extends HttpServlet {
             }
 
             // no orderId/id: list all refund requests of this user
-            List<ReturnRequestModel> mine = returnDAO.findByUserId(user.getId());
+            List<RefundModel> mine = returnDAO.findByUserId(user.getId());
             request.setAttribute("myRequests", mine);
             request.setAttribute("view", "list");
             request.getRequestDispatcher("/views/customer/return-request.jsp").forward(request, response);
@@ -174,7 +174,7 @@ public class RefundController extends HttpServlet {
                 return;
             }
 
-            ReturnRequestModel created = returnDAO.createForOrder(
+            RefundModel created = returnDAO.createForOrder(
                     user.getId(), orderId, description, savedFileName,
                     bankName, bankAccountNumber, bankAccountHolder);
 

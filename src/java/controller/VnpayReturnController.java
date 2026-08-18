@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import jakarta.mail.MessagingException;
 import model.OrderModel;
-import model.ReturnRequestModel;
+import model.RefundModel;
 import service.VnpayService;
 import service.MailService;
 
@@ -93,7 +93,7 @@ public class VnpayReturnController extends HttpServlet {
         }
 
         try {
-            ReturnRequestModel refund = returnRequestDAO.findDetail(ref.requestId);
+            RefundModel refund = returnRequestDAO.findDetail(ref.requestId);
             if (refund == null) {
                 response.sendRedirect(vnpayService.browserRedirectUrl(request,
                         "/manager/return-request?flash=" + encode("Refund request not found.")));
@@ -114,7 +114,7 @@ public class VnpayReturnController extends HttpServlet {
         }
     }
 
-    private void sendRefundEmail(ReturnRequestModel refund, OrderModel order,
+    private void sendRefundEmail(RefundModel refund, OrderModel order,
             String vnpayTransactionNo) {
         if (order.getUserEmail() == null || order.getUserEmail().isBlank()) {
             return;

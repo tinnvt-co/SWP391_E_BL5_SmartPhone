@@ -8,7 +8,7 @@ import java.math.BigDecimal;
  * ReturnRequest_ProductVariant is the backing table; we add the lookup fields
  * so the JSP can render without extra joins.
  */
-public class ReturnRequestItemModel implements Serializable {
+public class RefundItemModel implements Serializable {
 
     private int returnRequestId;
     private int productVariantId;
@@ -18,7 +18,7 @@ public class ReturnRequestItemModel implements Serializable {
     private Integer amount;
     private BigDecimal unitPrice;
 
-    public ReturnRequestItemModel() {
+    public RefundItemModel() {
     }
 
     public int getReturnRequestId() {

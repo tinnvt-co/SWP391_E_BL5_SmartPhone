@@ -1,8 +1,8 @@
 package DAO;
 
 import config.DBContext;
-import model.ReturnRequestItemModel;
-import model.ReturnRequestModel;
+import model.RefundItemModel;
+import model.RefundModel;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -30,10 +30,9 @@ public class RefundDAO {
 
     private static final String BANK_PREFIX = "BANK|";
 
-    private static final Set<String> VALID_STATUSES = new LinkedHashSet<>(java.util.Arrays.asList(
-            ReturnRequestModel.STATUS_ACTIVE,
-            ReturnRequestModel.STATUS_APPROVED,
-            ReturnRequestModel.STATUS_REJECTED));
+    private static final Set<String> VALID_STATUSES = new LinkedHashSet<>(java.util.Arrays.asList(RefundModel.STATUS_ACTIVE,
+            RefundModel.STATUS_APPROVED,
+            RefundModel.STATUS_REJECTED));
 
     /* -------------------------------------------------------------------- */
  /*  ID generation                                                       */
@@ -56,8 +55,8 @@ public class RefundDAO {
     /* -------------------------------------------------------------------- */
  /*  Mapping helpers                                                     */
  /* -------------------------------------------------------------------- */
-    private ReturnRequestItemModel mapItem(ResultSet rs) throws SQLException {
-        ReturnRequestItemModel it = new ReturnRequestItemModel();
+    private RefundItemModel mapItem(ResultSet rs) throws SQLException {
+        RefundItemModel it = new RefundItemModel();
         it.setReturnRequestId(rs.getInt("ReturnRequestID"));
         it.setProductVariantId(rs.getInt("ProductVariantID"));
         it.setProductName(rs.getString("ProductName"));
@@ -76,7 +75,7 @@ public class RefundDAO {
     /**
      * All refund requests submitted by a customer (history).
      */
-    public List<ReturnRequestModel> findByUserId(int userId) throws SQLException {
+    public List<RefundModel> findByUserId(int userId) throws SQLException {
         String sql = "SELECT r.ID, r.Status, r.Description, r.Image, r.BackImage, "
                 + "r.Created_at, r.Updated_at, r.UserID, r.TransactionID, "
                 + "u.Name AS UserName, "
@@ -85,12 +84,12 @@ public class RefundDAO {
                 + "JOIN `User` u ON u.ID = r.UserID "
                 + "WHERE r.UserID = ? AND r.Status IN ('ACTIVE','APPROVED','REJECTED') "
                 + "ORDER BY r.Created_at DESC, r.ID DESC";
-        List<ReturnRequestModel> list = new ArrayList<>();
+        List<RefundModel> list = new ArrayList<>();
         try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, userId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    ReturnRequestModel r = new ReturnRequestModel();
+                    RefundModel r = new RefundModel();
                     r.setId(rs.getInt("ID"));
                     r.setStatus(rs.getString("Status"));
                     r.setDescription(rs.getString("Description"));
@@ -153,7 +152,7 @@ public class RefundDAO {
      * @return
      * @throws java.sql.SQLException
      */
-    public ReturnRequestModel findDetail(int id) throws SQLException {
+    public RefundModel findDetail(int id) throws SQLException {
         String sql = "SELECT r.ID, r.Status, r.Description, r.Image, r.BackImage, "
                 + "r.Created_at, r.Updated_at, r.UserID, r.TransactionID, "
                 + "u.Name AS UserName "
@@ -166,7 +165,7 @@ public class RefundDAO {
                 if (!rs.next()) {
                     return null;
                 }
-                ReturnRequestModel r = new ReturnRequestModel();
+                RefundModel r = new RefundModel();
                 r.setId(rs.getInt("ID"));
                 r.setStatus(rs.getString("Status"));
                 r.setDescription(rs.getString("Description"));
@@ -206,7 +205,7 @@ public class RefundDAO {
      * @return
      * @throws java.sql.SQLException
      */
-    public List<ReturnRequestItemModel> findItems(int returnRequestId) throws SQLException {
+    public List<RefundItemModel> findItems(int returnRequestId) throws SQLException {
         String sql = "SELECT rpv.ReturnRequestID, rpv.ProductVariantID, "
                 + "tp.Amount, tp.UnitPrice, "
                 + "p.Name AS ProductName, pv.Image AS VariantImage, "
@@ -218,7 +217,7 @@ public class RefundDAO {
                 + "JOIN ProductVariant pv ON pv.ID = rpv.ProductVariantID "
                 + "JOIN Product p ON p.ID = pv.ProductID "
                 + "WHERE rpv.ReturnRequestID = ?";
-        List<ReturnRequestItemModel> list = new ArrayList<>();
+        List<RefundItemModel> list = new ArrayList<>();
         try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, returnRequestId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -233,7 +232,7 @@ public class RefundDAO {
     /* -------------------------------------------------------------------- */
  /*  Manager-side reads                                                  */
  /* -------------------------------------------------------------------- */
-    public List<ReturnRequestModel> findAllForManager(String keyword, String status) throws SQLException {
+    public List<RefundModel> findAllForManager(String keyword, String status) throws SQLException {
         StringBuilder sql = new StringBuilder(
                 "SELECT r.ID, r.Status, r.Description, r.Image, r.BackImage, "
                 + "r.Created_at, r.Updated_at, r.UserID, r.TransactionID, "
@@ -255,14 +254,14 @@ public class RefundDAO {
             params.add(status);
         }
         sql.append("ORDER BY r.Created_at DESC, r.ID DESC");
-        List<ReturnRequestModel> list = new ArrayList<>();
+        List<RefundModel> list = new ArrayList<>();
         try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql.toString())) {
             for (int i = 0; i < params.size(); i++) {
                 ps.setObject(i + 1, params.get(i));
             }
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    ReturnRequestModel r = new ReturnRequestModel();
+                    RefundModel r = new RefundModel();
                     r.setId(rs.getInt("ID"));
                     r.setStatus(rs.getString("Status"));
                     r.setDescription(rs.getString("Description"));
@@ -297,12 +296,12 @@ public class RefundDAO {
      * @return
      * @throws java.sql.SQLException
      */
-    public ReturnRequestModel createForOrder(int userId, int transactionId, String description, String imageFile)
+    public RefundModel createForOrder(int userId, int transactionId, String description, String imageFile)
             throws SQLException {
         return createForOrder(userId, transactionId, description, imageFile, null, null, null);
     }
 
-    public ReturnRequestModel createForOrder(int userId, int transactionId, String description, String imageFile,
+    public RefundModel createForOrder(int userId, int transactionId, String description, String imageFile,
             String bankName, String bankAccountNumber, String bankAccountHolder)
             throws SQLException {
         try (Connection c = DBContext.getConnection()) {
@@ -342,7 +341,7 @@ public class RefundDAO {
                     ps.executeUpdate();
                 }
                 c.commit();
-                ReturnRequestModel r = new ReturnRequestModel();
+                RefundModel r = new RefundModel();
                 r.setId(id);
                 r.setStatus("ACTIVE");
                 r.setDescription(description);
@@ -373,7 +372,7 @@ public class RefundDAO {
      * @throws java.sql.SQLException
      */
     public boolean decide(int requestId, boolean approve, int reviewerUserId) throws SQLException {
-        String newStatus = approve ? ReturnRequestModel.STATUS_APPROVED : ReturnRequestModel.STATUS_REJECTED;
+        String newStatus = approve ? RefundModel.STATUS_APPROVED : RefundModel.STATUS_REJECTED;
         try (Connection c = DBContext.getConnection()) {
             c.setAutoCommit(false);
             try {
@@ -451,7 +450,7 @@ public class RefundDAO {
         return value.length() > 255 ? value.substring(0, 255) : value;
     }
 
-    private void applyBankInfo(ReturnRequestModel request) {
+    private void applyBankInfo(RefundModel request) {
         String payload = request.getBackImage();
         if (payload == null || !payload.startsWith(BANK_PREFIX)) {
             return;
