@@ -26,7 +26,7 @@ import java.util.Set;
  * The customer only creates requests; only the manager can transition to
  * APPROVED/REJECTED.
  */
-public class ReturnRequestDAO {
+public class RefundDAO {
 
     private static final String BANK_PREFIX = "BANK|";
 

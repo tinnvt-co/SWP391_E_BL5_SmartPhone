@@ -1,7 +1,7 @@
 package controller;
 
 import DAO.OrderDAO;
-import DAO.ReturnRequestDAO;
+import DAO.RefundDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -20,7 +20,7 @@ import java.util.List;
 public class OrderHistoryController extends HttpServlet {
 
     private final OrderDAO orderDAO = new OrderDAO();
-    private final ReturnRequestDAO returnDAO = new ReturnRequestDAO();
+    private final RefundDAO returnDAO = new RefundDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)

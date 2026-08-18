@@ -6,7 +6,7 @@ import DAO.DiscountDAO;
 import DAO.InventoryDAO;
 import DAO.OrderDAO;
 import DAO.ProductDAO;
-import DAO.ReturnRequestDAO;
+import DAO.RefundDAO;
 import DAO.SalesStatsDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -35,7 +35,7 @@ public class ManagerDashboardController extends HttpServlet {
     private final DiscountDAO discountDAO = new DiscountDAO();
     private final OrderDAO orderDAO = new OrderDAO();
     private final SalesStatsDAO salesStatsDAO = new SalesStatsDAO();
-    private final ReturnRequestDAO returnRequestDAO = new ReturnRequestDAO();
+    private final RefundDAO returnRequestDAO = new RefundDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)

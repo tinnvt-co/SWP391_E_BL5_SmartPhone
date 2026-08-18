@@ -1,6 +1,6 @@
 package controller;
 
-import DAO.ReturnRequestDAO;
+import DAO.RefundDAO;
 import DAO.OrderDAO;
 import model.OrderModel;
 import model.ReturnRequestModel;
@@ -30,7 +30,7 @@ import java.util.List;
 @WebServlet(name = "ManagerReturnRequestController", urlPatterns = {"/manager/return-request"})
 public class ManagerReturnRequestController extends HttpServlet {
 
-    private final ReturnRequestDAO dao = new ReturnRequestDAO();
+    private final RefundDAO dao = new RefundDAO();
     private final OrderDAO orderDAO = new OrderDAO();
     private final VnpayService vnpayService = new VnpayService();
 

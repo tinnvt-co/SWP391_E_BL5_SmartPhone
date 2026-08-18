@@ -2,7 +2,7 @@ package controller;
 
 import DAO.FeedbackDAO;
 import DAO.FeedbackDAO.OrderSummary;
-import DAO.ReturnRequestDAO;
+import DAO.RefundDAO;
 import model.FeedbackModel;
 import model.UserModel;
 
@@ -30,7 +30,7 @@ import java.util.Map;
 public class FeedbackController extends HttpServlet {
 
     private final FeedbackDAO feedbackDAO = new FeedbackDAO();
-    private final ReturnRequestDAO returnRequestDAO = new ReturnRequestDAO();
+    private final RefundDAO returnRequestDAO = new RefundDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)

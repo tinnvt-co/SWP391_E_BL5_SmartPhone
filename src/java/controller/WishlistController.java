@@ -45,7 +45,7 @@ public class WishlistController extends HttpServlet {
 
         try {
             if (variantId <= 0) {
-                throw new SQLException("Please select a product option.");
+                throw new SQLException("Hãy chọn sản phẩm.");
             }
 
             if ("remove".equals(action)) {
@@ -67,7 +67,7 @@ public class WishlistController extends HttpServlet {
             String redirect = value(request.getParameter("redirect"),
                     request.getContextPath() + "/wishlist");
             response.sendRedirect(redirect + (redirect.contains("?") ? "&" : "?")
-                    + "wishlistError=" + URLEncoder.encode(exception.getMessage(),
+                    + "wishlistError=" + URLEncoder.encode("Lỗi không thể lưu",
                             StandardCharsets.UTF_8));
         }
     }
@@ -96,7 +96,7 @@ public class WishlistController extends HttpServlet {
     private int integer(String input, int fallback) {
         try {
             return Integer.parseInt(input);
-        } catch (Exception exception) {
+        } catch (NumberFormatException exception) {
             return fallback;
         }
     }

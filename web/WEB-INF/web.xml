@@ -136,7 +136,7 @@
     </servlet>
     <servlet>
         <servlet-name>ReturnRequestController</servlet-name>
-        <servlet-class>controller.ReturnRequestController</servlet-class>
+        <servlet-class>controller.RefundController</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>ManagerReturnRequestController</servlet-name>

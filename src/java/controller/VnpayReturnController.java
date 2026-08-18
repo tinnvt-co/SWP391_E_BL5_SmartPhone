@@ -2,7 +2,7 @@ package controller;
 
 import DAO.CheckoutDAO;
 import DAO.OrderDAO;
-import DAO.ReturnRequestDAO;
+import DAO.RefundDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,7 +20,7 @@ public class VnpayReturnController extends HttpServlet {
 
     private final VnpayService vnpayService = new VnpayService();
     private final CheckoutDAO checkoutDAO = new CheckoutDAO();
-    private final ReturnRequestDAO returnRequestDAO = new ReturnRequestDAO();
+    private final RefundDAO returnRequestDAO = new RefundDAO();
     private final OrderDAO orderDAO = new OrderDAO();
     private final MailService mailService = new MailService();
 

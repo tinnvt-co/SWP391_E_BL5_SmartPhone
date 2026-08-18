@@ -1,7 +1,7 @@
 package controller;
 
 import DAO.OrderDAO;
-import DAO.ReturnRequestDAO;
+import DAO.RefundDAO;
 import model.OrderModel;
 import model.ReturnRequestModel;
 import model.UserModel;
@@ -44,11 +44,11 @@ import java.util.UUID;
         maxFileSize = 5L * 1024 * 1024, // 5MB per file
         maxRequestSize = 10L * 1024 * 1024 // 10MB total
 )
-public class ReturnRequestController extends HttpServlet {
+public class RefundController extends HttpServlet {
 
     private static final java.nio.charset.Charset UTF_8 = java.nio.charset.StandardCharsets.UTF_8;
 
-    private final ReturnRequestDAO returnDAO = new ReturnRequestDAO();
+    private final RefundDAO returnDAO = new RefundDAO();
     private final OrderDAO orderDAO = new OrderDAO();
 
     @Override
