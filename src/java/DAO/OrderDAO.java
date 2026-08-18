@@ -18,7 +18,7 @@ import java.util.Set;
 public class OrderDAO {
 
     private static final Set<String> VALID_STATUSES = Set.of(
-            "PENDING", "CONFIRMED", "PROCESSING", "PAID", "SHIPPING", "DELIVERED",
+            "PENDING", "CONFIRMED", "PROCESSING", "SHIPPING", "DELIVERED",
             "COMPLETED", "CANCEL_REQUESTED", "CANCELLED");
     private static final Set<String> VALID_TYPES = Set.of("ORDER", "IMPORT");
     private static final Set<String> VALID_SORTS = Set.of("newest", "oldest", "total-desc", "total-asc");

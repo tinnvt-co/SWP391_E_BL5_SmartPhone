@@ -31,7 +31,7 @@ public class WishlistController extends HttpServlet {
             request.getRequestDispatcher("/views/customer/wishlist.jsp")
                     .forward(request, response);
         } catch (SQLException exception) {
-            throw new ServletException("Cannot load wishlist.", exception);
+            throw new ServletException("Không thể tải wishlist.", exception);
         }
     }
 

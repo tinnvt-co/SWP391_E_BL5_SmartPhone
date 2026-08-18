@@ -88,22 +88,7 @@ public class RefundController extends HttpServlet {
                     request.getRequestDispatcher("/views/customer/return-request.jsp").forward(request, response);
                     return;
                 }
-                boolean alreadyRequested = returnDAO.hasActiveForTransaction(user.getId(), orderId);
-                request.setAttribute("order", order);
-                request.setAttribute("bankRequired", isPaidOrder(order));
-                request.setAttribute("alreadyRequested", alreadyRequested);
-                request.setAttribute("flash", request.getParameter("flash"));
-                if (alreadyRequested) {
-                    // load the existing ACTIVE one so we can show its status
-                    List<RefundModel> mine = returnDAO.findByUserId(user.getId());
-                    for (RefundModel rr : mine) {
-                        if (rr.getTransactionId() == orderId && rr.isPending()) {
-                            request.setAttribute("activeRequest", returnDAO.findDetail(rr.getId()));
-                            break;
-                        }
-                    }
-                }
-                request.setAttribute("view", "form");
+                prepareRefundForm(request, user, order);
                 request.getRequestDispatcher("/views/customer/return-request.jsp").forward(request, response);
                 return;
             }
@@ -123,6 +108,7 @@ public class RefundController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        //Validate
         UserModel user = requireCustomer(request, response);
         if (user == null) {
             return;
@@ -145,9 +131,19 @@ public class RefundController extends HttpServlet {
                     + "&flash=" + encode("Reason must be 255 characters or fewer."));
             return;
         }
-
+        
+        String bankName = trimToNull(request.getParameter("bankName"));
+        String bankAccountNumber = trimToNull(request.getParameter("bankAccountNumber"));
+        String bankAccountHolder = trimToNull(request.getParameter("bankAccountHolder"));
+        if (bankName == null || bankAccountNumber == null || bankAccountHolder == null) {
+            response.sendRedirect(request.getContextPath() + "/return-request?orderId=" + orderId
+                    + "&flash=" + encode("Please enter bank information for the refund transfer."));
+            return;
+        }
+        OrderModel order = null;
+        
         try {
-            OrderModel order = orderDAO.findOrderDetail(orderId);
+            order = orderDAO.findOrderDetail(orderId);
             if (order == null || order.getUserId() != user.getId()) {
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, "Order is not yours.");
                 return;
@@ -164,15 +160,6 @@ public class RefundController extends HttpServlet {
             }
 
             String savedFileName = saveImageIfAny(request);
-            boolean bankRequired = isPaidOrder(order);
-            String bankName = trimToNull(request.getParameter("bankName"));
-            String bankAccountNumber = trimToNull(request.getParameter("bankAccountNumber"));
-            String bankAccountHolder = trimToNull(request.getParameter("bankAccountHolder"));
-            if (bankRequired && (bankName == null || bankAccountNumber == null || bankAccountHolder == null)) {
-                response.sendRedirect(request.getContextPath() + "/return-request?orderId=" + orderId
-                        + "&flash=" + encode("Please enter bank information for the refund transfer."));
-                return;
-            }
 
             RefundModel created = returnDAO.createForOrder(
                     user.getId(), orderId, description, savedFileName,
@@ -181,7 +168,102 @@ public class RefundController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/return-request?id=" + created.getId()
                     + "&flash=" + encode("Your refund request has been submitted. We'll review it shortly."));
         } catch (SQLException ex) {
-            throw new ServletException("Cannot submit refund request", ex);
+            showRefundFormWithError(
+                    request,
+                    response,
+                    user,
+                    order,
+                    description,
+                    bankName,
+                    bankAccountNumber,
+                    bankAccountHolder,
+                    "Cannot submit refund request. Please try again."
+            );
+
+        } catch (ServletException ex) {
+
+            showRefundFormWithError(
+                    request,
+                    response,
+                    user,
+                    order,
+                    description,
+                    bankName,
+                    bankAccountNumber,
+                    bankAccountHolder,
+                    ex.getMessage()
+            );
+        }
+    }
+
+    private void showRefundFormWithError(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            UserModel user,
+            OrderModel order,
+            String description,
+            String bankName,
+            String bankAccountNumber,
+            String bankAccountHolder,
+            String error
+    ) throws ServletException, IOException {
+
+        request.setAttribute("description", description);
+        request.setAttribute("bankName", bankName);
+        request.setAttribute("bankAccountNumber", bankAccountNumber);
+        request.setAttribute("bankAccountHolder", bankAccountHolder);
+        request.setAttribute("error", error);
+
+        try {
+            if (order != null) {
+                prepareRefundForm(request, user, order);
+            }
+        } catch (SQLException ex) {
+            throw new ServletException(
+                    "Cannot prepare refund form",
+                    ex
+            );
+        }
+
+        request.getRequestDispatcher(
+                "/views/customer/return-request.jsp"
+        ).forward(request, response);
+    }
+
+    private void prepareRefundForm(
+            HttpServletRequest request,
+            UserModel user,
+            OrderModel order
+    ) throws SQLException {
+
+        int orderId = order.getId();
+
+        boolean alreadyRequested
+                = returnDAO.hasActiveForTransaction(
+                        user.getId(),
+                        orderId
+                );
+
+        request.setAttribute("order", order);
+        request.setAttribute("alreadyRequested", alreadyRequested);
+        request.setAttribute("view", "form");
+
+        if (alreadyRequested) {
+            List<RefundModel> mine
+                    = returnDAO.findByUserId(user.getId());
+
+            for (RefundModel rr : mine) {
+                if (rr.getTransactionId() == orderId
+                        && rr.isPending()) {
+
+                    request.setAttribute(
+                            "activeRequest",
+                            returnDAO.findDetail(rr.getId())
+                    );
+
+                    break;
+                }
+            }
         }
     }
 
@@ -196,7 +278,7 @@ public class RefundController extends HttpServlet {
             part = request.getPart("image");
         } catch (IllegalStateException ex) {
             // request entity too large
-            throw new ServletException("Upload is too large.", ex);
+            throw new ServletException("Upload is too large.");
         }
         if (part == null || part.getSize() == 0) {
             return null;
@@ -224,16 +306,16 @@ public class RefundController extends HttpServlet {
     }
 
     private static String guessExtension(String contentType) {
-        switch (contentType.toLowerCase()) {
-            case "image/png":
-                return ".png";
-            case "image/gif":
-                return ".gif";
-            case "image/webp":
-                return ".webp";
-            default:
-                return ".jpg";
-        }
+        return switch (contentType.toLowerCase()) {
+            case "image/png" ->
+                ".png";
+            case "image/gif" ->
+                ".gif";
+            case "image/webp" ->
+                ".webp";
+            default ->
+                ".jpg";
+        };
     }
 
     //  Filters / helpers                                                 
@@ -273,11 +355,6 @@ public class RefundController extends HttpServlet {
         }
         String t = value.trim();
         return t.isEmpty() ? null : t;
-    }
-
-    private static boolean isPaidOrder(OrderModel order) {
-        BigDecimal paid = order == null ? null : order.getPaidAmount();
-        return paid != null && paid.compareTo(BigDecimal.ZERO) > 0;
     }
 
     private static String encode(String value) {

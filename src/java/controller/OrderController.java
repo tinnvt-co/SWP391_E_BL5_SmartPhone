@@ -16,7 +16,7 @@ public class OrderController extends HttpServlet {
 
     private static final int MAX_SEARCH_LENGTH = 100;
     private static final Set<String> VALID_STATUSES = Set.of(
-            "PENDING", "CONFIRMED", "PROCESSING", "PAID", "SHIPPING", "DELIVERED",
+            "PENDING", "CONFIRMED", "PROCESSING", "SHIPPING", "DELIVERED",
             "COMPLETED", "CANCEL_REQUESTED", "CANCELLED");
     private static final Set<String> VALID_TYPES = Set.of("ORDER", "IMPORT", "ALL");
     private final OrderDAO orderDAO = new OrderDAO();
