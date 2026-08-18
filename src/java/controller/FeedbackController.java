@@ -29,8 +29,8 @@ import java.util.Map;
 @WebServlet(name = "FeedbackController", urlPatterns = {"/feedback"})
 public class FeedbackController extends HttpServlet {
 
-    private final FeedbackDAO dao = new FeedbackDAO();
-    private final ReturnRequestDAO returnDAO = new ReturnRequestDAO();
+    private final FeedbackDAO feedbackDAO = new FeedbackDAO();
+    private final ReturnRequestDAO returnRequestDAO = new ReturnRequestDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -58,7 +58,7 @@ public class FeedbackController extends HttpServlet {
         }
 
         try {
-            OrderSummary order = dao.findOrderSummary(orderId, user.getId());
+            OrderSummary order = feedbackDAO.findOrderSummary(orderId, user.getId());
 
             if (order == null) {
                 response.sendRedirect(request.getContextPath() + "/order-history");
@@ -70,7 +70,7 @@ public class FeedbackController extends HttpServlet {
 
                 request.setAttribute(
                         "error",
-                        "This order is not eligible for review yet."
+                        "Cần nhận hàng mới có thể gửi đánh giá."
                 );
 
                 response.sendRedirect(
@@ -82,27 +82,26 @@ public class FeedbackController extends HttpServlet {
                 return;
             }
 
-            if (returnDAO.hasBlockingRefundForTransaction(user.getId(), orderId)) {
+            if (returnRequestDAO.hasBlockingRefundForTransaction(user.getId(), orderId)) {
                 response.sendRedirect(
                         request.getContextPath()
                         + "/return-request?orderId="
                         + orderId
                         + "&flash="
                         + encode(
-                                "This order is being refunded, so reviews are disabled."
+                                "Bạn đã trả hàng nên không được đánh giá."
                         )
                 );
                 return;
             }
 
             List<Map<String, Object>> items
-                    = dao.findReviewableItems(user.getId(), orderId);
+                    = feedbackDAO.findReviewableItems(user.getId(), orderId);
 
             request.setAttribute("order", order);
             request.setAttribute("items", items);
-            request.setAttribute(
-                    "lineItemCount",
-                    dao.countTransactionItems(orderId)
+            request.setAttribute("lineItemCount",
+                    feedbackDAO.countTransactionItems(orderId)
             );
             request.setAttribute(
                     "focusVariantId",
@@ -135,12 +134,11 @@ public class FeedbackController extends HttpServlet {
             return;
         }
 
-        String action = request.getParameter("action");
-
         int orderId = parseInt(request.getParameter("orderId"));
         int variantId = parseInt(request.getParameter("variantId"));
         int rating = parseInt(request.getParameter("rating"));
 
+        //Validate
         String content = trimToNull(
                 request.getParameter("content")
         );
@@ -199,7 +197,7 @@ public class FeedbackController extends HttpServlet {
         }
 
         try {
-            if (returnDAO.hasBlockingRefundForTransaction(user.getId(), orderId)) {
+            if (returnRequestDAO.hasBlockingRefundForTransaction(user.getId(), orderId)) {
                 response.sendRedirect(
                         request.getContextPath()
                         + "/return-request?orderId="
@@ -212,11 +210,10 @@ public class FeedbackController extends HttpServlet {
                 return;
             }
 
-            if (!dao.canReview(
+            if (!feedbackDAO.canReview(
                     user.getId(),
                     orderId,
-                    variantId
-            )) {
+                    variantId)) {
 
                 response.sendError(
                         HttpServletResponse.SC_FORBIDDEN,
@@ -227,16 +224,16 @@ public class FeedbackController extends HttpServlet {
             }
 
             FeedbackModel existing
-                    = dao.findByUserVariantOrder(
+                    = feedbackDAO.findByUserVariantOrder(
                             user.getId(),
                             variantId,
                             orderId
                     );
 
-            OrderSummary order = dao.findOrderSummary(orderId, user.getId());
+            OrderSummary order = feedbackDAO.findOrderSummary(orderId, user.getId());
             boolean orderTooOld = order != null
                     && order.createdAt != null
-                    && (System.currentTimeMillis() - order.createdAt.getTime()) > 15L * 24 * 60 * 60 * 1000;
+                    && (System.currentTimeMillis() - order.createdAt.getTime()) > 2L * 365 * 24 * 60 * 60 * 1000;
 
             FeedbackModel toSave = new FeedbackModel();
 
@@ -257,13 +254,13 @@ public class FeedbackController extends HttpServlet {
                             + orderId
                             + "&flash="
                             + encode(
-                                    "The 15-day review window has expired."
+                                    "Cần review trong vòng 2 năm"
                             )
                     );
                     return;
                 }
 
-                toSave = dao.saveCustomerFeedback(toSave);
+                feedbackDAO.saveCustomerFeedback(toSave);
 
                 flash = "Thanks for your review!";
 
@@ -279,7 +276,7 @@ public class FeedbackController extends HttpServlet {
                             + variantId
                             + "&flash="
                             + encode(
-                                    "The 15-day edit window has expired."
+                                    "Cần review trong vòng 2 năm"
                             )
                     );
 
@@ -287,8 +284,7 @@ public class FeedbackController extends HttpServlet {
                 }
 
                 toSave.setId(existing.getId());
-
-                dao.saveCustomerFeedback(toSave);
+                feedbackDAO.saveCustomerFeedback(toSave);
 
                 long remaining
                         = existing.getEditWindowRemainingDays();

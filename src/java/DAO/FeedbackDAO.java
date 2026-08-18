@@ -428,7 +428,7 @@ public class FeedbackDAO {
      * @return
      * @throws java.sql.SQLException
      */
-    public FeedbackModel saveCustomerFeedback(FeedbackModel feedback) throws SQLException {
+    public void saveCustomerFeedback(FeedbackModel feedback) throws SQLException {
         boolean isNew = feedback.getId() == 0;
         try (Connection c = DBContext.getConnection()) {
             c.setAutoCommit(false);
@@ -465,7 +465,6 @@ public class FeedbackDAO {
                     }
                 }
                 c.commit();
-                return feedback;
             } catch (SQLException ex) {
                 c.rollback();
                 throw ex;

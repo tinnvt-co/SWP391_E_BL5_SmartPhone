@@ -126,12 +126,17 @@ public class ReturnRequestDAO {
     }
 
     /**
-     * A "blocking" refund is any non-rejected request (ACTIVE or APPROVED).
-     * When a customer has already started or completed a refund for an order we
-     * must hide the review controls for that order's products.
+     * A "blocking" refund is any non-rejected request (APPROVED).When a
+     * customer has already started or completed a refund for an order we must
+     * hide the review controls for that order's products.
+     *
+     * @param userId
+     * @param transactionId
+     * @return
+     * @throws java.sql.SQLException
      */
     public boolean hasBlockingRefundForTransaction(int userId, int transactionId) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM `ReturnRequest` WHERE UserID = ? AND TransactionID = ? AND Status IN ('ACTIVE','APPROVED')";
+        String sql = "SELECT COUNT(*) FROM `ReturnRequest` WHERE UserID = ? AND TransactionID = ? AND Status IN ('APPROVED')";
         try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, userId);
             ps.setInt(2, transactionId);
@@ -143,6 +148,10 @@ public class ReturnRequestDAO {
 
     /**
      * Single request with all its items (used by JSP detail pages).
+     *
+     * @param id
+     * @return
+     * @throws java.sql.SQLException
      */
     public ReturnRequestModel findDetail(int id) throws SQLException {
         String sql = "SELECT r.ID, r.Status, r.Description, r.Image, r.BackImage, "
@@ -192,6 +201,10 @@ public class ReturnRequestDAO {
 
     /**
      * Items (variants) attached to a single refund request.
+     *
+     * @param returnRequestId
+     * @return
+     * @throws java.sql.SQLException
      */
     public List<ReturnRequestItemModel> findItems(int returnRequestId) throws SQLException {
         String sql = "SELECT rpv.ReturnRequestID, rpv.ProductVariantID, "
@@ -273,9 +286,16 @@ public class ReturnRequestDAO {
  /*  Writes                                                              */
  /* -------------------------------------------------------------------- */
     /**
-     * Creates a refund request for an entire order. The order's items are
+     * Creates a refund request for an entire order.The order's items are
      * mirrored into ReturnRequest_ProductVariant so the manager sees what the
      * customer wants to refund.
+     *
+     * @param userId
+     * @param transactionId
+     * @param description
+     * @param imageFile
+     * @return
+     * @throws java.sql.SQLException
      */
     public ReturnRequestModel createForOrder(int userId, int transactionId, String description, String imageFile)
             throws SQLException {
@@ -342,9 +362,15 @@ public class ReturnRequestDAO {
     }
 
     /**
-     * Manager-only transition. Only ACTIVE -> APPROVED/REJECTED is allowed; the
+     * Manager-only transition.Only ACTIVE -> APPROVED/REJECTED is allowed; the
      * reviewer id is persisted via a TransactionStatusHistory row so we don't
      * need to alter the ReturnRequest schema.
+     *
+     * @param requestId
+     * @param approve
+     * @param reviewerUserId
+     * @return
+     * @throws java.sql.SQLException
      */
     public boolean decide(int requestId, boolean approve, int reviewerUserId) throws SQLException {
         String newStatus = approve ? ReturnRequestModel.STATUS_APPROVED : ReturnRequestModel.STATUS_REJECTED;
@@ -404,7 +430,10 @@ public class ReturnRequestDAO {
 
     /**
      * Total refund requests currently waiting for a manager to decide.
+     * @return 
+     * @throws java.sql.SQLException
      */
+   
     public int countPending() throws SQLException {
         try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(
                 "SELECT COUNT(*) FROM `ReturnRequest` WHERE Status = 'ACTIVE'"); ResultSet rs = ps.executeQuery()) {
