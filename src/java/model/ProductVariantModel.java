@@ -9,7 +9,6 @@ public class ProductVariantModel implements Serializable {
     private int ramGb;
     private int storageGb;
     private String colorName;
-    private String barcode;
     private String sku;
     private int sellingPrice;
     private int latestCost;
@@ -55,14 +54,6 @@ public class ProductVariantModel implements Serializable {
 
     public void setColorName(String colorName) {
         this.colorName = colorName;
-    }
-
-    public String getBarcode() {
-        return barcode;
-    }
-
-    public void setBarcode(String barcode) {
-        this.barcode = barcode;
     }
 
     public String getSku() {

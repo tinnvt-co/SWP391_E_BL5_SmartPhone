@@ -12,7 +12,6 @@ public class ProductModel implements Serializable {
     private Integer releaseYear;
     private int rating;
     private int warrantyMonths;
-    private String barcode;
     private String sku;
     private int sellingPrice;
     private int latestCost;
@@ -76,14 +75,6 @@ public class ProductModel implements Serializable {
 
     public void setWarrantyMonths(int warrantyMonths) {
         this.warrantyMonths = warrantyMonths;
-    }
-
-    public String getBarcode() {
-        return barcode;
-    }
-
-    public void setBarcode(String barcode) {
-        this.barcode = barcode;
     }
 
     public String getSku() {

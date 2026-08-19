@@ -37,6 +37,8 @@
                     <label class="span-2">
                         Product name *
                         <input name="name" maxlength="50"
+                               pattern="[A-Za-zÀ-ỹ0-9]+(?:[ -][A-Za-zÀ-ỹ0-9]+)*"
+                               title="Use letters, numbers, spaces and hyphens only."
                                value="<c:out value='${product.name}'/>" required>
                     </label>
 
@@ -125,7 +127,6 @@
                                         </td>
                                         <td>
                                             <label>SKU *<input name="variantSku" maxlength="255" value="<c:out value='${variant.sku}'/>" required></label>
-                                            <label>Barcode *<input name="variantBarcode" maxlength="255" value="<c:out value='${variant.barcode}'/>" required></label>
                                         </td>
                                         <td>
                                             <label>Selling price *<input type="number" name="variantSellingPrice" min="0" value="${variant.sellingPrice}" required></label>
@@ -182,7 +183,6 @@
                 </td>
                 <td>
                     <label>SKU *<input name="variantSku" maxlength="255" required></label>
-                    <label>Barcode *<input name="variantBarcode" maxlength="255" required></label>
                 </td>
                 <td>
                     <label>Selling price *<input type="number" name="variantSellingPrice" min="0" required></label>

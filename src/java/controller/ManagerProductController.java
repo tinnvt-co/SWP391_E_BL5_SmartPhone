@@ -183,7 +183,6 @@ public class ManagerProductController extends HttpServlet {
         product.setRating(0);
         product.setWarrantyMonths(ProductController.integer(
                 request.getParameter("warrantyMonths"), 12));
-        product.setBarcode(request.getParameter("barcode"));
         product.setSku(request.getParameter("sku"));
         product.setSellingPrice(ProductController.integer(
                 request.getParameter("sellingPrice"), 0));
@@ -213,7 +212,6 @@ public class ManagerProductController extends HttpServlet {
             variant.setStorageGb(integerAt(request, "variantStorage", index));
             variant.setColorName(valueAt(request, "variantColorName", index));
             variant.setSku(valueAt(request, "variantSku", index));
-            variant.setBarcode(valueAt(request, "variantBarcode", index));
             variant.setSellingPrice(integerAt(request, "variantSellingPrice", index));
             variant.setLatestCost(integerAt(request, "variantLatestCost", index));
             variant.setStock(integerAt(request, "variantStock", index));
@@ -264,6 +262,10 @@ public class ManagerProductController extends HttpServlet {
         if (product.getName().trim().length() > 50) {
             return "Product name cannot exceed 50 characters.";
         }
+        if (!product.getName().trim().matches(
+                "^[\\p{L}\\p{N}]+(?:[ -][\\p{L}\\p{N}]+)*$")) {
+            return "Product name may contain letters, numbers, spaces and hyphens only.";
+        }
         if (product.getDescription() != null && product.getDescription().length() > 255) {
             return "Description cannot exceed 255 characters.";
         }
@@ -289,7 +291,6 @@ public class ManagerProductController extends HttpServlet {
 
         Set<String> options = new HashSet<>();
         Set<String> skus = new HashSet<>();
-        Set<String> barcodes = new HashSet<>();
         Set<String> images = new HashSet<>();
 
         for (int index = 0; index < product.getVariants().size(); index++) {
@@ -313,13 +314,8 @@ public class ManagerProductController extends HttpServlet {
                     "^[\\p{L}]+(?:[ -][\\p{L}]+)*$")) {
                 return row + "color name may contain letters, spaces and hyphens only.";
             }
-            if (variant.getSku() == null || variant.getSku().isBlank()
-                    || variant.getBarcode() == null || variant.getBarcode().isBlank()) {
-                return row + "SKU and barcode are required.";
-            }
-            if (variant.getSku().trim().equalsIgnoreCase(
-                    variant.getBarcode().trim())) {
-                return row + "SKU and barcode must be different.";
+            if (variant.getSku() == null || variant.getSku().isBlank()) {
+                return row + "SKU is required.";
             }
             if (variant.getSellingPrice() <= 0) {
                 return row + "selling price must be greater than 0.";
@@ -344,9 +340,6 @@ public class ManagerProductController extends HttpServlet {
             }
             if (!skus.add(variant.getSku().trim().toLowerCase())) {
                 return row + "SKU duplicates another variant.";
-            }
-            if (!barcodes.add(variant.getBarcode().trim().toLowerCase())) {
-                return row + "barcode duplicates another variant.";
             }
             if (!images.add(variant.getImage().trim().toLowerCase())) {
                 return row + "front image name duplicates another variant.";
@@ -563,16 +556,13 @@ public class ManagerProductController extends HttpServlet {
             if (detail.contains("uk_productvariant_sku")) {
                 return "SKU already belongs to another product variant.";
             }
-            if (detail.contains("uk_productvariant_barcode")) {
-                return "Barcode already belongs to another product variant.";
-            }
             if (detail.contains("uk_productvariant_image")) {
                 return "Front image name already belongs to another product variant.";
             }
             if (detail.contains("uk_productvariant_option")) {
                 return "This RAM, storage and color variant already exists.";
             }
-            return "Product name, variant option, SKU, barcode or front image name already exists.";
+            return "Product name, variant option, SKU or front image name already exists.";
         }
         return "Database error: " + exception.getMessage();
     }
