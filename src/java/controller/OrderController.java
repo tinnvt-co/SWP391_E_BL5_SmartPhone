@@ -142,7 +142,7 @@ public class OrderController extends HttpServlet {
     static int integer(String input, int fallback) {
         try {
             return Integer.parseInt(input);
-        } catch (Exception exception) {
+        } catch (NumberFormatException exception) {
             return fallback;
         }
     }
