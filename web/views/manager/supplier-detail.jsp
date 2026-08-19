@@ -3,7 +3,6 @@
     Created on : Aug 19, 2026, 2:53:05 PM
     Author     : admin
 --%>
-
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="jakarta.tags.core"%>
 <%@taglib prefix="fmt" uri="jakarta.tags.fmt"%>
@@ -13,7 +12,10 @@
     <head>
         <meta charset="UTF-8">
         <title>
-            Supplier - <c:out value="${supplier.name}"/>
+            ${supplier.id == 0 ? 'New Supplier' : 'Supplier - '}
+            <c:if test="${supplier.id != 0}">
+                <c:out value="${supplier.name}"/>
+            </c:if>
         </title>
         <link rel="stylesheet"
               href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
@@ -198,287 +200,282 @@
         </style>
     </head>
     <body>
-    <c:set var="activePage" value="manager" scope="request"/>
-    <%@ include file="/views/common/header.jsp" %>
-    <main class="page-shell supplier-detail-page">
-        <!-- ============================================= -->
-        <!-- HEADING -->
-        <!-- ============================================= -->
-        <div class="page-heading">
-            <div>
-                <span class="manager-kicker">
-                    PROCUREMENT
-                </span>
-                <h1>Supplier Details</h1>
-                <p>
-                    View supplier information and supplied products.
-                </p>
-            </div>
-            <div class="page-heading-actions">
-                <a class="btn subtle"
-                   href="${pageContext.request.contextPath}/manager/supplier">
-                    ← Back to suppliers
-                </a>
-                <a class="btn primary"
-                   href="${pageContext.request.contextPath}/manager/supplier?action=edit&id=${supplier.id}">
-                    <i class="bi bi-pencil"></i>
-                    Edit Supplier
-                </a>
-            </div>
-        </div>
-        <!-- CONTENT -->
-        <div class="supplier-detail-grid">
-            <!-- MAIN INFORMATION -->
-            <section class="supplier-card">
-                <div class="supplier-identity">
-                    <div class="supplier-avatar">
-                        <i class="bi bi-building"></i>
-                    </div>
-                    <div>
-                        <h1>
-                            <c:out value="${supplier.name}"/>
-                        </h1>
-                        <div class="supplier-id-label">
-                            Supplier #${supplier.id}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="detail-grid">
-                    <!-- NAME -->
-                    <div class="detail-item">
-                        <span class="detail-label">
-                            Supplier Name
-                        </span>
-                        <span class="detail-value">
-                            <c:out value="${supplier.name}"/>
-                        </span>
-                    </div>
-
-                    <!-- STATUS -->
-                    <div class="detail-item">
-                        <span class="detail-label">
-                            Status
-                        </span>
-                        <c:choose>
-                            <c:when test="${supplier.status == 'ACTIVE'}">
-                                <span class="supplier-status active">
-                                    <span class="status-dot"></span>
-                                    Active
-                                </span>
-                            </c:when>
-                            <c:otherwise>
-                                <span class="supplier-status inactive">
-                                    <span class="status-dot"></span>
-                                    Inactive
-                                </span>
-                            </c:otherwise>
-                        </c:choose>
-                    </div>
-                    <!-- PHONE -->
-                    <div class="detail-item">
-                        <span class="detail-label">
-                            Phone
-                        </span>
-                        <span class="detail-value">
-                            <c:out value="${supplier.phone}"/>
-                        </span>
-                    </div>
-
-                    <!-- ADDRESS -->
-                    <div class="detail-item">
-                        <span class="detail-label">
-                            Address
-                        </span>
-                        <span class="detail-value">
-                            <c:out value="${supplier.address}"/>
-                        </span>
-                    </div>
-
-
-                    <!-- DESCRIPTION -->
-                    <div class="detail-item full">
-                        <span class="detail-label">
-                            Description
-                        </span>
-                        <div class="detail-description">
-                            <c:choose>
-                                <c:when test="${not empty supplier.description}">
-                                    <c:out value="${supplier.description}"/>
-                                </c:when>
-                                <c:otherwise>
-                                    No description provided.
-                                </c:otherwise>
-                            </c:choose>
-                        </div>
-                    </div>
-
-                    <!-- NOTE -->
-                    <div class="detail-item full">
-                        <span class="detail-label">
-                            Note
-                        </span>
-                        <div class="detail-description">
-                            <c:choose>
-                                <c:when test="${not empty supplier.note}">
-                                    <c:out value="${supplier.note}"/>
-                                </c:when>
-                                <c:otherwise>
-                                    No note.
-                                </c:otherwise>
-                            </c:choose>
-                        </div>
-                    </div>
-
-                    <!-- CREATED -->
-                    <div class="detail-item">
-                        <span class="detail-label">
-                            Created At
-                        </span>
-                        <span class="detail-value">
-                            <fmt:formatDate
-                                value="${supplier.createdAt}"
-                                pattern="dd/MM/yyyy HH:mm"/>
-                        </span>
-                    </div>
-
-                    <!-- UPDATED -->
-                    <div class="detail-item">
-                        <span class="detail-label">
-                            Updated At
-                        </span>
-                        <span class="detail-value">
-                            <c:choose>
-                                <c:when test="${not empty supplier.updatedAt}">
-                                    <fmt:formatDate
-                                        value="${supplier.updatedAt}"
-                                        pattern="dd/MM/yyyy HH:mm"/>
-                                </c:when>
-                                <c:otherwise>
-                                    Never updated
-                                </c:otherwise>
-                            </c:choose>
-                        </span>
-                    </div>
-                </div>
-            </section>
-
-            <!-- RIGHT SUMMARY -->
-            <aside>
-                <section class="supplier-card">
-                    <h2>Supplier Summary</h2>
-                    <p class="supplier-card-subtitle">
-                        Current supplier information
+        <c:set var="activePage" value="manager" scope="request"/>
+        <%@ include file="/views/common/header.jsp" %>
+        <main class="page-shell supplier-detail-page">
+            <!-- ============================================= -->
+            <!-- HEADING -->
+            <!-- ============================================= -->
+            <div class="page-heading">
+                <div>
+                    <span class="manager-kicker">
+                        PROCUREMENT
+                    </span>
+                    <h1>Supplier Details</h1>
+                    <p>
+                        View supplier information and supplied products.
                     </p>
-
-                    <div class="stat-box">
-                        <small>
-                            Product Variants
-                        </small>
-                        <strong>
-                            ${supplier.productVariantCount}
-                        </strong>
+                </div>
+                <div class="page-heading-actions">
+                    <a class="btn subtle"
+                       href="${pageContext.request.contextPath}/manager/supplier">
+                        ← Back to suppliers
+                    </a>
+                </div>
+            </div>
+            <!-- CONTENT -->
+            <div class="supplier-detail-grid">
+                <!-- MAIN INFORMATION -->
+                <section class="supplier-card">
+                    <div class="supplier-identity">
+                        <div class="supplier-avatar">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <div>
+                            <h1>
+                                <c:out value="${supplier.name}"/>
+                            </h1>
+                            <div class="supplier-id-label">
+                                Supplier #${supplier.id}
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="stat-box">
-                        <small>
-                            Status
-                        </small>
-                        <strong style="font-size:18px;">
+                    <div class="detail-grid">
+                        <!-- NAME -->
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                Supplier Name
+                            </span>
+                            <span class="detail-value">
+                                <c:out value="${supplier.name}"/>
+                            </span>
+                        </div>
+
+                        <!-- STATUS -->
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                Status
+                            </span>
                             <c:choose>
                                 <c:when test="${supplier.status == 'ACTIVE'}">
-                                    Active
+                                    <span class="supplier-status active">
+                                        <span class="status-dot"></span>
+                                        Active
+                                    </span>
                                 </c:when>
                                 <c:otherwise>
-                                    Inactive
+                                    <span class="supplier-status inactive">
+                                        <span class="status-dot"></span>
+                                        Inactive
+                                    </span>
                                 </c:otherwise>
                             </c:choose>
-                        </strong>
-                    </div>
+                        </div>
+                        <!-- PHONE -->
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                Phone
+                            </span>
+                            <span class="detail-value">
+                                <c:out value="${supplier.phone}"/>
+                            </span>
+                        </div>
 
-                    <div class="detail-actions">
-                        <a class="btn primary"
-                           href="${pageContext.request.contextPath}/manager/supplier?action=edit&id=${supplier.id}">
-                            <i class="bi bi-pencil"></i>
-                            Edit
-                        </a>
+                        <!-- ADDRESS -->
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                Address
+                            </span>
+                            <span class="detail-value">
+                                <c:out value="${supplier.address}"/>
+                            </span>
+                        </div>
 
-                        <c:choose>
-                            <c:when test="${supplier.status == 'ACTIVE'}">
-                                <form method="post"
-                                      action="${pageContext.request.contextPath}/manager/supplier"
-                                      onsubmit="return confirm('Deactivate this supplier?');">
-                                    <input type="hidden"
-                                           name="action"
-                                           value="deactivate">
-                                    <input type="hidden"
-                                           name="id"
-                                           value="${supplier.id}">
-                                    <button
-                                        type="submit"
-                                        class="btn danger-btn">
-                                        Deactivate
-                                    </button>
-                                </form>
-                            </c:when>
-                            <c:otherwise>
-                                <form method="post"
-                                      action="${pageContext.request.contextPath}/manager/supplier">
 
-                                    <input type="hidden"
-                                           name="action"
-                                           value="activate">
+                        <!-- DESCRIPTION -->
+                        <div class="detail-item full">
+                            <span class="detail-label">
+                                Description
+                            </span>
+                            <div class="detail-description">
+                                <c:choose>
+                                    <c:when test="${not empty supplier.description}">
+                                        <c:out value="${supplier.description}"/>
+                                    </c:when>
+                                    <c:otherwise>
+                                        No description provided.
+                                    </c:otherwise>
+                                </c:choose>
+                            </div>
+                        </div>
 
-                                    <input type="hidden"
-                                           name="id"
-                                           value="${supplier.id}">
+                        <!-- NOTE -->
+                        <div class="detail-item full">
+                            <span class="detail-label">
+                                Note
+                            </span>
+                            <div class="detail-description">
+                                <c:choose>
+                                    <c:when test="${not empty supplier.note}">
+                                        <c:out value="${supplier.note}"/>
+                                    </c:when>
+                                    <c:otherwise>
+                                        No note.
+                                    </c:otherwise>
+                                </c:choose>
+                            </div>
+                        </div>
 
-                                    <button
-                                        type="submit"
-                                        class="btn subtle">
-                                        Activate
-                                    </button>
-                                </form>
-                            </c:otherwise>
-                        </c:choose>
+                        <!-- CREATED -->
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                Created At
+                            </span>
+                            <span class="detail-value">
+                                <fmt:formatDate
+                                    value="${supplier.createdAt}"
+                                    pattern="dd/MM/yyyy HH:mm"/>
+                            </span>
+                        </div>
+
+                        <!-- UPDATED -->
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                Updated At
+                            </span>
+                            <span class="detail-value">
+                                <c:choose>
+                                    <c:when test="${not empty supplier.updatedAt}">
+                                        <fmt:formatDate
+                                            value="${supplier.updatedAt}"
+                                            pattern="dd/MM/yyyy HH:mm"/>
+                                    </c:when>
+                                    <c:otherwise>
+                                        Never updated
+                                    </c:otherwise>
+                                </c:choose>
+                            </span>
+                        </div>
                     </div>
                 </section>
-            </aside>
-        </div>
+
+                <!-- RIGHT SUMMARY -->
+                <aside>
+                    <section class="supplier-card">
+                        <h2>Supplier Summary</h2>
+                        <p class="supplier-card-subtitle">
+                            Current supplier information
+                        </p>
+
+                        <div class="stat-box">
+                            <small>
+                                Product Variants
+                            </small>
+                            <strong>
+                                ${supplier.productVariantCount}
+                            </strong>
+                        </div>
+
+                        <div class="stat-box">
+                            <small>
+                                Status
+                            </small>
+                            <strong style="font-size:18px;">
+                                <c:choose>
+                                    <c:when test="${supplier.status == 'ACTIVE'}">
+                                        Active
+                                    </c:when>
+                                    <c:otherwise>
+                                        Inactive
+                                    </c:otherwise>
+                                </c:choose>
+                            </strong>
+                        </div>
+
+                        <div class="detail-actions">
+                            <a class="btn primary"
+                               href="${pageContext.request.contextPath}/manager/supplier?action=edit&id=${supplier.id}">
+                                <i class="bi bi-pencil"></i>
+                                Edit
+                            </a>
+
+                            <c:choose>
+                                <c:when test="${supplier.status == 'ACTIVE'}">
+                                    <form method="post"
+                                          action="${pageContext.request.contextPath}/manager/supplier"
+                                          onsubmit="return confirm('Deactivate this supplier?');">
+                                        <input type="hidden"
+                                               name="action"
+                                               value="deactivate">
+                                        <input type="hidden"
+                                               name="id"
+                                               value="${supplier.id}">
+                                        <button
+                                            type="submit"
+                                            class="btn danger-btn">
+                                            Deactivate
+                                        </button>
+                                    </form>
+                                </c:when>
+                                <c:otherwise>
+                                    <form method="post"
+                                          action="${pageContext.request.contextPath}/manager/supplier">
+
+                                        <input type="hidden"
+                                               name="action"
+                                               value="activate">
+
+                                        <input type="hidden"
+                                               name="id"
+                                               value="${supplier.id}">
+
+                                        <button
+                                            type="submit"
+                                            class="btn subtle">
+                                            Activate
+                                        </button>
+                                    </form>
+                                </c:otherwise>
+                            </c:choose>
+                        </div>
+                    </section>
+                </aside>
+            </div>
 
 
-        <!-- PRODUCT VARIANTS -->
-        <section class="supplier-card"
-                 style="margin-top:20px;">
-            <h2>
-                Supplied Product Variants
-            </h2>
-            <p class="supplier-card-subtitle">
-                Product variants currently associated with this supplier.
-            </p>
-            <c:choose>
-                <c:when test="${empty productVariantIds}">
-                    <div class="empty-variants">
-                        <i class="bi bi-box-seam"></i>
-                        This supplier does not have any
-                        Product variant assigned yet.
-                    </div>
-                </c:when>
-                <c:otherwise>
-                    <div class="variant-list">
-                        <c:forEach
-                            items="${productVariantIds}"
-                            var="variantId">
-                            <span class="variant-pill">
-                                Product Variant #${variantId}
-                            </span>
-                        </c:forEach>
-                    </div>
-                </c:otherwise>
-            </c:choose>
-        </section>
-    </main>
-    <%@ include file="/views/common/footer.jsp" %>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+            <!-- PRODUCT VARIANTS -->
+            <section class="supplier-card"
+                     style="margin-top:20px;">
+                <h2>
+                    Supplied Product Variants
+                </h2>
+                <p class="supplier-card-subtitle">
+                    Product variants currently associated with this supplier.
+                </p>
+                <c:choose>
+                    <c:when test="${empty productVariantIds}">
+                        <div class="empty-variants">
+                            <i class="bi bi-box-seam"></i>
+                            This supplier does not have any
+                            Product variant assigned yet.
+                        </div>
+                    </c:when>
+                    <c:otherwise>
+                        <div class="variant-list">
+                            <c:forEach
+                                items="${productVariantIds}"
+                                var="variantId">
+                                <span class="variant-pill">
+                                    Product Variant #${variantId}
+                                </span>
+                            </c:forEach>
+                        </div>
+                    </c:otherwise>
+                </c:choose>
+            </section>
+        </main>
+        <%@ include file="/views/common/footer.jsp" %>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
 </html>
