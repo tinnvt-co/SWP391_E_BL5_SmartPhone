@@ -13,8 +13,10 @@ public class CategoryDAO {
 
     public List<CategoryModel> findAll(boolean activeOnly) throws SQLException {
         String sql = "SELECT c.ID, c.Name, c.Description, c.Status, "
-                + "COUNT(p.ID) AS ProductCount "
-                + "FROM Category c LEFT JOIN Product p ON p.CategoryID = c.ID "
+                + "COUNT(DISTINCT p.ID) AS ProductCount "
+                + "FROM Category c "
+                + "LEFT JOIN Product_Category pc ON pc.CategoryID = c.ID "
+                + "LEFT JOIN Product p ON p.ID = pc.ProductID "
                 + (activeOnly ? "WHERE c.Status = 'ACTIVE' " : "")
                 + "GROUP BY c.ID, c.Name, c.Description, c.Status ORDER BY c.ID";
 
@@ -76,6 +78,26 @@ public class CategoryDAO {
                 category.setDescription(resultSet.getString("Description"));
                 category.setActive(true);
                 return category;
+            }
+        }
+    }
+
+    public boolean areAllActive(List<Integer> categoryIds) throws SQLException {
+        if (categoryIds == null || categoryIds.isEmpty()) {
+            return false;
+        }
+        String placeholders = String.join(",",
+                java.util.Collections.nCopies(categoryIds.size(), "?"));
+        String sql = "SELECT COUNT(*) FROM Category WHERE Status = 'ACTIVE' "
+                + "AND ID IN (" + placeholders + ")";
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
+            for (int index = 0; index < categoryIds.size(); index++) {
+                statement.setInt(index + 1, categoryIds.get(index));
+            }
+            try (ResultSet resultSet = statement.executeQuery()) {
+                resultSet.next();
+                return resultSet.getInt(1) == categoryIds.size();
             }
         }
     }

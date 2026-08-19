@@ -91,7 +91,7 @@
                     <span class="module-icon">◇</span>
                     <span class="module-count">${totalCategories} categories</span>
                     <h3>Manage Categories</h3>
-                    <p>Organize phones into price segments such as budget, mid-range and high-end.</p>
+                    <p>Organize phones by features such as gaming, foldable, AI and camera phone.</p>
                     <b>Open category management <span>→</span></b>
                 </a>
 

@@ -356,6 +356,7 @@ textarea {
     justify-content: flex-end;
     gap: 12px;
     margin-left: auto;
+    flex-wrap: wrap;
 }
 
 .search-box {
@@ -440,7 +441,7 @@ textarea {
 }
 
 .sort-box .dark-select {
-    min-width: 190px;
+    min-width: 180px;
     min-height: 54px;
     padding-left: 42px;
     padding-right: 38px;
@@ -1947,6 +1948,27 @@ td small {
 .detail-page .spec-grid {
     column-gap: 20px;
     row-gap: 12px;
+}
+
+.product-detail-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 18px;
+    padding: 10px 15px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text);
+    font-weight: 700;
+    text-decoration: none;
+    transition: border-color .15s ease, color .15s ease, transform .15s ease;
+}
+
+.product-detail-back:hover {
+    border-color: var(--blue);
+    color: var(--blue);
+    transform: translateX(-2px);
 }
 
 .detail-page .spec {

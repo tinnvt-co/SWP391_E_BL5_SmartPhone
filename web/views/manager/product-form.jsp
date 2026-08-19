@@ -55,6 +55,24 @@
                         </select>
                     </label>
 
+                    <fieldset class="span-2 category-selector">
+                        <legend>Categories *</legend>
+                        <p>Select every feature group that applies to this phone.</p>
+                        <div class="category-options">
+                            <c:forEach items="${categories}" var="category">
+                                <label class="category-option">
+                                    <input type="checkbox" name="categoryIds"
+                                           value="${category.id}"
+                                           ${selectedCategoryIds.contains(category.id) ? 'checked' : ''}>
+                                    <span>
+                                        <strong><c:out value="${category.name}"/></strong>
+                                        <small><c:out value="${category.description}"/></small>
+                                    </span>
+                                </label>
+                            </c:forEach>
+                        </div>
+                    </fieldset>
+
                     <label>
                         Release year
                         <input type="number" name="releaseYear" min="2007" max="${maxReleaseYear}"

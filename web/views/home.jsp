@@ -113,8 +113,11 @@
                             <a class="category-tile" href="${pageContext.request.contextPath}/products?category=${category.id}">
                                 <span class="category-icon">
                                     <c:choose>
-                                        <c:when test="${category.name == 'Accessory'}"><i class="bi bi-earbuds"></i></c:when>
-                                        <c:when test="${category.name == 'Tablet'}"><i class="bi bi-tablet-landscape"></i></c:when>
+                                        <c:when test="${category.name == 'Gaming Phone'}"><i class="bi bi-controller"></i></c:when>
+                                        <c:when test="${category.name == 'Foldable Phone'}"><i class="bi bi-phone-flip"></i></c:when>
+                                        <c:when test="${category.name == 'Camera Phone'}"><i class="bi bi-camera"></i></c:when>
+                                        <c:when test="${category.name == 'Long Battery Phone'}"><i class="bi bi-battery-charging"></i></c:when>
+                                        <c:when test="${category.name == 'AI Phone'}"><i class="bi bi-stars"></i></c:when>
                                         <c:otherwise><i class="bi bi-phone"></i></c:otherwise>
                                     </c:choose>
                                 </span>

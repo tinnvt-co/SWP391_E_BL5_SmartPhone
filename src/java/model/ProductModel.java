@@ -18,8 +18,7 @@ public class ProductModel implements Serializable {
     private String image;
     private int discount;
     private List<ProductVariantModel> variants = new ArrayList<>();
-    private int categoryId;
-    private String categoryName;
+    private List<CategoryModel> categories = new ArrayList<>();
     private int brandId;
     private String brandName;
     private String status;
@@ -174,20 +173,31 @@ public class ProductModel implements Serializable {
         return result;
     }
 
-    public int getCategoryId() {
-        return categoryId;
+    public List<CategoryModel> getCategories() {
+        return categories;
     }
 
-    public void setCategoryId(int categoryId) {
-        this.categoryId = categoryId;
+    public void setCategories(List<CategoryModel> categories) {
+        this.categories = categories == null ? new ArrayList<>() : categories;
     }
 
-    public String getCategoryName() {
-        return categoryName;
+    public List<Integer> getCategoryIds() {
+        List<Integer> ids = new ArrayList<>();
+        for (CategoryModel category : categories) {
+            ids.add(category.getId());
+        }
+        return ids;
     }
 
-    public void setCategoryName(String categoryName) {
-        this.categoryName = categoryName;
+    public String getCategoryNames() {
+        StringBuilder names = new StringBuilder();
+        for (CategoryModel category : categories) {
+            if (names.length() > 0) {
+                names.append(", ");
+            }
+            names.append(category.getName());
+        }
+        return names.toString();
     }
 
     public int getBrandId() {

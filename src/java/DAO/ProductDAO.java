@@ -10,8 +10,10 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import model.CategoryModel;
 import model.ProductModel;
 import model.ProductVariantModel;
@@ -23,8 +25,8 @@ public class ProductDAO {
             + "COALESCE((SELECT ROUND(AVG(f.Rating)) FROM Feedback f "
             + "          JOIN ProductVariant pv2 ON pv2.ID = f.ProductVariantID "
             + "          WHERE pv2.ProductID = p.ID), 0) AS Rating, "
-            + "p.warranty_months, p.CategoryID, c.Name AS CategoryName, "
-            + "p.BrandID, b.Name AS BrandName, p.Status, p.Created_at, "
+            + "p.warranty_months, p.BrandID, b.Name AS BrandName, "
+            + "p.Status, p.Created_at, "
             + "COALESCE((SELECT MIN(pv.Selling_price) FROM ProductVariant pv "
             + "WHERE pv.ProductID = p.ID AND pv.Status = 'ACTIVE'), 0) AS Selling_price, "
             + "COALESCE((SELECT MIN(pv.Latest_cost) FROM ProductVariant pv "
@@ -46,28 +48,41 @@ public class ProductDAO {
             + "JOIN ProductVariant pv ON pv.ID = f.ProductVariantID "
             + "WHERE pv.ProductID = p.ID) AS ReviewCount "
             + "FROM Product p "
-            + "JOIN Category c ON c.ID = p.CategoryID "
             + "JOIN Brand b ON b.ID = p.BrandID ";
+
+    private static final String LOWEST_PRICE_SQL
+            = "(SELECT MIN(pvf.Selling_price) FROM ProductVariant pvf "
+            + "WHERE pvf.ProductID = p.ID AND pvf.Status = 'ACTIVE')";
 
     public List<ProductModel> findAll(String keyword, Integer brandId,
             Integer categoryId, String sort, boolean publicOnly) throws SQLException {
-        return findAll(keyword, brandId, categoryId, sort, publicOnly, 0, 0);
+        return findAll(keyword, brandId, categoryId, null, sort,
+                publicOnly, null, 0, 0);
     }
 
     public List<ProductModel> findAll(String keyword, Integer brandId,
             Integer categoryId, String sort, boolean publicOnly, int limit, int offset)
             throws SQLException {
-        return findAll(keyword, brandId, categoryId, sort, publicOnly, null, limit, offset);
+        return findAll(keyword, brandId, categoryId, null, sort,
+                publicOnly, null, limit, offset);
     }
 
     public List<ProductModel> findAll(String keyword, Integer brandId,
             Integer categoryId, String sort, boolean publicOnly,
             Collection<Integer> excludeIds) throws SQLException {
-        return findAll(keyword, brandId, categoryId, sort, publicOnly, excludeIds, 0, 0);
+        return findAll(keyword, brandId, categoryId, null, sort,
+                publicOnly, excludeIds, 0, 0);
     }
 
     public List<ProductModel> findAll(String keyword, Integer brandId,
-            Integer categoryId, String sort, boolean publicOnly,
+            Integer categoryId, String priceRange, String sort, boolean publicOnly,
+            int limit, int offset) throws SQLException {
+        return findAll(keyword, brandId, categoryId, priceRange, sort,
+                publicOnly, null, limit, offset);
+    }
+
+    private List<ProductModel> findAll(String keyword, Integer brandId,
+            Integer categoryId, String priceRange, String sort, boolean publicOnly,
             Collection<Integer> excludeIds, int limit, int offset)
             throws SQLException {
         StringBuilder sql = new StringBuilder(SELECT_PRODUCTS);
@@ -77,8 +92,10 @@ public class ProductDAO {
 
         if (publicOnly) {
             sql.append("AND p.Status = 'ACTIVE' ");
-            sql.append("AND c.Status = 'ACTIVE' ");
             sql.append("AND b.Status = 'ACTIVE' ");
+            sql.append("AND EXISTS (SELECT 1 FROM Product_Category pca "
+                    + "JOIN Category ca ON ca.ID = pca.CategoryID "
+                    + "WHERE pca.ProductID = p.ID AND ca.Status = 'ACTIVE') ");
         }
 
         if (keyword != null && !keyword.isBlank()) {
@@ -92,9 +109,17 @@ public class ProductDAO {
         }
 
         if (categoryId != null) {
-            sql.append("AND p.CategoryID = ? ");
+            sql.append("AND EXISTS (SELECT 1 FROM Product_Category pcf "
+                    + "JOIN Category cf ON cf.ID = pcf.CategoryID "
+                    + "WHERE pcf.ProductID = p.ID AND pcf.CategoryID = ? ");
+            if (publicOnly) {
+                sql.append("AND cf.Status = 'ACTIVE' ");
+            }
+            sql.append(") ");
             parameters.add(categoryId);
         }
+
+        appendPriceFilter(sql, parameters, priceRange);
 
         if (excludeIds != null && !excludeIds.isEmpty()) {
             sql.append("AND p.ID NOT IN (");
@@ -126,15 +151,20 @@ public class ProductDAO {
             }
 
             loadVariants(connection, products);
+            loadCategories(connection, products);
             return products;
         }
     }
 
     public int countAll(String keyword, Integer brandId,
             Integer categoryId, boolean publicOnly) throws SQLException {
+        return countAll(keyword, brandId, categoryId, null, publicOnly);
+    }
+
+    public int countAll(String keyword, Integer brandId,
+            Integer categoryId, String priceRange, boolean publicOnly) throws SQLException {
         StringBuilder sql = new StringBuilder(
                 "SELECT COUNT(*) FROM Product p "
-                + "JOIN Category c ON c.ID = p.CategoryID "
                 + "JOIN Brand b ON b.ID = p.BrandID "
                 + "WHERE 1 = 1 ");
 
@@ -142,8 +172,10 @@ public class ProductDAO {
 
         if (publicOnly) {
             sql.append("AND p.Status = 'ACTIVE' ");
-            sql.append("AND c.Status = 'ACTIVE' ");
             sql.append("AND b.Status = 'ACTIVE' ");
+            sql.append("AND EXISTS (SELECT 1 FROM Product_Category pca "
+                    + "JOIN Category ca ON ca.ID = pca.CategoryID "
+                    + "WHERE pca.ProductID = p.ID AND ca.Status = 'ACTIVE') ");
         }
 
         if (keyword != null && !keyword.isBlank()) {
@@ -157,9 +189,17 @@ public class ProductDAO {
         }
 
         if (categoryId != null) {
-            sql.append("AND p.CategoryID = ? ");
+            sql.append("AND EXISTS (SELECT 1 FROM Product_Category pcf "
+                    + "JOIN Category cf ON cf.ID = pcf.CategoryID "
+                    + "WHERE pcf.ProductID = p.ID AND pcf.CategoryID = ? ");
+            if (publicOnly) {
+                sql.append("AND cf.Status = 'ACTIVE' ");
+            }
+            sql.append(") ");
             parameters.add(categoryId);
         }
+
+        appendPriceFilter(sql, parameters, priceRange);
 
         try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql.toString())) {
             for (int index = 0; index < parameters.size(); index++) {
@@ -189,7 +229,59 @@ public class ProductDAO {
                 List<ProductModel> products = new ArrayList<>();
                 products.add(product);
                 loadVariants(connection, products);
+                loadCategories(connection, products);
                 return product;
+            }
+        }
+    }
+
+    public boolean existsProductName(String name, int excludedProductId)
+            throws SQLException {
+        String sql = "SELECT 1 FROM Product "
+                + "WHERE LOWER(TRIM(Name)) = LOWER(?) AND ID <> ? LIMIT 1";
+        return exists(sql, name.trim(), excludedProductId);
+    }
+
+    public boolean existsVariantSku(String sku, int excludedVariantId)
+            throws SQLException {
+        String sql = "SELECT 1 FROM ProductVariant "
+                + "WHERE LOWER(TRIM(SKU)) = LOWER(?) AND ID <> ? LIMIT 1";
+        return exists(sql, sku.trim(), excludedVariantId);
+    }
+
+    public boolean existsFrontImage(String image, int excludedVariantId)
+            throws SQLException {
+        String sql = "SELECT 1 FROM ProductVariant "
+                + "WHERE LOWER(TRIM(Image)) = LOWER(?) AND ID <> ? LIMIT 1";
+        return exists(sql, image.trim(), excludedVariantId);
+    }
+
+    public boolean existsVariantOption(int productId, int ramGb, int storageGb,
+            String colorName, int excludedVariantId) throws SQLException {
+        String sql = "SELECT 1 FROM ProductVariant WHERE ProductID = ? "
+                + "AND RAM_GB = ? AND Storage_GB = ? "
+                + "AND LOWER(TRIM(ColorName)) = LOWER(?) AND ID <> ? LIMIT 1";
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, productId);
+            statement.setInt(2, ramGb);
+            statement.setInt(3, storageGb);
+            statement.setString(4, colorName.trim());
+            statement.setInt(5, excludedVariantId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next();
+            }
+        }
+    }
+
+    private boolean exists(String sql, String value, int excludedId)
+            throws SQLException {
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, value);
+            statement.setInt(2, excludedId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next();
             }
         }
     }
@@ -207,8 +299,9 @@ public class ProductDAO {
 
     public List<CategoryModel> findActiveCategories() throws SQLException {
         String sql = "SELECT c.ID, c.Name, c.Description, c.Status, "
-                + "COUNT(p.ID) AS ProductCount FROM Category c "
-                + "LEFT JOIN Product p ON p.CategoryID = c.ID "
+                + "COUNT(DISTINCT p.ID) AS ProductCount FROM Category c "
+                + "LEFT JOIN Product_Category pc ON pc.CategoryID = c.ID "
+                + "LEFT JOIN Product p ON p.ID = pc.ProductID "
                 + "AND p.Status = 'ACTIVE' WHERE c.Status = 'ACTIVE' "
                 + "GROUP BY c.ID, c.Name, c.Description, c.Status ORDER BY c.ID";
 
@@ -239,8 +332,7 @@ public class ProductDAO {
     private void insert(ProductModel product) throws SQLException {
         String sql = "INSERT INTO Product "
                 + "(Name, Description, Release_Year, Rating, warranty_months, "
-                + "CategoryID, BrandID, Status) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                + "BrandID, Status) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = DBContext.getConnection()) {
             connection.setAutoCommit(false);
@@ -259,6 +351,7 @@ public class ProductDAO {
                     }
                 }
 
+                saveCategories(connection, product.getId(), product.getCategoryIds());
                 for (ProductVariantModel variant : product.getVariants()) {
                     int variantId = insertVariant(connection, product.getId(), variant);
                     saveInventory(connection, variantId, variant.getStock());
@@ -275,7 +368,7 @@ public class ProductDAO {
 
     private void update(ProductModel product) throws SQLException {
         String sql = "UPDATE Product SET Name = ?, Description = ?, Release_Year = ?, "
-                + "warranty_months = ?, CategoryID = ?, BrandID = ?, Status = ? "
+                + "warranty_months = ?, BrandID = ?, Status = ? "
                 + "WHERE ID = ?";
 
         try (Connection connection = DBContext.getConnection()) {
@@ -291,13 +384,13 @@ public class ProductDAO {
                         statement.setInt(3, product.getReleaseYear());
                     }
                     statement.setInt(4, product.getWarrantyMonths());
-                    statement.setInt(5, product.getCategoryId());
-                    statement.setInt(6, product.getBrandId());
-                    statement.setString(7, product.getStatus());
-                    statement.setInt(8, product.getId());
+                    statement.setInt(5, product.getBrandId());
+                    statement.setString(6, product.getStatus());
+                    statement.setInt(7, product.getId());
                     statement.executeUpdate();
                 }
 
+                saveCategories(connection, product.getId(), product.getCategoryIds());
                 List<Integer> savedVariantIds = new ArrayList<>();
                 for (ProductVariantModel variant : product.getVariants()) {
                     if (variant.getId() == 0) {
@@ -381,9 +474,29 @@ public class ProductDAO {
 
         statement.setInt(4, product.getRating());
         statement.setInt(5, product.getWarrantyMonths());
-        statement.setInt(6, product.getCategoryId());
-        statement.setInt(7, product.getBrandId());
-        statement.setString(8, product.getStatus());
+        statement.setInt(6, product.getBrandId());
+        statement.setString(7, product.getStatus());
+    }
+
+    private void appendPriceFilter(StringBuilder sql, List<Object> parameters,
+            String priceRange) {
+        if ("under-5m".equals(priceRange)) {
+            sql.append("AND ").append(LOWEST_PRICE_SQL).append(" < ? ");
+            parameters.add(5_000_000);
+        } else if ("5m-10m".equals(priceRange)) {
+            sql.append("AND ").append(LOWEST_PRICE_SQL).append(" >= ? ")
+                    .append("AND ").append(LOWEST_PRICE_SQL).append(" < ? ");
+            parameters.add(5_000_000);
+            parameters.add(10_000_000);
+        } else if ("10m-20m".equals(priceRange)) {
+            sql.append("AND ").append(LOWEST_PRICE_SQL).append(" >= ? ")
+                    .append("AND ").append(LOWEST_PRICE_SQL).append(" < ? ");
+            parameters.add(10_000_000);
+            parameters.add(20_000_000);
+        } else if ("over-20m".equals(priceRange)) {
+            sql.append("AND ").append(LOWEST_PRICE_SQL).append(" >= ? ");
+            parameters.add(20_000_000);
+        }
     }
 
     private String getOrderBy(String sort) {
@@ -440,6 +553,70 @@ public class ProductDAO {
                     product.getVariants().add(variant);
                 }
             }
+        }
+    }
+
+    private void loadCategories(Connection connection, List<ProductModel> products)
+            throws SQLException {
+        if (products.isEmpty()) {
+            return;
+        }
+
+        Map<Integer, ProductModel> productsById = new HashMap<>();
+        for (ProductModel product : products) {
+            productsById.put(product.getId(), product);
+        }
+
+        String placeholders = String.join(", ",
+                java.util.Collections.nCopies(products.size(), "?"));
+        String sql = "SELECT pc.ProductID, c.ID, c.Name, c.Description, c.Status "
+                + "FROM Product_Category pc JOIN Category c ON c.ID = pc.CategoryID "
+                + "WHERE c.Status = 'ACTIVE' AND pc.ProductID IN ("
+                + placeholders + ") "
+                + "ORDER BY pc.ProductID, c.Name";
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            for (int index = 0; index < products.size(); index++) {
+                statement.setInt(index + 1, products.get(index).getId());
+            }
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    CategoryModel category = new CategoryModel();
+                    category.setId(resultSet.getInt("ID"));
+                    category.setName(resultSet.getString("Name"));
+                    category.setDescription(resultSet.getString("Description"));
+                    category.setActive("ACTIVE".equalsIgnoreCase(
+                            resultSet.getString("Status")));
+
+                    ProductModel product = productsById.get(
+                            resultSet.getInt("ProductID"));
+                    if (product != null) {
+                        product.getCategories().add(category);
+                    }
+                }
+            }
+        }
+    }
+
+    private void saveCategories(Connection connection, int productId,
+            List<Integer> categoryIds) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(
+                "DELETE FROM Product_Category WHERE ProductID = ?")) {
+            statement.setInt(1, productId);
+            statement.executeUpdate();
+        }
+
+        Set<Integer> uniqueCategoryIds = new LinkedHashSet<>(categoryIds);
+        String sql = "INSERT INTO Product_Category (ProductID, CategoryID) "
+                + "VALUES (?, ?)";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            for (Integer categoryId : uniqueCategoryIds) {
+                statement.setInt(1, productId);
+                statement.setInt(2, categoryId);
+                statement.addBatch();
+            }
+            statement.executeBatch();
         }
     }
 
@@ -575,8 +752,6 @@ public class ProductDAO {
         product.setLatestCost(resultSet.getInt("Latest_cost"));
         product.setImage(resultSet.getString("Image"));
         product.setDiscount(resultSet.getInt("Discount"));
-        product.setCategoryId(resultSet.getInt("CategoryID"));
-        product.setCategoryName(resultSet.getString("CategoryName"));
         product.setBrandId(resultSet.getInt("BrandID"));
         product.setBrandName(resultSet.getString("BrandName"));
         product.setStatus(resultSet.getString("Status"));

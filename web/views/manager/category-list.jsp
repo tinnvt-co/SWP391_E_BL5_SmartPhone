@@ -17,7 +17,7 @@
             <div class="page-heading">
                 <div>
                     <h1>Category Management</h1>
-                    <p>Manage phone price segments</p>
+                    <p>Manage phone feature groups; one product can belong to several categories</p>
                 </div>
                 <div class="page-heading-actions">
                     <a class="btn subtle" href="${pageContext.request.contextPath}/manager">← Back to dashboard</a>
@@ -43,6 +43,10 @@
                         </div>
 
                         <div class="actions">
+                            <a class="btn subtle"
+                               href="${pageContext.request.contextPath}/manager/products?category=${category.id}">
+                                Products
+                            </a>
                             <a class="btn subtle"
                                href="${pageContext.request.contextPath}/manager/categories?action=form&id=${category.id}">
                                 Edit
