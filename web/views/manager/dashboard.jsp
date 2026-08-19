@@ -8,7 +8,7 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
         <%@include file="../common/head.jsp"%>
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-laydout.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css">
     </head>
     <body>
         <c:set var="activePage" value="manager" scope="request"/>
