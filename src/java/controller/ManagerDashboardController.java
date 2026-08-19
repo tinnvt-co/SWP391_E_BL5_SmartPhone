@@ -8,6 +8,7 @@ import DAO.OrderDAO;
 import DAO.ProductDAO;
 import DAO.RefundDAO;
 import DAO.SalesStatsDAO;
+import DAO.SupplierDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,6 +37,7 @@ public class ManagerDashboardController extends HttpServlet {
     private final OrderDAO orderDAO = new OrderDAO();
     private final SalesStatsDAO salesStatsDAO = new SalesStatsDAO();
     private final RefundDAO returnRequestDAO = new RefundDAO();
+    private final SupplierDAO supplierDAO = new SupplierDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -48,6 +50,7 @@ public class ManagerDashboardController extends HttpServlet {
             request.setAttribute("outOfStockProducts", productDAO.countOutOfStock());
             request.setAttribute("totalCategories", categoryDAO.findAll(false).size());
             request.setAttribute("totalBrands", brandDAO.findAll(false).size());
+            request.setAttribute("totalSuppliers", supplierDAO.countAll(null, null));
 
             // --- Inventory snapshot ---
             int[] stockStats = inventoryDAO.getStockStats();

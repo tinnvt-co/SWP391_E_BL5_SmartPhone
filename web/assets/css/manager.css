@@ -20,7 +20,9 @@
     --mgr-teal-soft: #ccfbf1;
     --mgr-indigo: #4338ca;
     --mgr-indigo-soft: #eef2ff;
-
+    --mgr-cyan: #00d2d3;
+    --mgr-cyan-soft: #e0fbfb;
+    
     /* shared utility tokens */
     --ink: #0f172a;
     --muted: #64748b;

@@ -106,9 +106,7 @@
                 <a class="manager-module supplier-module"
                    href="${pageContext.request.contextPath}/manager/supplier">
                     <span class="module-icon">🏢</span>
-                    <span class="module-count">
-                        ${totalSuppliers} suppliers
-                    </span>
+                    <span class="module-count">${totalSuppliers} suppliers</span>
                     <h3>Manage Suppliers</h3>
                     <p>
                         Manage suppliers, contact information
