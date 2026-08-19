@@ -128,10 +128,15 @@
 
             .table-panel {
                 margin-top: 18px;
-                overflow: hidden;
                 border: 1px solid rgba(15, 23, 42, 0.08);
                 border-radius: 8px;
                 background: #fff;
+            }
+
+            @media (min-width: 992px) {
+                .table-responsive {
+                    overflow: visible !important;
+                }
             }
 
             .table {
@@ -380,233 +385,295 @@
                     </aside>
 
                     <section class="panel content-panel">
-                        <div class="d-flex align-items-end justify-content-between gap-3 flex-wrap">
-                            <div>
-                                <h2 class="h4 fw-bold mb-1 text-primary">Available Orders</h2>
-                                <p class="text-muted mb-0">${availableOrders.size()} orders waiting to be claimed</p>
-                            </div>
-                            
-                            <c:if test="${not empty message}">
-                                <div class="alert alert-success py-2 mb-0"><i class="bi bi-check-circle me-2"></i>${message}</div>
-                                <c:remove var="message" scope="session"/>
-                            </c:if>
-                            <c:if test="${not empty error}">
-                                <div class="alert alert-danger py-2 mb-0"><i class="bi bi-exclamation-circle me-2"></i>${error}</div>
-                                <c:remove var="error" scope="session"/>
-                            </c:if>
-                        </div>
-                        
-                        <div class="table-panel table-responsive mb-5">
-                            <table class="table table-hover align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th class="text-nowrap">Customer Info</th>
-                                        <th class="text-nowrap">Total Price</th>
-                                        <th class="text-nowrap">Payment</th>
-                                        <th class="text-nowrap">Status</th>
-                                        <th class="text-nowrap">Note</th>
-                                        <th class="text-end text-nowrap">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <c:forEach items="${availableOrders}" var="order">
-                                        <tr class="shipper-order-row" data-order-modal="#orderDetailModal${order.id}">
-                                            <td>
-                                                <div class="fw-bold">${empty order.recipientName ? order.userName : order.recipientName}</div>
-                                                <div class="text-muted small"><i class="bi bi-telephone-fill me-1"></i>${empty order.recipientPhone ? order.userPhone : order.recipientPhone}</div>
-                                                <div class="text-muted small mt-1"><i class="bi bi-geo-alt-fill me-1"></i>${empty order.deliveryAddress ? 'No address provided' : order.deliveryAddress}</div>
-                                            </td>
-                                            <td class="text-nowrap fw-bold text-primary">
-                                                <fmt:formatNumber value="${order.totalPrice}" pattern="#,##0"/> &#273;
-                                            </td>
-                                            <td class="text-nowrap">
-                                                <span class="payment-pill ${fn:toLowerCase(order.method)}">
-                                                    <i class="bi ${fn:toLowerCase(order.method) == 'vnpay' ? 'bi-credit-card' : 'bi-cash-coin'}"></i>
-                                                    <c:out value="${order.method}"/>
-                                                </span>
-                                                <div class="payment-note">
-                                                    <c:choose>
-                                                        <c:when test="${order.paidAmount gt 0}">Paid</c:when>
-                                                        <c:otherwise>Collect on delivery</c:otherwise>
-                                                    </c:choose>
-                                                </div>
-                                            </td>
-                                            <td class="text-nowrap">
-                                                <span class="badge rounded-pill badge-soft-warning">
-                                                    <c:out value="${order.status}"/>
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <div class="text-muted small text-wrap" style="max-width: 150px;">
-                                                    <c:out value="${empty order.note ? '' : order.note}"/>
-                                                </div>
-                                            </td>
-                                            <td class="text-end text-nowrap">
-                                                <form action="${pageContext.request.contextPath}/shipper/orders" method="post" class="m-0 p-0">
-                                                    <input type="hidden" name="action" value="claim">
-                                                    <input type="hidden" name="orderId" value="${order.id}">
-                                                    <button type="submit" class="btn btn-sm btn-primary shadow-sm">
-                                                        <i class="bi bi-box-arrow-in-down me-1"></i> Claim Order
-                                                    </button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                        <%@ include file="/views/shipper/order-detail-modal.jsp" %>
-                                    </c:forEach>
-                                    <c:if test="${empty availableOrders}">
-                                        <tr>
-                                            <td colspan="6" class="text-center py-4 text-muted">No available orders at the moment.</td>
-                                        </tr>
-                                    </c:if>
-                                </tbody>
-                            </table>
-                        </div>
+                        <!-- Success/Error Messages -->
+                        <c:if test="${not empty message}">
+                            <div class="alert alert-success py-2 mb-4"><i class="bi bi-check-circle me-2"></i>${message}</div>
+                            <c:remove var="message" scope="session"/>
+                        </c:if>
+                        <c:if test="${not empty error}">
+                            <div class="alert alert-danger py-2 mb-4"><i class="bi bi-exclamation-circle me-2"></i>${error}</div>
+                            <c:remove var="error" scope="session"/>
+                        </c:if>
 
-                        <div class="d-flex align-items-end justify-content-between gap-3 flex-wrap">
-                            <div>
-                                <h2 class="h4 fw-bold mb-1">My Assigned Orders</h2>
-                                <p class="text-muted mb-0">${orders.size()} orders currently assigned to you</p>
-                            </div>
-                            
-                            <c:if test="${not empty message}">
-                                <div class="alert alert-success py-2 mb-0"><i class="bi bi-check-circle me-2"></i>${message}</div>
-                                <c:remove var="message" scope="session"/>
-                            </c:if>
-                            <c:if test="${not empty error}">
-                                <div class="alert alert-danger py-2 mb-0"><i class="bi bi-exclamation-circle me-2"></i>${error}</div>
-                                <c:remove var="error" scope="session"/>
-                            </c:if>
-                        </div>
+                        <!-- Nav Tabs -->
+                        <ul class="nav nav-tabs mb-4" id="orderTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active fw-bold text-primary" id="assigned-tab" data-bs-toggle="tab" data-bs-target="#assigned" type="button" role="tab" aria-controls="assigned" aria-selected="true">
+                                    <i class="bi bi-truck me-1"></i> My Assigned Orders
+                                    <span class="badge bg-primary ms-1 rounded-pill">${orders.size()}</span>
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link fw-bold text-secondary" id="available-tab" data-bs-toggle="tab" data-bs-target="#available" type="button" role="tab" aria-controls="available" aria-selected="false">
+                                    <i class="bi bi-list-task me-1"></i> Available Orders
+                                    <span class="badge bg-secondary ms-1 rounded-pill">${availableOrders.size()}</span>
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link fw-bold text-success" id="delivered-tab" data-bs-toggle="tab" data-bs-target="#delivered" type="button" role="tab" aria-controls="delivered" aria-selected="false">
+                                    <i class="bi bi-clock-history me-1"></i> Delivered History
+                                </button>
+                            </li>
+                        </ul>
 
-                        <div class="table-panel table-responsive">
-                            <table class="table table-hover align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th class="text-nowrap">Customer Info</th>
-                                        <th class="text-nowrap">Total Price</th>
-                                        <th class="text-nowrap">Payment</th>
-                                        <th class="text-nowrap">Status</th>
-                                        <th class="text-nowrap">Note</th>
-                                        <th class="text-end text-nowrap">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <c:forEach items="${orders}" var="order">
-                                        <tr class="shipper-order-row" data-order-modal="#orderDetailModal${order.id}">
-                                            <td>
-                                                <div class="fw-bold">${empty order.recipientName ? order.userName : order.recipientName}</div>
-                                                <div class="text-muted small"><i class="bi bi-telephone-fill me-1"></i>${empty order.recipientPhone ? order.userPhone : order.recipientPhone}</div>
-                                                <div class="text-muted small mt-1"><i class="bi bi-geo-alt-fill me-1"></i>${empty order.deliveryAddress ? 'No address provided' : order.deliveryAddress}</div>
-                                            </td>
-                                            <td class="text-nowrap fw-bold text-primary">
-                                                <fmt:formatNumber value="${order.totalPrice}" pattern="#,##0"/> &#273;
-                                            </td>
-                                            <td class="text-nowrap">
-                                                <span class="payment-pill ${fn:toLowerCase(order.method)}">
-                                                    <i class="bi ${fn:toLowerCase(order.method) == 'vnpay' ? 'bi-credit-card' : 'bi-cash-coin'}"></i>
-                                                    <c:out value="${order.method}"/>
-                                                </span>
-                                                <div class="payment-note">
-                                                    <c:choose>
-                                                        <c:when test="${order.paidAmount gt 0}">Paid</c:when>
-                                                        <c:otherwise>Collect on delivery</c:otherwise>
-                                                    </c:choose>
-                                                </div>
-                                            </td>
-                                            <td class="text-nowrap">
-                                                <span class="badge rounded-pill badge-soft-warning">
-                                                    <c:out value="${order.status}"/>
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <div class="text-muted small text-wrap" style="max-width: 150px;">
-                                                    <c:out value="${empty order.note ? '' : order.note}"/>
-                                                </div>
-                                            </td>
-                                            <td class="text-end text-nowrap">
-                                                <c:set var="addrLower" value="${fn:toLowerCase(order.deliveryAddress)}" />
-                                                <c:set var="isHanoi" value="${fn:contains(addrLower, 'hà nội') or fn:contains(addrLower, 'ha noi')}" />
-                                                
-                                                <c:if test="${order.status eq 'SHIPPING'}">
-                                                    <div class="dropdown">
-                                                        <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                            Actions
-                                                        </button>
-                                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                        <div class="tab-content" id="orderTabsContent">
+                            <!-- TAB: ASSIGNED ORDERS -->
+                            <div class="tab-pane fade show active" id="assigned" role="tabpanel" aria-labelledby="assigned-tab">
+                                <div class="table-panel table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th class="text-nowrap">Customer Info</th>
+                                                <th class="text-nowrap">Total Price</th>
+                                                <th class="text-nowrap">Payment</th>
+                                                <th class="text-nowrap">Status</th>
+                                                <th class="text-nowrap">Note</th>
+                                                <th class="text-end text-nowrap">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <c:forEach items="${orders}" var="order">
+                                                <tr class="shipper-order-row" data-order-modal="#orderDetailModal${order.id}">
+                                                    <td>
+                                                        <div class="fw-bold">${empty order.recipientName ? order.userName : order.recipientName}</div>
+                                                        <div class="text-muted small"><i class="bi bi-telephone-fill me-1"></i>${empty order.recipientPhone ? order.userPhone : order.recipientPhone}</div>
+                                                        <div class="text-muted small mt-1"><i class="bi bi-geo-alt-fill me-1"></i>${empty order.deliveryAddress ? 'No address provided' : order.deliveryAddress}</div>
+                                                    </td>
+                                                    <td class="text-nowrap fw-bold text-primary">
+                                                        <fmt:formatNumber value="${order.totalPrice}" pattern="#,##0"/> &#273;
+                                                    </td>
+                                                    <td class="text-nowrap">
+                                                        <span class="payment-pill ${fn:toLowerCase(order.method)}">
+                                                            <i class="bi ${fn:toLowerCase(order.method) == 'vnpay' ? 'bi-credit-card' : 'bi-cash-coin'}"></i>
+                                                            <c:out value="${order.method}"/>
+                                                        </span>
+                                                        <div class="payment-note">
                                                             <c:choose>
-                                                                <c:when test="${isHanoi}">
+                                                                <c:when test="${order.paidAmount gt 0}">Paid</c:when>
+                                                                <c:otherwise>Collect on delivery</c:otherwise>
+                                                            </c:choose>
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-nowrap">
+                                                        <span class="badge rounded-pill badge-soft-warning">
+                                                            <c:out value="${order.status}"/>
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <div class="text-muted small text-wrap" style="max-width: 150px;">
+                                                            <c:out value="${empty order.note ? '' : order.note}"/>
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-end text-nowrap">
+                                                        <c:set var="addrLower" value="${fn:toLowerCase(order.deliveryAddress)}" />
+                                                        <c:set var="isHanoi" value="${fn:contains(addrLower, 'hà nội') or fn:contains(addrLower, 'ha noi')}" />
+                                                        
+                                                        <c:if test="${order.status eq 'SHIPPING'}">
+                                                            <div class="dropdown">
+                                                                <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                                    Actions
+                                                                </button>
+                                                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                                                    <c:choose>
+                                                                        <c:when test="${isHanoi}">
+                                                                            <li>
+                                                                                <form action="${pageContext.request.contextPath}/shipper/orders" method="post" class="m-0 p-0">
+                                                                                    <input type="hidden" name="action" value="updateStatus">
+                                                                                    <input type="hidden" name="orderId" value="${order.id}">
+                                                                                    <input type="hidden" name="status" value="DELIVERED">
+                                                                                    <button type="submit" class="dropdown-item text-success">
+                                                                                        <i class="bi bi-check-circle me-2"></i> Mark as Delivered
+                                                                                    </button>
+                                                                                </form>
+                                                                            </li>
+                                                                        </c:when>
+                                                                        <c:otherwise>
+                                                                            <li>
+                                                                                <button type="button" class="dropdown-item text-warning" data-bs-toggle="modal" data-bs-target="#noteModal${order.id}">
+                                                                                    <i class="bi bi-pencil-square me-2"></i> Add Note
+                                                                                </button>
+                                                                            </li>
+                                                                        </c:otherwise>
+                                                                    </c:choose>
+                                                                    <li><hr class="dropdown-divider"></li>
                                                                     <li>
-                                                                        <form action="${pageContext.request.contextPath}/shipper/orders" method="post" class="m-0 p-0">
-                                                                            <input type="hidden" name="action" value="updateStatus">
-                                                                            <input type="hidden" name="orderId" value="${order.id}">
-                                                                            <input type="hidden" name="status" value="DELIVERED">
-                                                                            <button type="submit" class="dropdown-item text-success">
-                                                                                <i class="bi bi-check-circle me-2"></i> Mark as Delivered
-                                                                            </button>
-                                                                        </form>
-                                                                    </li>
-                                                                    <li>
-                                                                        <form action="${pageContext.request.contextPath}/shipper/orders" method="post" class="m-0 p-0">
-                                                                            <input type="hidden" name="action" value="updateStatus">
-                                                                            <input type="hidden" name="orderId" value="${order.id}">
-                                                                            <input type="hidden" name="status" value="COMPLETED">
-                                                                            <button type="submit" class="dropdown-item text-primary">
-                                                                                <i class="bi bi-check2-all me-2"></i> Mark as Completed
-                                                                            </button>
-                                                                        </form>
-                                                                    </li>
-                                                                </c:when>
-                                                                <c:otherwise>
-                                                                    <li>
-                                                                        <button type="button" class="dropdown-item text-warning" data-bs-toggle="modal" data-bs-target="#noteModal${order.id}">
-                                                                            <i class="bi bi-pencil-square me-2"></i> Add Note
+                                                                        <button type="button" class="dropdown-item text-danger" onclick="openCancelModal(${order.id})">
+                                                                            <i class="bi bi-x-circle me-2"></i> Cancel Order
                                                                         </button>
                                                                     </li>
-                                                                </c:otherwise>
-                                                            </c:choose>
-                                                        </ul>
-                                                    </div>
-                                                </c:if>
-                                                
-                                                <c:if test="${not isHanoi}">
-                                                <!-- Note Modal -->
-                                                <div class="modal fade" id="noteModal${order.id}" tabindex="-1" aria-labelledby="noteModalLabel${order.id}" aria-hidden="true">
-                                                    <div class="modal-dialog">
-                                                        <form action="${pageContext.request.contextPath}/shipper/orders" method="post">
-                                                            <div class="modal-content text-start">
-                                                                <div class="modal-header">
-                                                                    <h5 class="modal-title" id="noteModalLabel${order.id}">Add Note for Order #${order.id}</h5>
-                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                                </div>
-                                                                <div class="modal-body">
-                                                                    <p class="small text-muted mb-3">This order is outside Hanoi. Please add a note about the shipping method.</p>
-                                                                    <input type="hidden" name="action" value="addNote">
-                                                                    <input type="hidden" name="orderId" value="${order.id}">
-                                                                    <div class="mb-3">
-                                                                        <label for="noteText${order.id}" class="form-label">Note</label>
-                                                                        <textarea class="form-control" id="noteText${order.id}" name="note" rows="3" required placeholder="e.g. Sent via Viettel Post..."></textarea>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="modal-footer">
-                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                                    <button type="submit" class="btn btn-warning">Save Note</button>
-                                                                </div>
+                                                                </ul>
                                                             </div>
+                                                        </c:if>
+                                                        
+                                                        <c:if test="${not isHanoi}">
+                                                        <!-- Note Modal -->
+                                                        <div class="modal fade" id="noteModal${order.id}" tabindex="-1" aria-labelledby="noteModalLabel${order.id}" aria-hidden="true">
+                                                            <div class="modal-dialog">
+                                                                <form action="${pageContext.request.contextPath}/shipper/orders" method="post">
+                                                                    <div class="modal-content text-start">
+                                                                        <div class="modal-header">
+                                                                            <h5 class="modal-title" id="noteModalLabel${order.id}">Add Note for Order #${order.id}</h5>
+                                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                        </div>
+                                                                        <div class="modal-body">
+                                                                            <p class="small text-muted mb-3">This order is outside Hanoi. Please add a note about the shipping method.</p>
+                                                                            <input type="hidden" name="action" value="addNote">
+                                                                            <input type="hidden" name="orderId" value="${order.id}">
+                                                                            <div class="mb-3">
+                                                                                <label for="noteText${order.id}" class="form-label">Note</label>
+                                                                                <textarea class="form-control" id="noteText${order.id}" name="note" rows="3" required placeholder="e.g. Sent via Viettel Post..."></textarea>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="modal-footer">
+                                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                            <button type="submit" class="btn btn-warning">Save Note</button>
+                                                                        </div>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                        </c:if>
+                                                    </td>
+                                                </tr>
+                                                <%@ include file="/views/shipper/order-detail-modal.jsp" %>
+                                            </c:forEach>
+                                            <c:if test="${empty orders}">
+                                                <tr>
+                                                    <td colspan="6" class="text-center py-4 text-muted">No active deliveries at the moment.</td>
+                                                </tr>
+                                            </c:if>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- TAB: AVAILABLE ORDERS -->
+                            <div class="tab-pane fade" id="available" role="tabpanel" aria-labelledby="available-tab">
+                                <div class="table-panel table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th class="text-nowrap">Customer Info</th>
+                                                <th class="text-nowrap">Total Price</th>
+                                                <th class="text-nowrap">Payment</th>
+                                                <th class="text-nowrap">Status</th>
+                                                <th class="text-nowrap">Note</th>
+                                                <th class="text-end text-nowrap">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <c:forEach items="${availableOrders}" var="order">
+                                                <tr class="shipper-order-row" data-order-modal="#orderDetailModal${order.id}">
+                                                    <td>
+                                                        <div class="fw-bold">${empty order.recipientName ? order.userName : order.recipientName}</div>
+                                                        <div class="text-muted small"><i class="bi bi-telephone-fill me-1"></i>${empty order.recipientPhone ? order.userPhone : order.recipientPhone}</div>
+                                                        <div class="text-muted small mt-1"><i class="bi bi-geo-alt-fill me-1"></i>${empty order.deliveryAddress ? 'No address provided' : order.deliveryAddress}</div>
+                                                    </td>
+                                                    <td class="text-nowrap fw-bold text-primary">
+                                                        <fmt:formatNumber value="${order.totalPrice}" pattern="#,##0"/> &#273;
+                                                    </td>
+                                                    <td class="text-nowrap">
+                                                        <span class="payment-pill ${fn:toLowerCase(order.method)}">
+                                                            <i class="bi ${fn:toLowerCase(order.method) == 'vnpay' ? 'bi-credit-card' : 'bi-cash-coin'}"></i>
+                                                            <c:out value="${order.method}"/>
+                                                        </span>
+                                                        <div class="payment-note">
+                                                            <c:choose>
+                                                                <c:when test="${order.paidAmount gt 0}">Paid</c:when>
+                                                                <c:otherwise>Collect on delivery</c:otherwise>
+                                                            </c:choose>
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-nowrap">
+                                                        <span class="badge rounded-pill badge-soft-warning">
+                                                            <c:out value="${order.status}"/>
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <div class="text-muted small text-wrap" style="max-width: 150px;">
+                                                            <c:out value="${empty order.note ? '' : order.note}"/>
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-end text-nowrap">
+                                                        <form action="${pageContext.request.contextPath}/shipper/orders" method="post" class="m-0 p-0">
+                                                            <input type="hidden" name="action" value="claim">
+                                                            <input type="hidden" name="orderId" value="${order.id}">
+                                                            <button type="submit" class="btn btn-sm btn-primary shadow-sm">
+                                                                <i class="bi bi-box-arrow-in-down me-1"></i> Claim Order
+                                                            </button>
                                                         </form>
-                                                    </div>
-                                                </div>
-                                                </c:if>
-                                            </td>
-                                        </tr>
-                                        <%@ include file="/views/shipper/order-detail-modal.jsp" %>
-                                    </c:forEach>
-                                    <c:if test="${empty orders}">
-                                        <tr>
-                                            <td colspan="6" class="text-center py-4 text-muted">No active deliveries at the moment.</td>
-                                        </tr>
-                                    </c:if>
-                                </tbody>
-                            </table>
+                                                    </td>
+                                                </tr>
+                                                <%@ include file="/views/shipper/order-detail-modal.jsp" %>
+                                            </c:forEach>
+                                            <c:if test="${empty availableOrders}">
+                                                <tr>
+                                                    <td colspan="6" class="text-center py-4 text-muted">No available orders at the moment.</td>
+                                                </tr>
+                                            </c:if>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- TAB: DELIVERED HISTORY -->
+                            <div class="tab-pane fade" id="delivered" role="tabpanel" aria-labelledby="delivered-tab">
+                                <div class="table-panel table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th class="text-nowrap">Customer Info</th>
+                                                <th class="text-nowrap">Total Price</th>
+                                                <th class="text-nowrap">Payment</th>
+                                                <th class="text-nowrap">Status</th>
+                                                <th class="text-nowrap">Note</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <c:forEach items="${deliveredOrders}" var="order">
+                                                <tr class="shipper-order-row" data-order-modal="#orderDetailModal${order.id}">
+                                                    <td>
+                                                        <div class="fw-bold">${empty order.recipientName ? order.userName : order.recipientName}</div>
+                                                        <div class="text-muted small"><i class="bi bi-telephone-fill me-1"></i>${empty order.recipientPhone ? order.userPhone : order.recipientPhone}</div>
+                                                        <div class="text-muted small mt-1"><i class="bi bi-geo-alt-fill me-1"></i>${empty order.deliveryAddress ? 'No address provided' : order.deliveryAddress}</div>
+                                                    </td>
+                                                    <td class="text-nowrap fw-bold text-primary">
+                                                        <fmt:formatNumber value="${order.totalPrice}" pattern="#,##0"/> &#273;
+                                                    </td>
+                                                    <td class="text-nowrap">
+                                                        <span class="payment-pill ${fn:toLowerCase(order.method)}">
+                                                            <i class="bi ${fn:toLowerCase(order.method) == 'vnpay' ? 'bi-credit-card' : 'bi-cash-coin'}"></i>
+                                                            <c:out value="${order.method}"/>
+                                                        </span>
+                                                        <div class="payment-note">
+                                                            <c:choose>
+                                                                <c:when test="${order.paidAmount gt 0}">Paid</c:when>
+                                                                <c:otherwise>Collect on delivery</c:otherwise>
+                                                            </c:choose>
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-nowrap">
+                                                        <span class="badge rounded-pill badge-soft-warning">
+                                                            <c:out value="${order.status}"/>
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <div class="text-muted small text-wrap" style="max-width: 150px;">
+                                                            <c:out value="${empty order.note ? '' : order.note}"/>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <%@ include file="/views/shipper/order-detail-modal.jsp" %>
+                                            </c:forEach>
+                                            <c:if test="${empty deliveredOrders}">
+                                                <tr>
+                                                    <td colspan="5" class="text-center py-4 text-muted">No delivered orders.</td>
+                                                </tr>
+                                            </c:if>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </section>
                 </div>
@@ -614,8 +681,40 @@
         </main>
 
         <%@ include file="/views/common/footer.jsp" %>
+
+        <!-- Cancel Confirmation Modal -->
+        <div class="modal fade" id="cancelConfirmModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i> Cancel Delivery</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form action="${pageContext.request.contextPath}/shipper/orders" method="post">
+                        <div class="modal-body">
+                            <input type="hidden" name="action" value="updateStatus">
+                            <input type="hidden" name="orderId" id="cancelOrderId" value="">
+                            <input type="hidden" name="status" value="CANCELLED">
+                            <p class="mb-0">Are you sure you want to cancel the delivery for Order <strong>#<span id="cancelOrderDisplayId"></span></strong>?<br><span class="text-muted small">This action cannot be undone.</span></p>
+                        </div>
+                        <div class="modal-footer bg-light border-top-0">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-danger">Confirm Cancellation</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         <script>
+            function openCancelModal(orderId) {
+                document.getElementById('cancelOrderId').value = orderId;
+                document.getElementById('cancelOrderDisplayId').textContent = orderId;
+                var cancelModal = new bootstrap.Modal(document.getElementById('cancelConfirmModal'));
+                cancelModal.show();
+            }
+
             document.querySelectorAll('[data-order-modal]').forEach(function (row) {
                 row.addEventListener('click', function (event) {
                     if (event.target.closest('a, button, input, textarea, select, form, .dropdown-menu')) {
