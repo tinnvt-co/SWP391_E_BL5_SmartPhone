@@ -31,25 +31,24 @@ public class SupplierController extends HttpServlet {
         try {
 
             // =========================
-            // SHOW CREATE FORM
+            // CREATE FORM
             // =========================
             if ("create".equals(action)) {
 
                 request.getRequestDispatcher(
-                        "/views/manager/supplier-form.jsp")
+                        "/views/manager/supplier-detail.jsp")
                         .forward(request, response);
 
                 return;
             }
 
             // =========================
-            // SHOW UPDATE FORM
+            // EDIT FORM
             // =========================
             if ("edit".equals(action)) {
 
                 int id = parseInt(
-                        request.getParameter("id"),
-                        0);
+                        request.getParameter("id"), 0);
 
                 if (id <= 0) {
                     response.sendError(
@@ -70,50 +69,7 @@ public class SupplierController extends HttpServlet {
                         = supplierDAO.findProductVariantIds(id);
 
                 request.setAttribute(
-                        "supplier",
-                        supplier);
-
-                request.setAttribute(
-                        "productVariantIds",
-                        productVariantIds);
-
-                request.getRequestDispatcher(
-                        "/views/manager/supplier-form.jsp")
-                        .forward(request, response);
-
-                return;
-            }
-
-            // =========================
-            // DETAIL
-            // =========================
-            if ("detail".equals(action)) {
-
-                int id = parseInt(
-                        request.getParameter("id"),
-                        0);
-
-                if (id <= 0) {
-                    response.sendError(
-                            HttpServletResponse.SC_BAD_REQUEST);
-                    return;
-                }
-
-                SupplierModel supplier
-                        = supplierDAO.findById(id);
-
-                if (supplier == null) {
-                    response.sendError(
-                            HttpServletResponse.SC_NOT_FOUND);
-                    return;
-                }
-
-                List<Integer> productVariantIds
-                        = supplierDAO.findProductVariantIds(id);
-
-                request.setAttribute(
-                        "supplier",
-                        supplier);
+                        "supplier", supplier);
 
                 request.setAttribute(
                         "productVariantIds",
@@ -127,20 +83,126 @@ public class SupplierController extends HttpServlet {
             }
 
             // =========================
-            // LIST
+            // DETAIL
             // =========================
+            if ("detail".equals(action)) {
+
+                int id = parseInt(
+                        request.getParameter("id"), 0);
+
+                if (id <= 0) {
+                    response.sendError(
+                            HttpServletResponse.SC_BAD_REQUEST);
+                    return;
+                }
+
+                SupplierModel supplier
+                        = supplierDAO.findById(id);
+
+                if (supplier == null) {
+                    response.sendError(
+                            HttpServletResponse.SC_NOT_FOUND);
+                    return;
+                }
+
+                List<Integer> productVariantIds
+                        = supplierDAO.findProductVariantIds(id);
+
+                request.setAttribute(
+                        "supplier", supplier);
+
+                request.setAttribute(
+                        "productVariantIds",
+                        productVariantIds);
+
+                request.getRequestDispatcher(
+                        "/views/manager/supplier-detail.jsp")
+                        .forward(request, response);
+
+                return;
+            }
+
+            // =========================
+            // LIST + PAGINATION
+            // =========================
+            final int PAGE_SIZE = 10;
+
             String keyword
                     = request.getParameter("keyword");
 
             String status
                     = request.getParameter("status");
 
-            List<SupplierModel> suppliers
-                    = supplierDAO.findAll(
+            int requestedPage
+                    = Math.max(
+                            1,
+                            parseInt(
+                                    request.getParameter("page"),
+                                    1));
+
+            /*
+         * Get total suppliers first.
+             */
+            int totalSuppliers
+                    = supplierDAO.countAll(
                             keyword,
                             status);
 
-            // Flash message
+            int totalPages
+                    = Math.max(
+                            1,
+                            (int) Math.ceil(
+                                    totalSuppliers
+                                    / (double) PAGE_SIZE));
+
+            int currentPage
+                    = Math.min(
+                            requestedPage,
+                            totalPages);
+
+            int offset
+                    = (currentPage - 1)
+                    * PAGE_SIZE;
+
+            /*
+         * Show 5 page buttons around current page.
+         *
+         * Example:
+         *
+         * 1 2 3 4 5
+         *
+         * or
+         *
+         * 3 4 5 6 7
+             */
+            int startPage
+                    = Math.max(
+                            1,
+                            currentPage - 2);
+
+            int endPage
+                    = Math.min(
+                            totalPages,
+                            startPage + 4);
+
+            if (endPage - startPage < 4) {
+
+                startPage
+                        = Math.max(
+                                1,
+                                endPage - 4);
+            }
+
+            List<SupplierModel> suppliers
+                    = supplierDAO.findAll(
+                            keyword,
+                            status,
+                            PAGE_SIZE,
+                            offset);
+
+            // =========================
+            // FLASH MESSAGE
+            // =========================
             HttpSession session
                     = request.getSession();
 
@@ -168,6 +230,9 @@ public class SupplierController extends HttpServlet {
                 session.removeAttribute("msgErr");
             }
 
+            // =========================
+            // JSP ATTRIBUTES
+            // =========================
             request.setAttribute(
                     "suppliers",
                     suppliers);
@@ -180,8 +245,32 @@ public class SupplierController extends HttpServlet {
                     "status",
                     status);
 
+            request.setAttribute(
+                    "totalSuppliers",
+                    totalSuppliers);
+
+            request.setAttribute(
+                    "currentPage",
+                    currentPage);
+
+            request.setAttribute(
+                    "totalPages",
+                    totalPages);
+
+            request.setAttribute(
+                    "startPage",
+                    startPage);
+
+            request.setAttribute(
+                    "endPage",
+                    endPage);
+
+            request.setAttribute(
+                    "pageSize",
+                    PAGE_SIZE);
+
             request.getRequestDispatcher(
-                    "/views/manager/supplier.jsp")
+                    "/views/manager/supplier-list.jsp")
                     .forward(request, response);
 
         } catch (SQLException e) {

@@ -792,6 +792,7 @@
 .product-module    { --module-color: var(--mgr-blue);    --module-soft: var(--mgr-blue-soft); }
 .category-module   { --module-color: var(--mgr-green);   --module-soft: var(--mgr-green-soft); }
 .brand-module      { --module-color: var(--mgr-purple);  --module-soft: var(--mgr-purple-soft); }
+.supplier-module   { --module-color: var(--mgr-cyan);  --module-soft: var(--mgr-cyan-soft); }
 .inventory-module  { --module-color: var(--mgr-indigo);  --module-soft: var(--mgr-indigo-soft); }
 .discount-module   { --module-color: var(--mgr-pink);    --module-soft: var(--mgr-pink-soft); }
 .order-module      { --module-color: var(--mgr-teal);    --module-soft: var(--mgr-teal-soft); }

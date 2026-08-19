@@ -54,6 +54,7 @@ public class AuthFilter implements Filter {
             rule("/manager/products", perms("PRODUCT_MANAGE")),
             rule("/manager/categories", perms("CATEGORY_MANAGE")),
             rule("/manager/brands", perms("BRAND_MANAGE")),
+            rule("/manager/supplier", perms("SUPPLIER_MANAGE")),
             rule("/manager/inventory", perms("INVENTORY_MANAGE")),
             rule("/manager/discounts", perms("DISCOUNT_MANAGE")),
             rule("/manager/sales", perms("SALES_STATS_VIEW")),
@@ -198,7 +199,6 @@ public class AuthFilter implements Filter {
         if (session == null) {
             return;
         }
-
         Object currentUser = session.getAttribute("currentUser");
         Object currentRole = session.getAttribute("currentRole");
         Object permissions = session.getAttribute("permissions");

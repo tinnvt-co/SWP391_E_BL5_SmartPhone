@@ -8,7 +8,7 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
         <%@include file="../common/head.jsp"%>
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-laydout.css">
     </head>
     <body>
         <c:set var="activePage" value="manager" scope="request"/>
@@ -103,6 +103,23 @@
                     <b>Open brand management <span>→</span></b>
                 </a>
 
+                <a class="manager-module supplier-module"
+                   href="${pageContext.request.contextPath}/manager/supplier">
+                    <span class="module-icon">🏢</span>
+                    <span class="module-count">
+                        ${totalSuppliers} suppliers
+                    </span>
+                    <h3>Manage Suppliers</h3>
+                    <p>
+                        Manage suppliers, contact information
+                        and the product variants they provide.
+                    </p>
+                    <b>
+                        Open supplier management
+                        <span>→</span>
+                    </b>
+                </a>
+
                 <a class="manager-module inventory-module" href="${pageContext.request.contextPath}/manager/inventory">
                     <span class="module-icon">📦</span>
                     <span class="module-count">${stockStats[0]} SKUs</span>
@@ -127,29 +144,29 @@
                     <b>Open order queue <span>→</span></b>
                 </a>
 
-            <a class="manager-module stats-module" href="${pageContext.request.contextPath}/manager/sales-stats">
-                <span class="module-icon">📊</span>
-                <span class="module-count">12 month view</span>
-                <h3>Sales Statistics</h3>
-                <p>Compare revenue, orders and items sold across 7 days, 30 days, month, 90 days or 12 months.</p>
-                <b>Open sales stats <span>→</span></b>
-            </a>
+                <a class="manager-module stats-module" href="${pageContext.request.contextPath}/manager/sales-stats">
+                    <span class="module-icon">📊</span>
+                    <span class="module-count">12 month view</span>
+                    <h3>Sales Statistics</h3>
+                    <p>Compare revenue, orders and items sold across 7 days, 30 days, month, 90 days or 12 months.</p>
+                    <b>Open sales stats <span>→</span></b>
+                </a>
 
-            <a class="manager-module feedback-module" href="${pageContext.request.contextPath}/manager/feedback">
-                <span class="module-icon">⭐</span>
-                <span class="module-count">Customer voices</span>
-                <h3>Customer Reviews</h3>
-                <p>Read what shoppers are saying and reply to keep the conversation going.</p>
-                <b>Open review queue <span>→</span></b>
-            </a>
+                <a class="manager-module feedback-module" href="${pageContext.request.contextPath}/manager/feedback">
+                    <span class="module-icon">⭐</span>
+                    <span class="module-count">Customer voices</span>
+                    <h3>Customer Reviews</h3>
+                    <p>Read what shoppers are saying and reply to keep the conversation going.</p>
+                    <b>Open review queue <span>→</span></b>
+                </a>
 
-            <a class="manager-module refund-module" href="${pageContext.request.contextPath}/manager/return-request">
-                <span class="module-icon">↩️</span>
-                <span class="module-count">${pendingRefunds} pending</span>
-                <h3>Refund Requests</h3>
-                <p>Approve or reject customer refund requests for delivered orders and view attached evidence.</p>
-                <b>Open refund queue <span>→</span></b>
-            </a>
+                <a class="manager-module refund-module" href="${pageContext.request.contextPath}/manager/return-request">
+                    <span class="module-icon">↩️</span>
+                    <span class="module-count">${pendingRefunds} pending</span>
+                    <h3>Refund Requests</h3>
+                    <p>Approve or reject customer refund requests for delivered orders and view attached evidence.</p>
+                    <b>Open refund queue <span>→</span></b>
+                </a>
 
                 <a class="manager-module revenue-module" href="${pageContext.request.contextPath}/manager/revenue">
                     <span class="module-icon">💰</span>
