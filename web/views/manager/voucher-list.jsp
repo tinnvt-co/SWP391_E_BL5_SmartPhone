@@ -146,68 +146,7 @@
                                         </div>
                                     </td>
                                 </tr>
-                                
-                                <!-- Edit Modal -->
-                                <div class="modal fade" id="editModal${v.id}" tabindex="-1" aria-labelledby="editModalLabel${v.id}" aria-hidden="true">
-                                    <div class="modal-dialog">
-                                        <form action="${pageContext.request.contextPath}/manager/vouchers" method="post" class="modal-content">
-                                            <input type="hidden" name="action" value="update">
-                                            <input type="hidden" name="id" value="${v.id}">
-                                            
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="editModalLabel${v.id}">Edit Voucher #${v.id}</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <div class="mb-3">
-                                                    <label class="form-label">Voucher Code <span class="text-danger">*</span></label>
-                                                    <input type="text" class="form-control" name="code" value="${v.code}" required style="text-transform: uppercase;">
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <div class="col-md-6">
-                                                        <label class="form-label">Discount Type <span class="text-danger">*</span></label>
-                                                        <select class="form-select" name="discountType" required onchange="toggleMaxDiscount(this, 'editMaxDiscount${v.id}')">
-                                                            <option value="FIXED_AMOUNT" ${v.discountType == 'FIXED_AMOUNT' ? 'selected' : ''}>Fixed Amount (đ)</option>
-                                                            <option value="PERCENTAGE" ${v.discountType == 'PERCENTAGE' ? 'selected' : ''}>Percentage (%)</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <label class="form-label">Value <span class="text-danger">*</span></label>
-                                                        <input type="number" class="form-control" name="value" step="0.01" min="0" value="${v.value}" required>
-                                                    </div>
-                                                </div>
-                                                <div class="mb-3" id="editMaxDiscount${v.id}" style="display: ${v.discountType == 'PERCENTAGE' ? 'block' : 'none'};">
-                                                    <label class="form-label">Max Discount Amount (Optional)</label>
-                                                    <input type="number" class="form-control" name="maxDiscount" step="0.01" min="0" value="${v.maxDiscount}">
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <div class="col-md-6">
-                                                        <label class="form-label">Min Order Value (Optional)</label>
-                                                        <input type="number" class="form-control" name="minOrderValue" step="0.01" min="0" value="${v.minOrderValue}">
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <label class="form-label">Usage Limit (Optional)</label>
-                                                        <input type="number" class="form-control" name="usageLimit" min="1" value="${v.usageLimit}">
-                                                    </div>
-                                                </div>
-                                                <div class="row mb-3">
-                                                    <div class="col-md-6">
-                                                        <label class="form-label">Start Date <span class="text-danger">*</span></label>
-                                                        <input type="datetime-local" class="form-control" name="startDate" value="${fn:replace(v.startDate, ' ', 'T')}" required>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <label class="form-label">End Date <span class="text-danger">*</span></label>
-                                                        <input type="datetime-local" class="form-control" name="endDate" value="${fn:replace(v.endDate, ' ', 'T')}" required>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn subtle" data-bs-dismiss="modal">Cancel</button>
-                                                <button type="submit" class="btn primary">Save Changes</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
+
                             </c:forEach>
                             <c:if test="${empty vouchers}">
                                 <tr>
@@ -282,6 +221,70 @@
                 </form>
             </div>
         </div>
+
+        <c:forEach var="v" items="${vouchers}">
+            <!-- Edit Modal -->
+            <div class="modal fade" id="editModal${v.id}" tabindex="-1" aria-labelledby="editModalLabel${v.id}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <form action="${pageContext.request.contextPath}/manager/vouchers" method="post" class="modal-content">
+                        <input type="hidden" name="action" value="update">
+                        <input type="hidden" name="id" value="${v.id}">
+                        
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editModalLabel${v.id}">Edit Voucher #${v.id}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Voucher Code <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="code" value="${v.code}" required style="text-transform: uppercase;">
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Discount Type <span class="text-danger">*</span></label>
+                                    <select class="form-select" name="discountType" required onchange="toggleMaxDiscount(this, 'editMaxDiscount${v.id}')">
+                                        <option value="FIXED_AMOUNT" ${v.discountType == 'FIXED_AMOUNT' ? 'selected' : ''}>Fixed Amount (đ)</option>
+                                        <option value="PERCENTAGE" ${v.discountType == 'PERCENTAGE' ? 'selected' : ''}>Percentage (%)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Value <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" name="value" step="0.01" min="0" value="${v.value}" required>
+                                </div>
+                            </div>
+                            <div class="mb-3" id="editMaxDiscount${v.id}" style="display: ${v.discountType == 'PERCENTAGE' ? 'block' : 'none'};">
+                                <label class="form-label">Max Discount Amount (Optional)</label>
+                                <input type="number" class="form-control" name="maxDiscount" step="0.01" min="0" value="${v.maxDiscount}">
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Min Order Value (Optional)</label>
+                                    <input type="number" class="form-control" name="minOrderValue" step="0.01" min="0" value="${v.minOrderValue}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Usage Limit (Optional)</label>
+                                    <input type="number" class="form-control" name="usageLimit" min="1" value="${v.usageLimit}">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Start Date <span class="text-danger">*</span></label>
+                                    <input type="datetime-local" class="form-control" name="startDate" value="${fn:replace(v.startDate, ' ', 'T')}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">End Date <span class="text-danger">*</span></label>
+                                    <input type="datetime-local" class="form-control" name="endDate" value="${fn:replace(v.endDate, ' ', 'T')}" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn subtle" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </c:forEach>
 
         <%@ include file="/views/common/footer.jsp" %>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
