@@ -124,21 +124,21 @@
                                             </button>
                                             
                                             <c:if test="${v.status == 'ACTIVE'}">
-                                                <form action="${pageContext.request.contextPath}/manager/vouchers" method="post" class="d-inline">
+                                                <form action="${pageContext.request.contextPath}/manager/vouchers" method="post" class="d-inline form-toggle-status">
                                                     <input type="hidden" name="action" value="toggleStatus">
                                                     <input type="hidden" name="id" value="${v.id}">
                                                     <input type="hidden" name="status" value="INACTIVE">
-                                                    <button type="submit" class="btn danger" onclick="return confirm('Deactivate this voucher?')">
+                                                    <button type="button" class="btn danger btn-toggle-status" data-action="Deactivate">
                                                         Deactivate
                                                     </button>
                                                 </form>
                                             </c:if>
                                             <c:if test="${v.status == 'INACTIVE'}">
-                                                <form action="${pageContext.request.contextPath}/manager/vouchers" method="post" class="d-inline">
+                                                <form action="${pageContext.request.contextPath}/manager/vouchers" method="post" class="d-inline form-toggle-status">
                                                     <input type="hidden" name="action" value="toggleStatus">
                                                     <input type="hidden" name="id" value="${v.id}">
                                                     <input type="hidden" name="status" value="ACTIVE">
-                                                    <button type="submit" class="btn primary" onclick="return confirm('Activate this voucher?')">
+                                                    <button type="button" class="btn primary btn-toggle-status" data-action="Activate">
                                                         Activate
                                                     </button>
                                                 </form>
@@ -286,8 +286,10 @@
             </div>
         </c:forEach>
 
+        <script src="${pageContext.request.contextPath}/assets/js/store.js"></script>
         <%@ include file="/views/common/footer.jsp" %>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         
         <script>
             function toggleMaxDiscount(selectElem, targetId) {
@@ -298,6 +300,32 @@
                     target.style.display = 'none';
                 }
             }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                const toggleButtons = document.querySelectorAll('.btn-toggle-status');
+                toggleButtons.forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const form = this.closest('.form-toggle-status');
+                        const actionType = this.getAttribute('data-action');
+                        const actionColor = actionType === 'Deactivate' ? '#d33' : '#198754';
+                        
+                        Swal.fire({
+                            title: actionType + ' Voucher?',
+                            text: "Are you sure you want to " + actionType.toLowerCase() + " this voucher?",
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: actionColor,
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: 'Yes, ' + actionType.toLowerCase() + ' it!'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                form.submit();
+                            }
+                        });
+                    });
+                });
+            });
         </script>
     </body>
 </html>

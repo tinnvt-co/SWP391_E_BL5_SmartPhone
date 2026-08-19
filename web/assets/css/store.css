@@ -266,7 +266,7 @@ textarea {
 .btn.primary:hover {
     background: var(--blue-hover);
     border-color: var(--blue-hover);
-    color: #fff;
+    color: #fff !important;
     transform: translateY(-1px);
     box-shadow: 0 6px 14px rgba(29, 78, 216, 0.28);
 }
@@ -303,7 +303,7 @@ textarea {
 
 .btn.danger:hover {
     background: var(--pink);
-    color: #fff;
+    color: #fff !important;
     border-color: var(--pink);
 }
 
@@ -321,7 +321,7 @@ textarea {
 .btn.success:hover {
     background: #047857;
     border-color: #047857;
-    color: #fff;
+    color: #fff !important;
 }
 
 /* =============================================================
