@@ -14,7 +14,8 @@ public class CheckoutDAO {
 
     public int createOrder(int userId, List<CartItemModel> items,
             CheckoutInfoModel info, String method, String status,
-            boolean paid, boolean reduceStockAndClearCart) throws SQLException {
+            boolean paid, boolean reduceStockAndClearCart,
+            Integer voucherId, int discountAmount) throws SQLException {
         if (items == null || items.isEmpty()) {
             throw new SQLException("No products selected for checkout.");
         }
@@ -28,12 +29,16 @@ public class CheckoutDAO {
                 int total = total(items);
 
                 insertDeliveryInfo(connection, deliveryInfoId, userId, info);
-                insertTransaction(connection, transactionId, userId, total,
-                        method, status, paid, deliveryInfoId);
+                insertTransaction(connection, transactionId, userId, total - discountAmount,
+                        method, status, paid, deliveryInfoId, voucherId);
                 insertOrderItems(connection, transactionId, items);
                 if (reduceStockAndClearCart) {
                     reduceStock(connection, items);
                     removeCartItems(connection, userId, items);
+                }
+                
+                if (voucherId != null && reduceStockAndClearCart) {
+                    markVoucherUsed(connection, userId, voucherId);
                 }
 
                 connection.commit();
@@ -114,11 +119,11 @@ public class CheckoutDAO {
 
     private void insertTransaction(Connection connection, int id, int userId,
             int total, String method, String status, boolean paid,
-            int deliveryInfoId) throws SQLException {
+            int deliveryInfoId, Integer voucherId) throws SQLException {
         String sql = "INSERT INTO `Transaction` "
                 + "(ID, UserID, Total_price, Type, Status, SupplierID, Paid_amount, "
-                + "Change_amount, Method, Updated_by, Reference_transactionID, DeliveryInfoID) "
-                + "VALUES (?, ?, ?, 'ORDER', ?, NULL, ?, 0, ?, ?, NULL, ?)";
+                + "Change_amount, Method, Updated_by, Reference_transactionID, DeliveryInfoID, VoucherID) "
+                + "VALUES (?, ?, ?, 'ORDER', ?, NULL, ?, 0, ?, ?, NULL, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, id);
             statement.setInt(2, userId);
@@ -128,7 +133,26 @@ public class CheckoutDAO {
             statement.setString(6, method);
             statement.setInt(7, userId);
             statement.setInt(8, deliveryInfoId);
+            if (voucherId != null) {
+                statement.setInt(9, voucherId);
+            } else {
+                statement.setNull(9, java.sql.Types.INTEGER);
+            }
             statement.executeUpdate();
+        }
+    }
+
+    private void markVoucherUsed(Connection connection, int userId, int voucherId) throws SQLException {
+        String sql1 = "UPDATE User_Voucher SET Is_used = TRUE, Used_at = CURRENT_TIMESTAMP WHERE UserID = ? AND VoucherID = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql1)) {
+            stmt.setInt(1, userId);
+            stmt.setInt(2, voucherId);
+            stmt.executeUpdate();
+        }
+        String sql2 = "UPDATE Voucher SET Used_count = Used_count + 1 WHERE ID = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql2)) {
+            stmt.setInt(1, voucherId);
+            stmt.executeUpdate();
         }
     }
 

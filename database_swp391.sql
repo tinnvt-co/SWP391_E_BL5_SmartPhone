@@ -36,6 +36,8 @@ DROP TABLE IF EXISTS `Discount`;
 DROP TABLE IF EXISTS `Discount_Product`;
 DROP TABLE IF EXISTS `TransactionStatusHistory`;
 DROP TABLE IF EXISTS `DeliveryStatusHistory`;
+DROP TABLE IF EXISTS `User_Voucher`;
+DROP TABLE IF EXISTS `Voucher`;
 
 CREATE TABLE `Category` (
   `ID` INT NOT NULL AUTO_INCREMENT,
@@ -204,13 +206,16 @@ CREATE TABLE `Transaction` (
   `Change_amount` DECIMAL(12,2) NOT NULL DEFAULT 0,
   `Method` VARCHAR(255) NOT NULL,
   `Note` VARCHAR(1000) NULL,
+  `Proof_image` VARCHAR(1000) NULL,
   `Updated_by` INT NOT NULL,
   `Updated_at` TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   `Created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `Reference_transactionID` INT,
   `DeliveryInfoID` INT,
   `ShipperID` INT NULL,
-  PRIMARY KEY (`ID`)
+  `VoucherID` INT NULL,
+  PRIMARY KEY (`ID`),
+  FOREIGN KEY (`VoucherID`) REFERENCES `Voucher`(`ID`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
  
 CREATE TABLE `Transaction_ProductVariant` (
@@ -276,6 +281,34 @@ CREATE TABLE `DeliveryInfo` (
   PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
  
+CREATE TABLE `Voucher` (
+  `ID` INT NOT NULL AUTO_INCREMENT,
+  `Code` VARCHAR(50) NOT NULL UNIQUE,
+  `Discount_type` VARCHAR(50) NOT NULL,
+  `Value` DECIMAL(12,2) NOT NULL,
+  `Max_discount` DECIMAL(12,2) NULL,
+  `Min_order_value` DECIMAL(12,2) NULL,
+  `Usage_limit` INT NULL,
+  `Used_count` INT NOT NULL DEFAULT 0,
+  `Start_date` TIMESTAMP NOT NULL,
+  `End_date` TIMESTAMP NOT NULL,
+  `Status` VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
+  `Created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `Updated_at` TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `User_Voucher` (
+  `UserID` INT NOT NULL,
+  `VoucherID` INT NOT NULL,
+  `Is_used` BOOLEAN NOT NULL DEFAULT FALSE,
+  `Saved_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `Used_at` TIMESTAMP NULL DEFAULT NULL,
+  PRIMARY KEY (`UserID`, `VoucherID`),
+  FOREIGN KEY (`UserID`) REFERENCES `User`(`ID`) ON DELETE CASCADE,
+  FOREIGN KEY (`VoucherID`) REFERENCES `Voucher`(`ID`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE `Discount` (
   `ID` INT NOT NULL AUTO_INCREMENT,
   `Name` VARCHAR(255) NULL,
@@ -2921,3 +2954,13 @@ INSERT INTO ReturnRequest (ID, Status, Description, Image, UserID, TransactionID
 
 INSERT INTO ReturnRequest_ProductVariant (ReturnRequestID, ProductVariantID) VALUES
 (1, 601);
+
+INSERT INTO Voucher (ID, Code, Discount_type, Value, Max_discount, Min_order_value, Usage_limit, Used_count, Start_date, End_date, Status) VALUES
+(1, 'SUMMER2026', 'PERCENTAGE', 10.00, 500000.00, 1000000.00, 100, 0, '2026-06-01 00:00:00', '2026-12-31 23:59:59', 'ACTIVE'),
+(2, 'WELCOME50K', 'FIXED_AMOUNT', 50000.00, NULL, 500000.00, 50, 0, '2026-01-01 00:00:00', '2026-12-31 23:59:59', 'ACTIVE'),
+(3, 'VIPDISCOUNT', 'PERCENTAGE', 15.00, 1000000.00, 5000000.00, 20, 0, '2026-08-01 00:00:00', '2026-10-31 23:59:59', 'ACTIVE');
+
+INSERT INTO User_Voucher (UserID, VoucherID, Is_used, Saved_at) VALUES
+(4, 1, 0, '2026-08-10 10:00:00'),
+(4, 2, 0, '2026-08-11 11:30:00'),
+(6, 1, 0, '2026-08-12 09:15:00');

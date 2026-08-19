@@ -134,6 +134,14 @@
                     <b>Open discount management <span>→</span></b>
                 </a>
 
+                <a class="manager-module discount-module" href="${pageContext.request.contextPath}/manager/vouchers">
+                    <span class="module-icon">🎟️</span>
+                    <span class="module-count">Vouchers</span>
+                    <h3>Manage Vouchers</h3>
+                    <p>Create and manage discount codes that customers can save and apply during checkout.</p>
+                    <b>Open voucher management <span>→</span></b>
+                </a>
+
                 <a class="manager-module order-module" href="${pageContext.request.contextPath}/manager/orders">
                     <span class="module-icon">🛒</span>
                     <span class="module-count">${todayOrders} today</span>

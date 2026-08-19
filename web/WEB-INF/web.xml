@@ -162,6 +162,14 @@
         <servlet-name>ImportOrderController</servlet-name>
         <servlet-class>controller.ImportOrderController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>ManagerVoucherController</servlet-name>
+        <servlet-class>controller.ManagerVoucherController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>SaveVoucherController</servlet-name>
+        <servlet-class>controller.SaveVoucherController</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>HomeController</servlet-name>
         <url-pattern>/home</url-pattern>
@@ -324,6 +332,14 @@
     <servlet-mapping>
         <servlet-name>ImportOrderController</servlet-name>
         <url-pattern>/import</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ManagerVoucherController</servlet-name>
+        <url-pattern>/manager/vouchers</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>SaveVoucherController</servlet-name>
+        <url-pattern>/voucher/save</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>30</session-timeout>

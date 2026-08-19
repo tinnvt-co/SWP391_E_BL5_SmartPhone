@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ page contentType="text/html;charset=UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
@@ -67,6 +67,64 @@
                 </div>
             </section>
 
+            <c:if test="${not empty activeVouchers}">
+                <section class="section-band bg-light py-5">
+                    <div class="container">
+                        <div class="d-flex align-items-center mb-4">
+                            <h2 class="h3 fw-bold mb-0 me-3"><i class="bi bi-ticket-perforated text-danger"></i> Exclusive Vouchers</h2>
+                            <span class="badge bg-danger rounded-pill">${fn:length(activeVouchers)} available</span>
+                        </div>
+                        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                            <c:forEach var="v" items="${activeVouchers}">
+                                <div class="col">
+                                    <div class="card h-100 border-0 shadow-sm" style="border-left: 4px solid #dc3545 !important; border-radius: 8px;">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <h5 class="card-title fw-bold text-danger mb-0">
+                                                    <c:choose>
+                                                        <c:when test="${v.discountType == 'PERCENTAGE'}">
+                                                            <fmt:formatNumber value="${v.value}" pattern="#,##0"/>% OFF
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <fmt:formatNumber value="${v.value}" pattern="#,##0"/>đ OFF
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </h5>
+                                                <span class="badge bg-light text-dark border font-monospace">${v.code}</span>
+                                            </div>
+                                            <p class="card-text text-muted small mb-3">
+                                                <c:if test="${not empty v.minOrderValue}">
+                                                    For orders from <fmt:formatNumber value="${v.minOrderValue}" pattern="#,##0"/>đ.
+                                                </c:if>
+                                                <c:if test="${not empty v.maxDiscount}">
+                                                    Max discount <fmt:formatNumber value="${v.maxDiscount}" pattern="#,##0"/>đ.
+                                                </c:if>
+                                            </p>
+                                            <div class="d-flex justify-content-between align-items-end mt-auto">
+                                                <small class="text-muted">
+                                                    Valid till: <br> <fmt:formatDate value="${v.endDate}" pattern="dd/MM/yyyy"/>
+                                                </small>
+                                                
+                                                <c:choose>
+                                                    <c:when test="${empty currentUser}">
+                                                        <a href="${pageContext.request.contextPath}/login" class="btn btn-sm btn-outline-danger">Login to Save</a>
+                                                    </c:when>
+                                                    <c:when test="${savedVoucherIds.contains(v.id)}">
+                                                        <button class="btn btn-sm btn-secondary" disabled><i class="bi bi-check2"></i> Saved</button>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <button class="btn btn-sm btn-danger save-voucher-btn" data-id="${v.id}">Save Voucher</button>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </c:forEach>
+                        </div>
+                    </div>
+                </section>
+            </c:if>
             <c:if test="${currentRole == 'Staff'}">
                 <section class="section-band">
                     <div class="container">
@@ -266,6 +324,43 @@
         <%@ include file="/views/common/footer.jsp" %>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            document.querySelectorAll('.save-voucher-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const voucherId = this.getAttribute('data-id');
+                    const button = this;
+                    
+                    button.disabled = true;
+                    button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
+                    
+                    fetch('${pageContext.request.contextPath}/voucher/save', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: 'voucherId=' + voucherId
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            button.classList.remove('btn-danger');
+                            button.classList.add('btn-secondary');
+                            button.innerHTML = '<i class="bi bi-check2"></i> Saved';
+                        } else {
+                            alert(data.message || 'Failed to save voucher.');
+                            button.disabled = false;
+                            button.innerHTML = 'Save Voucher';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred.');
+                        button.disabled = false;
+                        button.innerHTML = 'Save Voucher';
+                    });
+                });
+            });
+        </script>
     </body>
 </html>
 
