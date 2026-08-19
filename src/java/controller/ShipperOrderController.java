@@ -30,11 +30,14 @@ public class ShipperOrderController extends HttpServlet {
 
             List<OrderModel> assignedOrders = orderDAO.findShippingOrdersByShipper(currentUser.getId());
             List<OrderModel> availableOrders = orderDAO.findAvailableShippingOrders();
+            List<OrderModel> deliveredOrders = orderDAO.findDeliveredOrdersByShipper(currentUser.getId());
             hydrateItems(assignedOrders);
             hydrateItems(availableOrders);
+            hydrateItems(deliveredOrders);
 
             request.setAttribute("orders", assignedOrders);
             request.setAttribute("availableOrders", availableOrders);
+            request.setAttribute("deliveredOrders", deliveredOrders);
 
             request.getRequestDispatcher("/views/shipper/delivery-order-list.jsp").forward(request, response);
         } catch (SQLException ex) {
