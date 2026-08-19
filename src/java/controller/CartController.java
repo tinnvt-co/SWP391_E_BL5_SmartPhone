@@ -26,6 +26,11 @@ public class CartController extends HttpServlet {
             List<CartItemModel> items = cartDAO.findByUserId(currentUser.getId());
             request.setAttribute("cartItems", items);
             request.setAttribute("cartTotal", total(items));
+            
+            // Get user's saved vouchers
+            DAO.VoucherDAO voucherDAO = new DAO.VoucherDAO();
+            request.setAttribute("savedVouchers", voucherDAO.findSavedVouchersByUser(currentUser.getId()));
+            
             request.getRequestDispatcher("/views/customer/cart.jsp")
                     .forward(request, response);
         } catch (SQLException exception) {
