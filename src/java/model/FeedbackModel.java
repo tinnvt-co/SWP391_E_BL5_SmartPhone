@@ -23,7 +23,7 @@ public class FeedbackModel implements Serializable {
     private int replyCount;
     private Timestamp latestReplyAt;
 
-    private static final long EDIT_WINDOW_DAYS = 365 * 2;
+    private static final long EDIT_WINDOW_DAYS = 15;
 
     public FeedbackModel() {
     }
@@ -194,15 +194,13 @@ public class FeedbackModel implements Serializable {
         return (diff + 24L * 60L * 60L * 1000L - 1) / (24L * 60L * 60L * 1000L);
     }
 
-    public boolean isEdited() {
-        return updatedAt != null && createdAt != null && updatedAt.getTime() - createdAt.getTime() > 1000;
-    }
-
     public boolean isManagerReplyAllowed() {
-        if (!isEdited()) {
-            return false;
+        // Chưa có reply nào -> luôn cho phép reply (kể cả feedback mới)
+        if (latestReplyAt == null) {
+            return true;
         }
-        return latestReplyAt == null || updatedAt.after(latestReplyAt);
+        // Đã reply rồi -> chỉ cho reply tiếp nếu khách sửa lại sau lần reply gần nhất
+        return updatedAt != null && updatedAt.after(latestReplyAt);
     }
 
     public String getRatingStars() {

@@ -249,7 +249,7 @@
 
                     <section class="panel content-panel">
                         <h2 class="h4 fw-bold mb-4">System Overview</h2>
-                        
+
                         <div class="row g-4 mb-4">
                             <div class="col-md-6">
                                 <div class="stat-card">
@@ -290,7 +290,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="alert alert-info border-0 bg-opacity-10 shadow-none d-flex align-items-center gap-3">
                             <i class="bi bi-info-circle-fill fs-4 text-info"></i>
                             <div>
@@ -307,11 +307,11 @@
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('DOMContentLoaded', function () {
                 // Parse the data passed from the Controller
                 const roleLabels = ${roleLabels};
                 const roleData = ${roleData};
-                
+
                 const statusLabels = ${statusLabels};
                 const statusData = ${statusData};
 
@@ -326,10 +326,10 @@
                     data: {
                         labels: roleLabels,
                         datasets: [{
-                            data: roleData,
-                            backgroundColor: roleColors,
-                            borderWidth: 1
-                        }]
+                                data: roleData,
+                                backgroundColor: roleColors,
+                                borderWidth: 1
+                            }]
                     },
                     options: {
                         responsive: true,
@@ -349,10 +349,10 @@
                     data: {
                         labels: statusLabels,
                         datasets: [{
-                            data: statusData,
-                            backgroundColor: statusColors,
-                            borderWidth: 1
-                        }]
+                                data: statusData,
+                                backgroundColor: statusColors,
+                                borderWidth: 1
+                            }]
                     },
                     options: {
                         responsive: true,

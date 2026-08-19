@@ -24,7 +24,7 @@ public class SupplierDAO {
      * @throws java.sql.SQLException
      */
     public List<SupplierModel> findAll() throws SQLException {
-        return findAll(null, null);
+        return findAll(null, null, Integer.MAX_VALUE, 0);
     }
 
     /**
@@ -32,34 +32,45 @@ public class SupplierDAO {
      *
      * @param keyword
      * @param status
+     * @param limit
+     * @param offset
      * @return
      * @throws java.sql.SQLException
      */
     public List<SupplierModel> findAll(
             String keyword,
-            String status) throws SQLException {
+            String status,
+            int limit,
+            int offset)
+            throws SQLException {
 
-        StringBuilder sql = new StringBuilder(
-                "SELECT s.ID, s.Name, s.Address, s.Phone, "
-                + "s.Description, s.Note, "
-                + "s.Created_at, s.Updated_at, s.Status, "
-                + "(SELECT COUNT(*) "
-                + " FROM Supplier_ProductVariant spv "
-                + " WHERE spv.SupplierID = s.ID) AS ProductVariantCount "
-                + "FROM Supplier s "
-                + "WHERE 1 = 1 ");
+        StringBuilder sql
+                = new StringBuilder(
+                        "SELECT s.ID, s.Name, "
+                        + "s.Address, s.Phone, "
+                        + "s.Description, s.Note, "
+                        + "s.Created_at, s.Updated_at, "
+                        + "s.Status, "
+                        + "(SELECT COUNT(*) "
+                        + " FROM Supplier_ProductVariant spv "
+                        + " WHERE spv.SupplierID = s.ID) "
+                        + "AS ProductVariantCount "
+                        + "FROM Supplier s "
+                        + "WHERE 1 = 1 ");
 
-        List<Object> parameters = new ArrayList<>();
+        List<Object> parameters
+                = new ArrayList<>();
 
-        if (keyword != null && !keyword.trim().isEmpty()) {
+        if (keyword != null
+                && !keyword.trim().isEmpty()) {
 
-            sql.append("AND ("
-                    + "s.Name LIKE ? "
+            sql.append(
+                    "AND (s.Name LIKE ? "
                     + "OR s.Phone LIKE ? "
-                    + "OR s.Address LIKE ?"
-                    + ") ");
+                    + "OR s.Address LIKE ?) ");
 
-            String k = "%" + keyword.trim() + "%";
+            String k
+                    = "%" + keyword.trim() + "%";
 
             parameters.add(k);
             parameters.add(k);
@@ -69,27 +80,44 @@ public class SupplierDAO {
         if (status != null
                 && !status.trim().isEmpty()) {
 
-            sql.append("AND s.Status = ? ");
+            sql.append(
+                    "AND s.Status = ? ");
+
             parameters.add(status);
         }
 
-        sql.append("ORDER BY s.Name ASC, s.ID ASC");
+        sql.append(
+                "ORDER BY s.Created_at DESC, "
+                + "s.ID DESC "
+                + "LIMIT ? OFFSET ?");
 
-        List<SupplierModel> suppliers = new ArrayList<>();
+        parameters.add(limit);
+        parameters.add(Math.max(0, offset));
 
-        try (Connection connection = DBContext.getConnection(); PreparedStatement statement
-                = connection.prepareStatement(sql.toString())) {
+        List<SupplierModel> suppliers
+                = new ArrayList<>();
 
-            for (int i = 0; i < parameters.size(); i++) {
+        try (Connection connection
+                = DBContext.getConnection(); PreparedStatement statement
+                = connection.prepareStatement(
+                        sql.toString())) {
+
+            for (int i = 0;
+                    i < parameters.size();
+                    i++) {
+
                 statement.setObject(
                         i + 1,
                         parameters.get(i));
             }
 
-            try (ResultSet rs = statement.executeQuery()) {
+            try (ResultSet rs
+                    = statement.executeQuery()) {
 
                 while (rs.next()) {
-                    suppliers.add(mapSupplier(rs));
+
+                    suppliers.add(
+                            mapSupplier(rs));
                 }
             }
         }
@@ -641,5 +669,70 @@ public class SupplierDAO {
         }
 
         return supplier;
+    }
+
+    public int countAll(
+            String keyword,
+            String status)
+            throws SQLException {
+
+        StringBuilder sql
+                = new StringBuilder(
+                        "SELECT COUNT(*) "
+                        + "FROM Supplier s "
+                        + "WHERE 1 = 1 ");
+
+        List<Object> parameters
+                = new ArrayList<>();
+
+        if (keyword != null
+                && !keyword.trim().isEmpty()) {
+
+            sql.append(
+                    "AND (s.Name LIKE ? "
+                    + "OR s.Phone LIKE ? "
+                    + "OR s.Address LIKE ?) ");
+
+            String k
+                    = "%" + keyword.trim() + "%";
+
+            parameters.add(k);
+            parameters.add(k);
+            parameters.add(k);
+        }
+
+        if (status != null
+                && !status.trim().isEmpty()) {
+
+            sql.append(
+                    "AND s.Status = ? ");
+
+            parameters.add(status);
+        }
+
+        try (Connection connection
+                = DBContext.getConnection(); PreparedStatement statement
+                = connection.prepareStatement(
+                        sql.toString())) {
+
+            for (int i = 0;
+                    i < parameters.size();
+                    i++) {
+
+                statement.setObject(
+                        i + 1,
+                        parameters.get(i));
+            }
+
+            try (ResultSet rs
+                    = statement.executeQuery()) {
+
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        }
+
+        return 0;
     }
 }
