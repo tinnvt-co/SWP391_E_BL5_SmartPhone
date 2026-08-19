@@ -1,6 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %><%@ taglib prefix="c" uri="jakarta.tags.core" %><%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -205,7 +203,6 @@
 
         <main class="review-shell">
             <div class="container">
-
                 <c:choose>
                     <c:when test="${not empty item}">
                         <div class="review-panel">
@@ -353,7 +350,7 @@
                                                             </c:when>
                                                             <c:when test="${rv.replyCount > 0}">
                                                                 <span class="badge-status answered">${rv.replyCount} reply<c:if test="${rv.replyCount > 1}">s</c:if></span>
-                                                            </c:when>
+                                                                </c:when>
                                                             <c:otherwise>
                                                                 <span class="badge-status pending-update">Waiting update</span>
                                                             </c:otherwise>
@@ -377,10 +374,8 @@
                         </div>
                     </c:otherwise>
                 </c:choose>
-
             </div>
         </main>
-
         <%@ include file="/views/common/footer.jsp" %>
     </body>
 </html>

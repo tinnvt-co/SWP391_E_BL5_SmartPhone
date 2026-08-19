@@ -26,7 +26,6 @@ import java.util.Map;
  * variant's form POST /feedback -> save (insert or update) one review POST
  * /feedback?action=delete -> soft-delete (within 15-day window)
  */
-@WebServlet(name = "FeedbackController", urlPatterns = {"/feedback"})
 public class FeedbackController extends HttpServlet {
 
     private final FeedbackDAO feedbackDAO = new FeedbackDAO();

@@ -30,7 +30,7 @@ import java.util.List;
 @WebServlet(name = "ManagerFeedbackController", urlPatterns = {"/manager/feedback"})
 public class ManagerFeedbackController extends HttpServlet {
 
-    private final FeedbackDAO dao = new FeedbackDAO();
+    private final FeedbackDAO feedbackDAO = new FeedbackDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -48,7 +48,7 @@ public class ManagerFeedbackController extends HttpServlet {
                 return;
             }
             try {
-                FeedbackWithReplies item = dao.loadFeedbackWithReplies(id);
+                FeedbackWithReplies item = feedbackDAO.loadFeedbackWithReplies(id);
                 if (item == null) {
                     response.sendRedirect(request.getContextPath() + "/manager/feedback");
                     return;
@@ -68,7 +68,7 @@ public class ManagerFeedbackController extends HttpServlet {
             Integer rating = parseNullableInt(request.getParameter("rating"));
             boolean onlyUnanswered = "1".equals(request.getParameter("onlyUnanswered"))
                     || "true".equalsIgnoreCase(request.getParameter("onlyUnanswered"));
-            List<FeedbackModel> reviews = dao.findAllForManager(keyword, rating, onlyUnanswered);
+            List<FeedbackModel> reviews = feedbackDAO.findAllForManager(keyword, rating, onlyUnanswered);
             request.setAttribute("reviews", reviews);
             request.setAttribute("filter", buildFilter(request));
             request.getRequestDispatcher("/views/manager/feedback-list.jsp").forward(request, response);
@@ -113,7 +113,7 @@ public class ManagerFeedbackController extends HttpServlet {
         }
 
         try {
-            FeedbackModel existing = dao.findById(feedbackId);
+            FeedbackModel existing = feedbackDAO.findById(feedbackId);
             if (existing == null || existing.isDeleted()) {
                 response.sendRedirect(request.getContextPath() + "/manager/feedback");
                 return;
@@ -123,7 +123,7 @@ public class ManagerFeedbackController extends HttpServlet {
                         + "&flash=" + encode("Manager can reply only after the customer updates this review."));
                 return;
             }
-            dao.reply(feedbackId, user.getId(), content);
+            feedbackDAO.reply(feedbackId, user.getId(), content);
             response.sendRedirect(request.getContextPath() + "/manager/feedback?action=view&id=" + feedbackId
                     + "&flash=" + encode("Reply posted."));
         } catch (SQLException ex) {

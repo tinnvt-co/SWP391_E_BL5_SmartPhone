@@ -194,6 +194,11 @@ public class FeedbackModel implements Serializable {
         return (diff + 24L * 60L * 60L * 1000L - 1) / (24L * 60L * 60L * 1000L);
     }
 
+    public boolean isEdited() {
+        return updatedAt != null && createdAt != null
+                && updatedAt.getTime() - createdAt.getTime() > 1000;
+    }
+
     public boolean isManagerReplyAllowed() {
         // Chưa có reply nào -> luôn cho phép reply (kể cả feedback mới)
         if (latestReplyAt == null) {
