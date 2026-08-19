@@ -35,8 +35,6 @@ import java.util.Map;
  */
 public class FeedbackDAO {
 
-    private static final int EDIT_WINDOW_DAYS = 15;
-
     static {
         ensureSchemaUpToDate();
     }

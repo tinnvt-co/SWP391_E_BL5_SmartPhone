@@ -23,7 +23,7 @@ public class FeedbackModel implements Serializable {
     private int replyCount;
     private Timestamp latestReplyAt;
 
-    private static final long EDIT_WINDOW_DAYS = 15;
+    private static final long EDIT_WINDOW_DAYS = 365 * 2;
 
     public FeedbackModel() {
     }
@@ -165,9 +165,11 @@ public class FeedbackModel implements Serializable {
     }
 
     /**
-     * Returns true while the customer is still within the 15-day edit window.
-     * The window is anchored to CreatedAt, not UpdatedAt, so editing does not
-     * extend it.
+     * Returns true while the customer is still within the 15-day edit
+     * window.The window is anchored to CreatedAt, not UpdatedAt, so editing
+     * does not extend it.
+     *
+     * @return
      */
     public boolean isWithinEditWindow() {
         if (createdAt == null) {
