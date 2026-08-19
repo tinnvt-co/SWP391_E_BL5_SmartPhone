@@ -31,7 +31,7 @@ public class OrderDAO {
         StringBuilder sql = new StringBuilder()
                 .append("SELECT t.ID, t.UserID, t.Total_price, t.Type, t.Status, ")
                 .append("       t.Paid_amount, t.Change_amount, t.Method, ")
-                .append("       t.Updated_by, t.Updated_at, t.Created_at, t.Note, ")
+                .append("       t.Updated_by, t.Updated_at, t.Created_at, t.Note, t.Proof_image, ")
                 .append("       t.Reference_transactionID, t.DeliveryInfoID, t.ShipperID, ")
                 .append("       u.Username, u.Name AS UserName, u.Phone, u.Email, ")
                 .append("       upd.Name AS UpdatedByName, ")
@@ -94,7 +94,7 @@ public class OrderDAO {
     public List<OrderModel> findAvailableShippingOrders() throws SQLException {
         String sql = "SELECT t.ID, t.UserID, t.Total_price, t.Type, t.Status, "
                 + "       t.Paid_amount, t.Change_amount, t.Method, "
-                + "       t.Updated_by, t.Updated_at, t.Created_at, t.Note, "
+                + "       t.Updated_by, t.Updated_at, t.Created_at, t.Note, t.Proof_image, "
                 + "       t.Reference_transactionID, t.DeliveryInfoID, t.ShipperID, "
                 + "       u.Username, u.Name AS UserName, u.Phone, u.Email, "
                 + "       upd.Name AS UpdatedByName, "
@@ -121,7 +121,7 @@ public class OrderDAO {
     public List<OrderModel> findShippingOrdersByShipper(int shipperId) throws SQLException {
         String sql = "SELECT t.ID, t.UserID, t.Total_price, t.Type, t.Status, "
                 + "       t.Paid_amount, t.Change_amount, t.Method, "
-                + "       t.Updated_by, t.Updated_at, t.Created_at, t.Note, "
+                + "       t.Updated_by, t.Updated_at, t.Created_at, t.Note, t.Proof_image, "
                 + "       t.Reference_transactionID, t.DeliveryInfoID, t.ShipperID, "
                 + "       u.Username, u.Name AS UserName, u.Phone, u.Email, "
                 + "       upd.Name AS UpdatedByName, "
@@ -149,7 +149,7 @@ public class OrderDAO {
     public List<OrderModel> findDeliveredOrdersByShipper(int shipperId) throws SQLException {
         String sql = "SELECT t.ID, t.UserID, t.Total_price, t.Type, t.Status, "
                 + "       t.Paid_amount, t.Change_amount, t.Method, "
-                + "       t.Updated_by, t.Updated_at, t.Created_at, t.Note, "
+                + "       t.Updated_by, t.Updated_at, t.Created_at, t.Note, t.Proof_image, "
                 + "       t.Reference_transactionID, t.DeliveryInfoID, t.ShipperID, "
                 + "       u.Username, u.Name AS UserName, u.Phone, u.Email, "
                 + "       upd.Name AS UpdatedByName, "
@@ -177,7 +177,7 @@ public class OrderDAO {
     public OrderModel findOrderDetail(int id) throws SQLException {
         String sql = "SELECT t.ID, t.UserID, t.Total_price, t.Type, t.Status, "
                 + "       t.Paid_amount, t.Change_amount, t.Method, "
-                + "       t.Updated_by, t.Updated_at, t.Created_at, t.Note, "
+                + "       t.Updated_by, t.Updated_at, t.Created_at, t.Note, t.Proof_image, "
                 + "       t.Reference_transactionID, t.DeliveryInfoID, t.ShipperID, "
                 + "       u.Username, u.Name AS UserName, u.Phone, u.Email, "
                 + "       upd.Name AS UpdatedByName, "
@@ -330,7 +330,7 @@ public class OrderDAO {
     public List<OrderModel> findByUserId(int userId) throws SQLException {
         String sql = "SELECT t.ID, t.UserID, t.Total_price, t.Type, t.Status, "
                 + "       t.Paid_amount, t.Change_amount, t.Method, "
-                + "       t.Updated_by, t.Updated_at, t.Created_at, t.Note, "
+                + "       t.Updated_by, t.Updated_at, t.Created_at, t.Note, t.Proof_image, "
                 + "       t.Reference_transactionID, t.DeliveryInfoID, t.ShipperID, "
                 + "       u.Username, u.Name AS UserName, u.Phone, u.Email, "
                 + "       upd.Name AS UpdatedByName, "
@@ -374,6 +374,27 @@ public class OrderDAO {
         }
     }
 
+    public boolean updateStatusWithProofAndNote(int orderId, String status, Integer updatedBy, String note, String proofImage)
+            throws SQLException {
+        if (!VALID_STATUSES.contains(status)) {
+            throw new SQLException("Invalid status: " + status);
+        }
+        String sql = "UPDATE `Transaction` SET Status = ?, Note = ?, Proof_image = ?, Updated_by = ?, Updated_at = CURRENT_TIMESTAMP "
+                + "WHERE ID = ?";
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, status);
+            statement.setString(2, note);
+            statement.setString(3, proofImage);
+            if (updatedBy == null) {
+                statement.setNull(4, java.sql.Types.INTEGER);
+            } else {
+                statement.setInt(4, updatedBy);
+            }
+            statement.setInt(5, orderId);
+            return statement.executeUpdate() > 0;
+        }
+    }
+
     private OrderModel mapOrderSummary(ResultSet rs) throws SQLException {
         OrderModel order = new OrderModel();
         order.setId(rs.getInt("ID"));
@@ -396,6 +417,7 @@ public class OrderDAO {
         int referenceId = rs.getInt("Reference_transactionID");
         order.setReferenceTransactionId(rs.wasNull() ? null : referenceId);
         order.setNote(rs.getString("Note"));
+        order.setProofImage(rs.getString("Proof_image"));
         int deliveryId = rs.getInt("DeliveryInfoID");
         order.setDeliveryInfoId(rs.wasNull() ? null : deliveryId);
         int shipperId = rs.getInt("ShipperID");

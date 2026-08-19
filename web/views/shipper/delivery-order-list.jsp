@@ -465,36 +465,17 @@
                                                         </div>
                                                     </td>
                                                     <td class="text-end text-nowrap">
-                                                        <c:set var="addrLower" value="${fn:toLowerCase(order.deliveryAddress)}" />
-                                                        <c:set var="isHanoi" value="${fn:contains(addrLower, 'hà nội') or fn:contains(addrLower, 'ha noi')}" />
-                                                        
                                                         <c:if test="${order.status eq 'SHIPPING'}">
                                                             <div class="dropdown">
                                                                 <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                                                     Actions
                                                                 </button>
                                                                 <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                                                                    <c:choose>
-                                                                        <c:when test="${isHanoi}">
-                                                                            <li>
-                                                                                <form action="${pageContext.request.contextPath}/shipper/orders" method="post" class="m-0 p-0">
-                                                                                    <input type="hidden" name="action" value="updateStatus">
-                                                                                    <input type="hidden" name="orderId" value="${order.id}">
-                                                                                    <input type="hidden" name="status" value="DELIVERED">
-                                                                                    <button type="submit" class="dropdown-item text-success">
-                                                                                        <i class="bi bi-check-circle me-2"></i> Mark as Delivered
-                                                                                    </button>
-                                                                                </form>
-                                                                            </li>
-                                                                        </c:when>
-                                                                        <c:otherwise>
-                                                                            <li>
-                                                                                <button type="button" class="dropdown-item text-warning" data-bs-toggle="modal" data-bs-target="#noteModal${order.id}">
-                                                                                    <i class="bi bi-pencil-square me-2"></i> Add Note
-                                                                                </button>
-                                                                            </li>
-                                                                        </c:otherwise>
-                                                                    </c:choose>
+                                                                    <li>
+                                                                        <button type="button" class="dropdown-item text-success" data-bs-toggle="modal" data-bs-target="#deliverModal${order.id}">
+                                                                            <i class="bi bi-check-circle me-2"></i> Mark as Delivered
+                                                                        </button>
+                                                                    </li>
                                                                     <li><hr class="dropdown-divider"></li>
                                                                     <li>
                                                                         <button type="button" class="dropdown-item text-danger" onclick="openCancelModal(${order.id})">
@@ -503,35 +484,39 @@
                                                                     </li>
                                                                 </ul>
                                                             </div>
-                                                        </c:if>
-                                                        
-                                                        <c:if test="${not isHanoi}">
-                                                        <!-- Note Modal -->
-                                                        <div class="modal fade" id="noteModal${order.id}" tabindex="-1" aria-labelledby="noteModalLabel${order.id}" aria-hidden="true">
-                                                            <div class="modal-dialog">
-                                                                <form action="${pageContext.request.contextPath}/shipper/orders" method="post">
-                                                                    <div class="modal-content text-start">
-                                                                        <div class="modal-header">
-                                                                            <h5 class="modal-title" id="noteModalLabel${order.id}">Add Note for Order #${order.id}</h5>
-                                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                                        </div>
-                                                                        <div class="modal-body">
-                                                                            <p class="small text-muted mb-3">This order is outside Hanoi. Please add a note about the shipping method.</p>
-                                                                            <input type="hidden" name="action" value="addNote">
-                                                                            <input type="hidden" name="orderId" value="${order.id}">
-                                                                            <div class="mb-3">
-                                                                                <label for="noteText${order.id}" class="form-label">Note</label>
-                                                                                <textarea class="form-control" id="noteText${order.id}" name="note" rows="3" required placeholder="e.g. Sent via Viettel Post..."></textarea>
+
+                                                            <!-- Deliver Modal -->
+                                                            <div class="modal fade" id="deliverModal${order.id}" tabindex="-1" aria-labelledby="deliverModalLabel${order.id}" aria-hidden="true">
+                                                                <div class="modal-dialog">
+                                                                    <form action="${pageContext.request.contextPath}/shipper/orders" method="post" enctype="multipart/form-data">
+                                                                        <div class="modal-content text-start">
+                                                                            <div class="modal-header">
+                                                                                <h5 class="modal-title" id="deliverModalLabel${order.id}">Confirm Delivery - Order #${order.id}</h5>
+                                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                            </div>
+                                                                            <div class="modal-body">
+                                                                                <input type="hidden" name="action" value="deliver">
+                                                                                <input type="hidden" name="orderId" value="${order.id}">
+                                                                                
+                                                                                <div class="mb-3">
+                                                                                    <label for="proofImage${order.id}" class="form-label fw-bold">Proof of Delivery Image <span class="text-danger">*</span></label>
+                                                                                    <input type="file" class="form-control" id="proofImage${order.id}" name="proofImage" accept="image/*" required>
+                                                                                    <div class="form-text">Please upload a photo of the bill or successful delivery.</div>
+                                                                                </div>
+
+                                                                                <div class="mb-3">
+                                                                                    <label for="noteText${order.id}" class="form-label fw-bold">Note (Optional)</label>
+                                                                                    <textarea class="form-control" id="noteText${order.id}" name="note" rows="2" placeholder="e.g. Left at front door..."></textarea>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="modal-footer">
+                                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                                <button type="submit" class="btn btn-success">Confirm Delivery</button>
                                                                             </div>
                                                                         </div>
-                                                                        <div class="modal-footer">
-                                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                                            <button type="submit" class="btn btn-warning">Save Note</button>
-                                                                        </div>
-                                                                    </div>
-                                                                </form>
+                                                                    </form>
+                                                                </div>
                                                             </div>
-                                                        </div>
                                                         </c:if>
                                                     </td>
                                                 </tr>
