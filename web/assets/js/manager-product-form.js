@@ -9,6 +9,27 @@
     const form = editor.closest('form');
     const categoryInputs = Array.from(
             form.querySelectorAll('input[name="categoryIds"]'));
+    const productNameInput = form.querySelector('input[name="name"]');
+    const brandSelect = form.querySelector('[data-product-brand]');
+    const brandConfirmation = form.querySelector(
+            'input[name="confirmBrandMismatch"]');
+
+    productNameInput.addEventListener('input', function () {
+        brandConfirmation.value = 'false';
+    });
+    brandSelect.addEventListener('change', function () {
+        brandConfirmation.value = 'false';
+    });
+
+    function detectBrands(productName) {
+        const name = productName.toLowerCase();
+        const detected = [];
+        if (/\biphone\b/.test(name)) detected.push('Apple');
+        if (/\b(samsung|galaxy)\b/.test(name)) detected.push('Samsung');
+        if (/\b(xiaomi|redmi|poco)\b/.test(name)) detected.push('Xiaomi');
+        if (/\boppo\b/.test(name)) detected.push('Oppo');
+        return Array.from(new Set(detected));
+    }
 
     function validateCategories() {
         if (!categoryInputs.length) {
@@ -23,6 +44,49 @@
 
     function addRow() {
         rows.appendChild(template.content.cloneNode(true));
+    }
+
+    function validateVariants() {
+        const optionKeys = new Set();
+        const skuKeys = new Set();
+
+        rows.querySelectorAll('.variant-row').forEach(function (row) {
+            const ram = row.querySelector('[name="variantRam"]');
+            const storage = row.querySelector('[name="variantStorage"]');
+            const color = row.querySelector('[name="variantColorName"]');
+            const sku = row.querySelector('[name="variantSku"]');
+            const sellingPrice = row.querySelector('[name="variantSellingPrice"]');
+            const latestCost = row.querySelector('[name="variantLatestCost"]');
+
+            color.setCustomValidity('');
+            sku.setCustomValidity('');
+            sellingPrice.setCustomValidity('');
+
+            const normalizedColor = color.value.trim().replace(/\s+/g, ' ').toLowerCase();
+            const optionKey = `${ram.value}|${storage.value}|${normalizedColor}`;
+            if (ram.value && storage.value && normalizedColor) {
+                if (optionKeys.has(optionKey)) {
+                    color.setCustomValidity('RAM, storage and color duplicate another variant.');
+                } else {
+                    optionKeys.add(optionKey);
+                }
+            }
+
+            const skuKey = sku.value.trim().toLowerCase();
+            if (skuKey) {
+                if (skuKeys.has(skuKey)) {
+                    sku.setCustomValidity('SKU duplicates another variant.');
+                } else {
+                    skuKeys.add(skuKey);
+                }
+            }
+
+            if (sellingPrice.value && latestCost.value
+                    && Number(sellingPrice.value) < Number(latestCost.value)) {
+                sellingPrice.setCustomValidity(
+                        'Selling price cannot be lower than latest cost.');
+            }
+        });
     }
 
     editor.querySelector('[data-add-variant]').addEventListener('click', addRow);
@@ -42,9 +106,49 @@
             return;
         }
         removeButton.closest('.variant-row').remove();
+        validateVariants();
+    });
+
+    rows.addEventListener('input', validateVariants);
+    rows.addEventListener('change', validateVariants);
+
+    form.addEventListener('submit', function (event) {
+        validateCategories();
+        validateVariants();
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            form.reportValidity();
+            return;
+        }
+
+        const selectedOption = brandSelect.options[brandSelect.selectedIndex];
+        const selectedBrand = selectedOption
+                ? selectedOption.dataset.brandName : '';
+        const detectedBrands = detectBrands(productNameInput.value);
+        const hasSeveralBrands = detectedBrands.length > 1;
+        const hasWrongBrand = detectedBrands.length === 1 && selectedBrand
+                && detectedBrands[0].toLowerCase()
+                !== selectedBrand.toLowerCase();
+        if ((hasSeveralBrands || hasWrongBrand)
+                && brandConfirmation.value !== 'true') {
+            const warning = hasSeveralBrands
+                    ? 'The product name contains keywords from multiple brands: '
+                    + detectedBrands.join(', ')
+                    + '. Do you want to save anyway?'
+                    : 'The product name appears to belong to '
+                    + detectedBrands[0] + ', but the selected brand is '
+                    + selectedBrand + '. Do you want to save anyway?';
+            const confirmed = window.confirm(warning);
+            if (!confirmed) {
+                event.preventDefault();
+                return;
+            }
+            brandConfirmation.value = 'true';
+        }
     });
 
     if (!rows.querySelector('.variant-row')) {
         addRow();
     }
+    validateVariants();
 })();

@@ -92,6 +92,17 @@ public class AuthFilter implements Filter {
             rule("/customer", perms("ORDER_HISTORY_VIEW", "WISHLIST_MANAGE", "CHECKOUT"))
     );
 
+    private static final List<String> CUSTOMER_PATHS = List.of(
+            "/cart",
+            "/checkout",
+            "/wishlist",
+            "/order-history",
+            "/customer",
+            "/feedback",
+            "/delivery-status",
+            "/order-detail"
+    );
+
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
     }
@@ -164,6 +175,11 @@ public class AuthFilter implements Filter {
             return true;
         }
 
+        if ("CUSTOMER".equals(normalizeRole(session.getAttribute("currentRole")))
+                && matchesAny(path, CUSTOMER_PATHS)) {
+            return true;
+        }
+
         List<String> userPerms = (List<String>) session.getAttribute("permissions");
         if (userPerms == null || userPerms.isEmpty()) {
             return false;
@@ -171,6 +187,15 @@ public class AuthFilter implements Filter {
 
         for (String requiredPerm : rule.permissions) {
             if (userPerms.contains(requiredPerm)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean matchesAny(String path, List<String> prefixes) {
+        for (String prefix : prefixes) {
+            if (matches(path, prefix)) {
                 return true;
             }
         }

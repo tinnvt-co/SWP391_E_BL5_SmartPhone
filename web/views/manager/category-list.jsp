@@ -44,7 +44,7 @@
 
                         <div class="actions">
                             <a class="btn subtle"
-                               href="${pageContext.request.contextPath}/manager/products?category=${category.id}">
+                               href="${pageContext.request.contextPath}/manager/products?category=${category.id}&from=category">
                                 Products
                             </a>
                             <a class="btn subtle"

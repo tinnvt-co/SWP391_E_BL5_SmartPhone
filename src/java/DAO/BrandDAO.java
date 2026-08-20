@@ -57,6 +57,31 @@ public class BrandDAO {
         }
     }
 
+    public boolean existsName(String name, int excludedBrandId)
+            throws SQLException {
+        String sql = "SELECT 1 FROM Brand "
+                + "WHERE LOWER(TRIM(Name)) = LOWER(?) AND ID <> ? LIMIT 1";
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, name.trim());
+            statement.setInt(2, excludedBrandId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next();
+            }
+        }
+    }
+
+    public boolean isActive(int id) throws SQLException {
+        String sql = "SELECT 1 FROM Brand WHERE ID = ? AND Status = 'ACTIVE'";
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, id);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next();
+            }
+        }
+    }
+
     public void save(BrandModel brand) throws SQLException {
         boolean isNew = brand.getId() == 0;
         String sql = isNew

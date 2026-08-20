@@ -93,9 +93,6 @@ public class ProductDAO {
         if (publicOnly) {
             sql.append("AND p.Status = 'ACTIVE' ");
             sql.append("AND b.Status = 'ACTIVE' ");
-            sql.append("AND EXISTS (SELECT 1 FROM Product_Category pca "
-                    + "JOIN Category ca ON ca.ID = pca.CategoryID "
-                    + "WHERE pca.ProductID = p.ID AND ca.Status = 'ACTIVE') ");
         }
 
         if (keyword != null && !keyword.isBlank()) {
@@ -173,9 +170,6 @@ public class ProductDAO {
         if (publicOnly) {
             sql.append("AND p.Status = 'ACTIVE' ");
             sql.append("AND b.Status = 'ACTIVE' ");
-            sql.append("AND EXISTS (SELECT 1 FROM Product_Category pca "
-                    + "JOIN Category ca ON ca.ID = pca.CategoryID "
-                    + "WHERE pca.ProductID = p.ID AND ca.Status = 'ACTIVE') ");
         }
 
         if (keyword != null && !keyword.isBlank()) {
@@ -427,6 +421,46 @@ public class ProductDAO {
             statement.setInt(1, id);
             statement.executeUpdate();
         }
+    }
+
+    public int moveProductsToBrand(int brandId, Collection<Integer> productIds)
+            throws SQLException {
+        if (productIds == null || productIds.isEmpty()) {
+            return 0;
+        }
+
+        String sql = "UPDATE Product SET BrandID = ? "
+                + "WHERE ID = ? AND BrandID <> ?";
+        int movedProducts = 0;
+
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
+            connection.setAutoCommit(false);
+            try {
+                for (Integer productId : new LinkedHashSet<>(productIds)) {
+                    if (productId == null || productId <= 0) {
+                        continue;
+                    }
+                    statement.setInt(1, brandId);
+                    statement.setInt(2, productId);
+                    statement.setInt(3, brandId);
+                    statement.addBatch();
+                }
+
+                for (int result : statement.executeBatch()) {
+                    if (result > 0 || result == Statement.SUCCESS_NO_INFO) {
+                        movedProducts++;
+                    }
+                }
+                connection.commit();
+            } catch (SQLException exception) {
+                connection.rollback();
+                throw exception;
+            } finally {
+                connection.setAutoCommit(true);
+            }
+        }
+        return movedProducts;
     }
 
     public int countActive() throws SQLException {
