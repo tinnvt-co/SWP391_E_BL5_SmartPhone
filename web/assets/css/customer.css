@@ -940,6 +940,220 @@
     color: #92400e;
 }
 
+.cancel-btn {
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    border: 1px solid #fecaca;
+    background: var(--cust-surface);
+    color: var(--cust-red);
+    cursor: pointer;
+    transition: all .15s ease;
+}
+
+.cancel-btn:hover {
+    background: var(--cust-red);
+    border-color: var(--cust-red);
+    color: #fff;
+}
+
+.cancel-pending {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    border: 1px solid #fde68a;
+    background: var(--cust-amber-soft);
+    color: #92400e;
+}
+
+.alert-flash {
+    margin: 16px 28px 0;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--cust-line);
+    background: var(--cust-green-soft);
+    color: var(--cust-green-dark);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.alert-flash.error {
+    background: var(--cust-red-soft);
+    color: var(--cust-red);
+    border-color: #fecaca;
+}
+
+.alert-flash i {
+    font-size: 18px;
+}
+
+/* =============================================================
+   CANCEL ORDER MODAL
+   ============================================================= */
+.cancel-modal {
+    border: none;
+    border-radius: 18px;
+    box-shadow: var(--cust-shadow-lg);
+    overflow: hidden;
+}
+
+.cancel-modal .modal-header {
+    padding: 22px 26px 14px;
+    border-bottom: 1px solid var(--cust-line);
+    background: linear-gradient(180deg, var(--cust-red-soft), #fff);
+}
+
+.cancel-modal .modal-title {
+    font-weight: 800;
+    color: var(--cust-red);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cancel-modal .modal-body {
+    padding: 22px 26px;
+}
+
+.cancel-modal .modal-footer {
+    padding: 14px 26px 22px;
+    border-top: 1px solid var(--cust-line);
+    background: var(--cust-soft);
+}
+
+.cancel-modal-sub {
+    color: var(--cust-muted);
+    margin-bottom: 18px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.cancel-modal-label {
+    display: block;
+    font-weight: 700;
+    color: var(--cust-ink);
+    margin-bottom: 10px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.cancel-reasons {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.cancel-reason-option {
+    display: block;
+    cursor: pointer;
+    border: 1px solid var(--cust-line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    background: var(--cust-surface);
+    transition: all .15s ease;
+    position: relative;
+}
+
+.cancel-reason-option:hover {
+    border-color: var(--cust-red);
+    background: var(--cust-red-soft);
+}
+
+.cancel-reason-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.cancel-reason-option input[type="radio"]:checked + .cancel-reason-body {
+    color: var(--cust-red);
+}
+
+.cancel-reason-option:has(input[type="radio"]:checked) {
+    border-color: var(--cust-red);
+    background: var(--cust-red-soft);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+}
+
+.cancel-reason-body {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 12px;
+    align-items: center;
+    color: var(--cust-text);
+}
+
+.cancel-reason-body i {
+    font-size: 22px;
+    color: var(--cust-red);
+    background: var(--cust-red-soft);
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cancel-reason-option:has(input[type="radio"]:checked) .cancel-reason-body i {
+    background: var(--cust-red);
+    color: #fff;
+}
+
+.cancel-reason-body strong {
+    display: block;
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 2px;
+}
+
+.cancel-reason-body small {
+    color: var(--cust-muted);
+    font-size: 12.5px;
+}
+
+.cancel-reason-option:has(input[type="radio"]:checked) .cancel-reason-body small {
+    color: var(--cust-red);
+}
+
+.cancel-other-wrap {
+    margin-top: 14px;
+}
+
+.cancel-other-input {
+    width: 100%;
+    border: 1px solid var(--cust-line);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14px;
+    color: var(--cust-text);
+    background: var(--cust-soft);
+    resize: vertical;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.cancel-other-input:focus {
+    outline: none;
+    border-color: var(--cust-red);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+}
+
 /* =============================================================
    WISHLIST
    ============================================================= */

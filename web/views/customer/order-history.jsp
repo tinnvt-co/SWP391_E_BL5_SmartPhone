@@ -95,6 +95,18 @@
                                     </div>
                                 </c:when>
                                 <c:otherwise>
+                                    <c:if test="${not empty param.message}">
+                                        <div class="alert-flash">
+                                            <i class="bi bi-check-circle"></i>
+                                            <span>${param.message}</span>
+                                        </div>
+                                    </c:if>
+                                    <c:if test="${not empty param.error}">
+                                        <div class="alert-flash error">
+                                            <i class="bi bi-exclamation-circle"></i>
+                                            <span>${param.error}</span>
+                                        </div>
+                                    </c:if>
                                     <table class="history-table">
                                         <thead>
                                             <tr>
@@ -142,6 +154,20 @@
                                                                     <span class="refund-pending"><i class="bi bi-clock-history"></i> Refund pending</span>
                                                                 </c:when>
                                                             </c:choose>
+                                                            <c:choose>
+                                                                <c:when test="${o.hasCancelPending}">
+                                                                    <span class="cancel-pending"><i class="bi bi-clock-history"></i> Cancel pending</span>
+                                                                </c:when>
+                                                                <c:when test="${o.status != 'DELIVERED' && o.status != 'COMPLETED' && o.status != 'CANCELLED' && o.status != 'CANCEL_REQUESTED'}">
+                                                                    <button type="button" class="cancel-btn"
+                                                                            data-bs-toggle="modal"
+                                                                            data-bs-target="#cancelOrderModal"
+                                                                            data-order-id="${o.id}"
+                                                                            data-order-code="${o.code}">
+                                                                        <i class="bi bi-x-circle"></i> Cancel
+                                                                    </button>
+                                                                </c:when>
+                                                            </c:choose>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -157,6 +183,131 @@
         </main>
 
         <%@ include file="/views/common/footer.jsp" %>
+
+        <div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content cancel-modal">
+                    <form method="post" action="${pageContext.request.contextPath}/customer/cancel-request" id="cancelOrderForm">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <i class="bi bi-x-circle"></i> Request cancellation
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="cancel-modal-sub">
+                                You are about to request cancellation for order <strong id="cancelModalOrderCode">--</strong>.
+                                Please pick a reason &mdash; our staff will review your request shortly.
+                            </p>
+                            <input type="hidden" name="orderId" id="cancelModalOrderId" value="">
+
+                            <label class="cancel-modal-label">Reason</label>
+                            <div class="cancel-reasons">
+                                <label class="cancel-reason-option">
+                                    <input type="radio" name="reason" value="CHANGED_MIND" required>
+                                    <span class="cancel-reason-body">
+                                        <i class="bi bi-emoji-frown"></i>
+                                        <strong>Changed my mind</strong>
+                                        <small>I no longer want this product.</small>
+                                    </span>
+                                </label>
+                                <label class="cancel-reason-option">
+                                    <input type="radio" name="reason" value="WRONG_PRODUCT">
+                                    <span class="cancel-reason-body">
+                                        <i class="bi bi-bag-x"></i>
+                                        <strong>Ordered wrong product</strong>
+                                        <small>I picked the wrong variant / model.</small>
+                                    </span>
+                                </label>
+                                <label class="cancel-reason-option">
+                                    <input type="radio" name="reason" value="FOUND_CHEAPER">
+                                    <span class="cancel-reason-body">
+                                        <i class="bi bi-tag"></i>
+                                        <strong>Found a cheaper price</strong>
+                                        <small>I found the same item cheaper elsewhere.</small>
+                                    </span>
+                                </label>
+                                <label class="cancel-reason-option">
+                                    <input type="radio" name="reason" value="LONG_DELIVERY">
+                                    <span class="cancel-reason-body">
+                                        <i class="bi bi-truck"></i>
+                                        <strong>Delivery takes too long</strong>
+                                        <small>Estimated delivery is too slow.</small>
+                                    </span>
+                                </label>
+                                <label class="cancel-reason-option">
+                                    <input type="radio" name="reason" value="OTHER">
+                                    <span class="cancel-reason-body">
+                                        <i class="bi bi-three-dots"></i>
+                                        <strong>Other reason</strong>
+                                        <small>Tell us more below.</small>
+                                    </span>
+                                </label>
+                            </div>
+
+                            <div class="cancel-other-wrap" id="cancelOtherWrap" hidden>
+                                <label class="cancel-modal-label" for="cancelCustomReason">Tell us more</label>
+                                <textarea class="cancel-other-input" name="customReason" id="cancelCustomReason"
+                                          maxlength="500" rows="3"
+                                          placeholder="Please describe your reason (max 500 characters)"></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Keep order</button>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-send"></i> Submit request
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            (function () {
+                var modal = document.getElementById('cancelOrderModal');
+                if (!modal) {
+                    return;
+                }
+                modal.addEventListener('show.bs.modal', function (event) {
+                    var button = event.relatedTarget;
+                    if (!button) {
+                        return;
+                    }
+                    var orderId = button.getAttribute('data-order-id');
+                    var orderCode = button.getAttribute('data-order-code');
+                    document.getElementById('cancelModalOrderId').value = orderId || '';
+                    document.getElementById('cancelModalOrderCode').textContent = orderCode || '';
+                });
+
+                var form = document.getElementById('cancelOrderForm');
+                var otherWrap = document.getElementById('cancelOtherWrap');
+                var others = form.querySelectorAll('input[name="reason"]');
+                others.forEach(function (radio) {
+                    radio.addEventListener('change', function () {
+                        if (radio.value === 'OTHER' && radio.checked) {
+                            otherWrap.hidden = false;
+                        } else if (radio.value !== 'OTHER') {
+                            otherWrap.hidden = true;
+                        }
+                    });
+                });
+                form.addEventListener('submit', function (event) {
+                    var selected = form.querySelector('input[name="reason"]:checked');
+                    if (!selected) {
+                        event.preventDefault();
+                        return;
+                    }
+                    if (selected.value === 'OTHER') {
+                        var text = document.getElementById('cancelCustomReason').value.trim();
+                        if (!text) {
+                            event.preventDefault();
+                            document.getElementById('cancelCustomReason').focus();
+                        }
+                    }
+                });
+            })();
+        </script>
     </body>
 </html>

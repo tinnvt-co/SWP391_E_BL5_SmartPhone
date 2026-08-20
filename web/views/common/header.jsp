@@ -58,6 +58,9 @@
                         <li>
                             <a class="swp-layout-link ${activePage == 'staff-orders' ? 'is-active' : ''}" href="${pageContext.request.contextPath}/staff/orders">Manage Orders</a>
                         </li>
+                        <li>
+                            <a class="swp-layout-link ${activePage == 'staff-cancel-request' ? 'is-active' : ''}" href="${pageContext.request.contextPath}/staff/cancel-request">Cancel Requests</a>
+                        </li>
                     </c:if>
                 </ul>
 
