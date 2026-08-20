@@ -1,24 +1,39 @@
 package controller;
 
+import DAO.BrandDAO;
+import DAO.ProductDAO;
 import DAO.SupplierDAO;
-import model.SupplierModel;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import model.BrandModel;
+import model.ProductModel;
+import model.SupplierModel;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-@WebServlet(name = "SupplierController", urlPatterns = {"/manager/supplier"})
+@WebServlet(
+        name = "SupplierController",
+        urlPatterns = {
+            "/manager/suppliers",
+            "/manager/suppliers/detail"
+        }
+)
 public class SupplierController extends HttpServlet {
 
+    private static final int PAGE_SIZE = 12;
+
     private final SupplierDAO supplierDAO = new SupplierDAO();
+    private final ProductDAO productDAO = new ProductDAO();
+    private final BrandDAO brandDAO = new BrandDAO();
 
     @Override
     protected void doGet(
@@ -26,258 +41,352 @@ public class SupplierController extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        String action = request.getParameter("action");
+        if (!isManager(request)) {
+            response.sendError(
+                    HttpServletResponse.SC_FORBIDDEN,
+                    "Manager access required."
+            );
+            return;
+        }
+
+        String path = request.getServletPath();
 
         try {
 
-            // =========================
-            // CREATE FORM
-            // =========================
-            if ("create".equals(action)) {
-
-                request.getRequestDispatcher(
-                        "/views/manager/supplier-detail.jsp")
-                        .forward(request, response);
-
-                return;
+            if ("/manager/suppliers/detail".equals(path)) {
+                showDetail(request, response);
+            } else {
+                showList(request, response);
             }
-
-            // =========================
-            // EDIT FORM
-            // =========================
-            if ("edit".equals(action)) {
-
-                int id = parseInt(
-                        request.getParameter("id"), 0);
-
-                if (id <= 0) {
-                    response.sendError(
-                            HttpServletResponse.SC_BAD_REQUEST);
-                    return;
-                }
-
-                SupplierModel supplier
-                        = supplierDAO.findById(id);
-
-                if (supplier == null) {
-                    response.sendError(
-                            HttpServletResponse.SC_NOT_FOUND);
-                    return;
-                }
-
-                List<Integer> productVariantIds
-                        = supplierDAO.findProductVariantIds(id);
-
-                request.setAttribute(
-                        "supplier", supplier);
-
-                request.setAttribute(
-                        "productVariantIds",
-                        productVariantIds);
-
-                request.getRequestDispatcher(
-                        "/views/manager/supplier-detail.jsp")
-                        .forward(request, response);
-
-                return;
-            }
-
-            // =========================
-            // DETAIL
-            // =========================
-            if ("detail".equals(action)) {
-
-                int id = parseInt(
-                        request.getParameter("id"), 0);
-
-                if (id <= 0) {
-                    response.sendError(
-                            HttpServletResponse.SC_BAD_REQUEST);
-                    return;
-                }
-
-                SupplierModel supplier
-                        = supplierDAO.findById(id);
-
-                if (supplier == null) {
-                    response.sendError(
-                            HttpServletResponse.SC_NOT_FOUND);
-                    return;
-                }
-
-                List<Integer> productVariantIds
-                        = supplierDAO.findProductVariantIds(id);
-
-                request.setAttribute(
-                        "supplier", supplier);
-
-                request.setAttribute(
-                        "productVariantIds",
-                        productVariantIds);
-
-                request.getRequestDispatcher(
-                        "/views/manager/supplier-detail.jsp")
-                        .forward(request, response);
-
-                return;
-            }
-
-            // =========================
-            // LIST + PAGINATION
-            // =========================
-            final int PAGE_SIZE = 10;
-
-            String keyword
-                    = request.getParameter("keyword");
-
-            String status
-                    = request.getParameter("status");
-
-            int requestedPage
-                    = Math.max(
-                            1,
-                            parseInt(
-                                    request.getParameter("page"),
-                                    1));
-
-            /*
-         * Get total suppliers first.
-             */
-            int totalSuppliers
-                    = supplierDAO.countAll(
-                            keyword,
-                            status);
-
-            int totalPages
-                    = Math.max(
-                            1,
-                            (int) Math.ceil(
-                                    totalSuppliers
-                                    / (double) PAGE_SIZE));
-
-            int currentPage
-                    = Math.min(
-                            requestedPage,
-                            totalPages);
-
-            int offset
-                    = (currentPage - 1)
-                    * PAGE_SIZE;
-
-            /*
-         * Show 5 page buttons around current page.
-         *
-         * Example:
-         *
-         * 1 2 3 4 5
-         *
-         * or
-         *
-         * 3 4 5 6 7
-             */
-            int startPage
-                    = Math.max(
-                            1,
-                            currentPage - 2);
-
-            int endPage
-                    = Math.min(
-                            totalPages,
-                            startPage + 4);
-
-            if (endPage - startPage < 4) {
-
-                startPage
-                        = Math.max(
-                                1,
-                                endPage - 4);
-            }
-
-            List<SupplierModel> suppliers
-                    = supplierDAO.findAll(
-                            keyword,
-                            status,
-                            PAGE_SIZE,
-                            offset);
-
-            // =========================
-            // FLASH MESSAGE
-            // =========================
-            HttpSession session
-                    = request.getSession();
-
-            Object msgOk
-                    = session.getAttribute("msgOk");
-
-            Object msgErr
-                    = session.getAttribute("msgErr");
-
-            if (msgOk != null) {
-
-                request.setAttribute(
-                        "message",
-                        msgOk);
-
-                session.removeAttribute("msgOk");
-            }
-
-            if (msgErr != null) {
-
-                request.setAttribute(
-                        "error",
-                        msgErr);
-
-                session.removeAttribute("msgErr");
-            }
-
-            // =========================
-            // JSP ATTRIBUTES
-            // =========================
-            request.setAttribute(
-                    "suppliers",
-                    suppliers);
-
-            request.setAttribute(
-                    "keyword",
-                    keyword);
-
-            request.setAttribute(
-                    "status",
-                    status);
-
-            request.setAttribute(
-                    "totalSuppliers",
-                    totalSuppliers);
-
-            request.setAttribute(
-                    "currentPage",
-                    currentPage);
-
-            request.setAttribute(
-                    "totalPages",
-                    totalPages);
-
-            request.setAttribute(
-                    "startPage",
-                    startPage);
-
-            request.setAttribute(
-                    "endPage",
-                    endPage);
-
-            request.setAttribute(
-                    "pageSize",
-                    PAGE_SIZE);
-
-            request.getRequestDispatcher(
-                    "/views/manager/supplier-list.jsp")
-                    .forward(request, response);
 
         } catch (SQLException e) {
-
             throw new ServletException(
-                    "Cannot load suppliers from database",
-                    e);
+                    "Cannot load supplier data.",
+                    e
+            );
+        }
+    }
+
+    private void showList(
+            HttpServletRequest request,
+            HttpServletResponse response)
+            throws SQLException, ServletException, IOException {
+
+        String keyword = normalizeKeyword(
+                request.getParameter("keyword")
+        );
+
+        String status = request.getParameter("status");
+
+        int requestedPage = parseInt(
+                request.getParameter("page"),
+                1
+        );
+
+        int totalSuppliers =
+                supplierDAO.countAll(keyword, status);
+
+        int totalPages = Math.max(
+                1,
+                (int) Math.ceil(
+                        totalSuppliers / (double) PAGE_SIZE
+                )
+        );
+
+        int currentPage = Math.min(
+                Math.max(1, requestedPage),
+                totalPages
+        );
+
+        int offset =
+                (currentPage - 1) * PAGE_SIZE;
+
+        List<SupplierModel> suppliers =
+                supplierDAO.findAll(
+                        keyword,
+                        status,
+                        PAGE_SIZE,
+                        offset
+                );
+
+        int startPage =
+                Math.max(1, currentPage - 2);
+
+        int endPage =
+                Math.min(totalPages, currentPage + 2);
+
+        request.setAttribute(
+                "suppliers",
+                suppliers
+        );
+
+        request.setAttribute(
+                "keyword",
+                keyword
+        );
+
+        request.setAttribute(
+                "status",
+                status
+        );
+
+        request.setAttribute(
+                "totalSuppliers",
+                totalSuppliers
+        );
+
+        request.setAttribute(
+                "currentPage",
+                currentPage
+        );
+
+        request.setAttribute(
+                "totalPages",
+                totalPages
+        );
+
+        request.setAttribute(
+                "startPage",
+                startPage
+        );
+
+        request.setAttribute(
+                "endPage",
+                endPage
+        );
+
+        request.getRequestDispatcher(
+                "/views/manager/supplier-list.jsp"
+        ).forward(request, response);
+    }
+
+    private void showDetail(
+            HttpServletRequest request,
+            HttpServletResponse response)
+            throws SQLException, ServletException, IOException {
+
+        int supplierId = parseInt(
+                request.getParameter("id"),
+                0
+        );
+
+        SupplierModel supplier;
+
+        if (supplierId > 0) {
+
+            supplier = supplierDAO.findById(supplierId);
+
+            if (supplier == null) {
+                response.sendError(
+                        HttpServletResponse.SC_NOT_FOUND,
+                        "Supplier not found."
+                );
+                return;
+            }
+
+        } else {
+
+            supplier = new SupplierModel();
+
+            supplier.setStatus("ACTIVE");
+
+            supplier.setProductVariantIds(
+                    new ArrayList<>()
+            );
+        }
+
+        loadProducts(request, supplier);
+
+        List<BrandModel> brands =
+                brandDAO.findAll(true);
+
+        request.setAttribute(
+                "supplier",
+                supplier
+        );
+
+        request.setAttribute(
+                "brands",
+                brands
+        );
+
+        request.getRequestDispatcher(
+                "/views/manager/supplier-detail.jsp"
+        ).forward(request, response);
+    }
+
+    private void loadProducts(
+            HttpServletRequest request,
+            SupplierModel supplier)
+            throws SQLException {
+
+        String keyword = normalizeKeyword(
+                request.getParameter("keyword")
+        );
+
+        Integer brandId = parseIntegerOrNull(
+                request.getParameter("brand")
+        );
+
+        String suppliedFilter =
+                request.getParameter("supplied");
+
+        int requestedPage = parseInt(
+                request.getParameter("page"),
+                1
+        );
+
+        /*
+         * ProductDAO đang trả Product + các ProductVariant
+         * nên chúng ta tận dụng lại luôn.
+         */
+        List<ProductModel> allProducts =
+                productDAO.findAll(
+                        keyword,
+                        brandId,
+                        null,
+                        "newest",
+                        true
+                );
+
+        Set<Integer> suppliedIds =
+                new HashSet<>(
+                        supplier.getProductVariantIds()
+                );
+
+        /*
+         * Filter theo checkbox:
+         *
+         * all      -> tất cả
+         * supplied -> chỉ variant supplier cung cấp
+         * not      -> variant supplier chưa cung cấp
+         */
+        if ("supplied".equals(suppliedFilter)) {
+
+            filterVariants(
+                    allProducts,
+                    suppliedIds,
+                    true
+            );
+
+        } else if ("not".equals(suppliedFilter)) {
+
+            filterVariants(
+                    allProducts,
+                    suppliedIds,
+                    false
+            );
+        }
+
+        /*
+         * Chỉ giữ Product còn variant.
+         */
+        allProducts.removeIf(
+                product -> product.getVariants() == null
+                        || product.getVariants().isEmpty()
+        );
+
+        int totalProducts =
+                allProducts.size();
+
+        int totalPages = Math.max(
+                1,
+                (int) Math.ceil(
+                        totalProducts / (double) PAGE_SIZE
+                )
+        );
+
+        int currentPage = Math.min(
+                Math.max(1, requestedPage),
+                totalPages
+        );
+
+        int from =
+                (currentPage - 1) * PAGE_SIZE;
+
+        int to =
+                Math.min(
+                        from + PAGE_SIZE,
+                        totalProducts
+                );
+
+        List<ProductModel> pageProducts =
+                from < to
+                        ? new ArrayList<>(
+                                allProducts.subList(from, to)
+                        )
+                        : new ArrayList<>();
+
+        int startPage =
+                Math.max(1, currentPage - 2);
+
+        int endPage =
+                Math.min(totalPages, currentPage + 2);
+
+        request.setAttribute(
+                "products",
+                pageProducts
+        );
+
+        request.setAttribute(
+                "productKeyword",
+                keyword
+        );
+
+        request.setAttribute(
+                "selectedBrand",
+                brandId
+        );
+
+        request.setAttribute(
+                "suppliedFilter",
+                suppliedFilter
+        );
+
+        request.setAttribute(
+                "productCurrentPage",
+                currentPage
+        );
+
+        request.setAttribute(
+                "productTotalPages",
+                totalPages
+        );
+
+        request.setAttribute(
+                "productStartPage",
+                startPage
+        );
+
+        request.setAttribute(
+                "productEndPage",
+                endPage
+        );
+
+        request.setAttribute(
+                "suppliedVariantIds",
+                suppliedIds
+        );
+    }
+
+    private void filterVariants(
+            List<ProductModel> products,
+            Set<Integer> suppliedIds,
+            boolean shouldBeSupplied) {
+
+        for (ProductModel product : products) {
+
+            product.getVariants().removeIf(
+                    variant -> {
+
+                        boolean supplied =
+                                suppliedIds.contains(
+                                        variant.getId()
+                                );
+
+                        return supplied != shouldBeSupplied;
+                    }
+            );
         }
     }
 
@@ -287,422 +396,269 @@ public class SupplierController extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        String action
-                = request.getParameter("action");
+        if (!isManager(request)) {
+            response.sendError(
+                    HttpServletResponse.SC_FORBIDDEN,
+                    "Manager access required."
+            );
+            return;
+        }
 
-        HttpSession session
-                = request.getSession();
+        String path = request.getServletPath();
+
+        if (!"/manager/suppliers/detail".equals(path)) {
+            response.sendError(
+                    HttpServletResponse.SC_METHOD_NOT_ALLOWED
+            );
+            return;
+        }
 
         try {
 
-            // =========================
-            // CREATE
-            // =========================
-            if ("create".equals(action)) {
-
-                createSupplier(
-                        request,
-                        session);
-
-            } // =========================
-            // UPDATE
-            // =========================
-            else if ("update".equals(action)) {
-
-                updateSupplier(
-                        request,
-                        session);
-
-            } // =========================
-            // DEACTIVATE
-            // =========================
-            else if ("deactivate".equals(action)) {
-
-                int id = parseInt(
-                        request.getParameter("id"),
-                        0);
-
-                if (id <= 0) {
-
-                    session.setAttribute(
-                            "msgErr",
-                            "Supplier ID không hợp lệ.");
-
-                } else {
-
-                    boolean ok
-                            = supplierDAO.deactivate(id);
-
-                    session.setAttribute(
-                            ok ? "msgOk" : "msgErr",
-                            ok
-                                    ? "Đã vô hiệu hóa supplier."
-                                    : "Không thể vô hiệu hóa supplier.");
-                }
-            } // =========================
-            // ACTIVATE
-            // =========================
-            else if ("activate".equals(action)) {
-
-                int id = parseInt(
-                        request.getParameter("id"),
-                        0);
-
-                if (id <= 0) {
-
-                    session.setAttribute(
-                            "msgErr",
-                            "Supplier ID không hợp lệ.");
-
-                } else {
-
-                    boolean ok
-                            = supplierDAO.activate(id);
-
-                    session.setAttribute(
-                            ok ? "msgOk" : "msgErr",
-                            ok
-                                    ? "Đã kích hoạt supplier."
-                                    : "Không thể kích hoạt supplier.");
-                }
-            } // =========================
-            // UPDATE PRODUCT VARIANTS
-            // =========================
-            else if ("updateProducts".equals(action)) {
-
-                updateProductVariants(
-                        request,
-                        session);
-            } else {
-
-                session.setAttribute(
-                        "msgErr",
-                        "Action không hợp lệ.");
-            }
+            saveSupplier(request, response);
 
         } catch (SQLException e) {
 
-            session.setAttribute(
-                    "msgErr",
-                    "Có lỗi xảy ra khi thao tác với supplier.");
-
-        } catch (Exception e) {
-
-            session.setAttribute(
-                    "msgErr",
-                    "Dữ liệu không hợp lệ.");
-        }
-
-        response.sendRedirect(
-                request.getContextPath()
-                + "/manager/supplier");
-    }
-
-    // =========================================================
-    // CREATE SUPPLIER
-    // =========================================================
-    private void createSupplier(
-            HttpServletRequest request,
-            HttpSession session)
-            throws SQLException {
-
-        String name
-                = normalize(request.getParameter("name"));
-
-        String address
-                = normalize(request.getParameter("address"));
-
-        String phone
-                = normalize(request.getParameter("phone"));
-
-        String description
-                = normalize(request.getParameter("description"));
-
-        String note
-                = normalize(request.getParameter("note"));
-
-        // -------------------------
-        // VALIDATE
-        // -------------------------
-        String error
-                = validateSupplier(
-                        name,
-                        address,
-                        phone,
-                        description,
-                        note);
-
-        if (error != null) {
-
-            session.setAttribute(
-                    "msgErr",
-                    error);
-
-            return;
-        }
-
-        SupplierModel supplier
-                = new SupplierModel();
-
-        supplier.setName(name);
-        supplier.setAddress(address);
-        supplier.setPhone(phone);
-        supplier.setDescription(description);
-        supplier.setNote(note);
-        supplier.setStatus("ACTIVE");
-
-        int supplierId
-                = supplierDAO.create(supplier);
-
-        if (supplierId > 0) {
-
-            session.setAttribute(
-                    "msgOk",
-                    "Tạo supplier thành công.");
-
-        } else {
-
-            session.setAttribute(
-                    "msgErr",
-                    "Không thể tạo supplier.");
+            throw new ServletException(
+                    "Cannot save supplier.",
+                    e
+            );
         }
     }
 
-    // =========================================================
-    // UPDATE SUPPLIER
-    // =========================================================
-    private void updateSupplier(
+    private void saveSupplier(
             HttpServletRequest request,
-            HttpSession session)
-            throws SQLException {
+            HttpServletResponse response)
+            throws SQLException, IOException {
 
-        int id
-                = parseInt(
-                        request.getParameter("id"),
-                        0);
+        int supplierId = parseInt(
+                request.getParameter("id"),
+                0
+        );
 
-        if (id <= 0) {
+        SupplierModel supplier =
+                new SupplierModel();
 
-            session.setAttribute(
-                    "msgErr",
-                    "Supplier ID không hợp lệ.");
+        supplier.setId(supplierId);
 
-            return;
-        }
+        supplier.setName(
+                value(request.getParameter("name"))
+        );
 
-        String name
-                = normalize(request.getParameter("name"));
+        supplier.setAddress(
+                value(request.getParameter("address"))
+        );
 
-        String address
-                = normalize(request.getParameter("address"));
+        supplier.setPhone(
+                value(request.getParameter("phone"))
+        );
 
-        String phone
-                = normalize(request.getParameter("phone"));
+        supplier.setDescription(
+                value(request.getParameter("description"))
+        );
 
-        String description
-                = normalize(request.getParameter("description"));
+        supplier.setNote(
+                value(request.getParameter("note"))
+        );
 
-        String note
-                = normalize(request.getParameter("note"));
-
-        String status
-                = normalize(request.getParameter("status"));
-
-        String error
-                = validateSupplier(
-                        name,
-                        address,
-                        phone,
-                        description,
-                        note);
-
-        if (error != null) {
-
-            session.setAttribute(
-                    "msgErr",
-                    error);
-
-            return;
-        }
-
-        if (!"ACTIVE".equals(status)
-                && !"INACTIVE".equals(status)) {
-
-            session.setAttribute(
-                    "msgErr",
-                    "Status không hợp lệ.");
-
-            return;
-        }
-
-        SupplierModel supplier
-                = new SupplierModel();
-
-        supplier.setId(id);
-        supplier.setName(name);
-        supplier.setAddress(address);
-        supplier.setPhone(phone);
-        supplier.setDescription(description);
-        supplier.setNote(note);
-        supplier.setStatus(status);
-
-        boolean ok
-                = supplierDAO.update(supplier);
-
-        session.setAttribute(
-                ok ? "msgOk" : "msgErr",
-                ok
-                        ? "Cập nhật supplier thành công."
-                        : "Không thể cập nhật supplier.");
-    }
-
-    // =========================================================
-    // UPDATE SUPPLIER - PRODUCT VARIANTS
-    // =========================================================
-    private void updateProductVariants(
-            HttpServletRequest request,
-            HttpSession session)
-            throws SQLException {
-
-        int supplierId
-                = parseInt(
-                        request.getParameter("supplierId"),
-                        0);
-
-        if (supplierId <= 0) {
-
-            session.setAttribute(
-                    "msgErr",
-                    "Supplier ID không hợp lệ.");
-
-            return;
-        }
+        supplier.setStatus(
+                value(
+                        request.getParameter("status"),
+                        "ACTIVE"
+                )
+        );
 
         /*
-         * HTML:
+         * Các checkbox có:
          *
-         * <input type="checkbox"
-         *        name="productVariantIds"
-         *        value="1">
+         * name="productVariantIds"
          *
-         * <input type="checkbox"
-         *        name="productVariantIds"
-         *        value="2">
+         * nên request.getParameterValues()
+         * sẽ trả về toàn bộ variant được check.
          */
-        String[] values
-                = request.getParameterValues(
-                        "productVariantIds");
+        String[] selectedIds =
+                request.getParameterValues(
+                        "productVariantIds"
+                );
 
-        List<Integer> productVariantIds
-                = new ArrayList<>();
+        List<Integer> productVariantIds =
+                new ArrayList<>();
 
-        if (values != null) {
+        if (selectedIds != null) {
 
-            for (String value : values) {
+            for (String value : selectedIds) {
 
-                int variantId
-                        = parseInt(value, 0);
+                int variantId =
+                        parseInt(value, 0);
 
                 if (variantId > 0
-                        && !productVariantIds.contains(
-                                variantId)) {
+                        && !productVariantIds.contains(variantId)) {
 
                     productVariantIds.add(
-                            variantId);
+                            variantId
+                    );
                 }
             }
         }
 
-        boolean ok
-                = supplierDAO.updateProductVariants(
+        supplier.setProductVariantIds(
+                productVariantIds
+        );
+
+        validateSupplier(supplier);
+
+        HttpSession session =
+                request.getSession();
+
+        if (supplierId == 0) {
+
+            int newId =
+                    supplierDAO.create(supplier);
+
+            supplierDAO.updateProductVariants(
+                    newId,
+                    productVariantIds
+            );
+
+            session.setAttribute(
+                    "msgOk",
+                    "Supplier created successfully."
+            );
+
+            response.sendRedirect(
+                    request.getContextPath()
+                    + "/manager/suppliers/detail?id="
+                    + newId
+            );
+
+        } else {
+
+            boolean updated =
+                    supplierDAO.update(supplier);
+
+            if (!updated) {
+
+                session.setAttribute(
+                        "msgErr",
+                        "Supplier not found."
+                );
+
+            } else {
+
+                supplierDAO.updateProductVariants(
                         supplierId,
-                        productVariantIds);
+                        productVariantIds
+                );
 
-        session.setAttribute(
-                ok ? "msgOk" : "msgErr",
-                ok
-                        ? "Cập nhật sản phẩm của supplier thành công."
-                        : "Không thể cập nhật sản phẩm của supplier.");
+                session.setAttribute(
+                        "msgOk",
+                        "Supplier updated successfully."
+                );
+            }
+
+            response.sendRedirect(
+                    request.getContextPath()
+                    + "/manager/suppliers/detail?id="
+                    + supplierId
+            );
+        }
     }
 
-    // =========================================================
-    // VALIDATION
-    // =========================================================
-    private String validateSupplier(
-            String name,
-            String address,
-            String phone,
-            String description,
-            String note) {
+    private void validateSupplier(
+            SupplierModel supplier) {
 
-        if (name.isEmpty()) {
-            return "Supplier name không được để trống.";
+        if (supplier.getName() == null
+                || supplier.getName().isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "Supplier name is required."
+            );
         }
 
-        if (name.length() > 50) {
-            return "Supplier name không được vượt quá 50 ký tự.";
+        if (supplier.getAddress() == null
+                || supplier.getAddress().isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "Supplier address is required."
+            );
         }
 
-        if (address.isEmpty()) {
-            return "Address không được để trống.";
+        if (supplier.getPhone() == null
+                || supplier.getPhone().isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "Supplier phone is required."
+            );
         }
-
-        if (address.length() > 255) {
-            return "Address không được vượt quá 255 ký tự.";
-        }
-
-        if (phone.isEmpty()) {
-            return "Phone không được để trống.";
-        }
-
-        if (phone.length() > 255) {
-            return "Phone không được vượt quá 255 ký tự.";
-        }
-
-        /*
-         * Cho phép:
-         * 0123456789
-         * +84123456789
-         * 012-345-6789
-         * (024) 1234 5678
-         */
-        if (!phone.matches(
-                "^[0-9+()\\-\\s]{8,255}$")) {
-
-            return "Phone không đúng định dạng.";
-        }
-
-        if (description.length() > 255) {
-            return "Description không được vượt quá 255 ký tự.";
-        }
-
-        if (note.length() > 255) {
-            return "Note không được vượt quá 255 ký tự.";
-        }
-
-        return null;
     }
 
-    // =========================================================
-    // UTILITY
-    // =========================================================
-    private String normalize(String input) {
-        if (input == null) {
+    private boolean isManager(
+            HttpServletRequest request) {
+
+        HttpSession session =
+                request.getSession(false);
+
+        if (session == null) {
+            return false;
+        }
+
+        Object role =
+                session.getAttribute("role");
+
+        return role != null
+                && "MANAGER".equalsIgnoreCase(
+                        role.toString()
+                );
+    }
+
+    private String normalizeKeyword(
+            String value) {
+
+        if (value == null) {
             return "";
         }
-        return input.trim()
+
+        return value.trim()
                 .replaceAll("\\s+", " ");
     }
 
+    private String value(
+            String value) {
+
+        return value == null
+                ? ""
+                : value.trim();
+    }
+
+    private String value(
+            String value,
+            String fallback) {
+
+        return value == null
+                || value.isBlank()
+                ? fallback
+                : value.trim();
+    }
+
     private int parseInt(
-            String input,
+            String value,
             int fallback) {
 
         try {
-            return Integer.parseInt(
-                    input);
+            return Integer.parseInt(value);
         } catch (NumberFormatException e) {
             return fallback;
         }
+    }
+
+    private Integer parseIntegerOrNull(
+            String value) {
+
+        int result =
+                parseInt(value, 0);
+
+        return result > 0
+                ? result
+                : null;
     }
 }

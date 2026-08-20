@@ -1,6 +1,8 @@
 package model;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SupplierModel {
 
@@ -13,9 +15,10 @@ public class SupplierModel {
     private Timestamp createdAt;
     private Timestamp updatedAt;
     private String status;
-
+    
     private int productVariantCount;
-
+    private List<Integer> productVariantIds = new ArrayList<>();
+    
     public SupplierModel() {
     }
 
@@ -101,4 +104,13 @@ public class SupplierModel {
         this.productVariantCount
                 = productVariantCount;
     }
+
+    public List<Integer> getProductVariantIds() {
+        return productVariantIds;
+    }
+
+    public void setProductVariantIds(List<Integer> productVariantIds) {
+        this.productVariantIds = productVariantIds;
+    }
+    
 }
