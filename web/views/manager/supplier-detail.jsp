@@ -463,12 +463,42 @@
                     </c:when>
                     <c:otherwise>
                         <div class="variant-list">
-                            <c:forEach
-                                items="${productVariantIds}"
-                                var="variantId">
-                                <span class="variant-pill">
-                                    Product Variant #${variantId}
-                                </span>
+                            <c:forEach var="product" items="${products}">
+
+                                <div class="product-card">
+
+                                    <h5>${product.name}</h5>
+
+                                    <c:forEach var="variant"
+                                               items="${product.variants}">
+
+                                        <label class="variant-row">
+
+                                            <input
+                                                type="checkbox"
+                                                name="productVariantIds"
+                                                value="${variant.id}"
+                                                ${suppliedVariantIds.contains(variant.id)
+                                                  ? 'checked'
+                                                  : ''}
+                                                >
+
+                                            <span>
+                                                ${variant.ramGb}GB -
+                                                ${variant.storageGb}GB -
+                                                ${variant.colorName}
+                                            </span>
+
+                                            <span>
+                                                SKU: ${variant.sku}
+                                            </span>
+
+                                        </label>
+
+                                    </c:forEach>
+
+                                </div>
+
                             </c:forEach>
                         </div>
                     </c:otherwise>
