@@ -36,7 +36,7 @@ public class VoucherDAO {
     public List<VoucherModel> findAll(String keyword) {
         List<VoucherModel> list = new ArrayList<>();
         String sql = "SELECT * FROM Voucher WHERE Code LIKE ? ORDER BY Created_at DESC";
-        try (Connection conn = new DBContext().getConnection();
+        try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, "%" + (keyword == null ? "" : keyword) + "%");
             try (ResultSet rs = ps.executeQuery()) {
@@ -56,7 +56,7 @@ public class VoucherDAO {
                      "AND Start_date <= NOW() AND End_date >= NOW() " +
                      "AND (Usage_limit IS NULL OR Used_count < Usage_limit) " +
                      "ORDER BY Created_at DESC";
-        try (Connection conn = new DBContext().getConnection();
+        try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
@@ -70,7 +70,7 @@ public class VoucherDAO {
 
     public VoucherModel findById(int id) {
         String sql = "SELECT * FROM Voucher WHERE ID = ?";
-        try (Connection conn = new DBContext().getConnection();
+        try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
@@ -86,7 +86,7 @@ public class VoucherDAO {
 
     public VoucherModel findByCode(String code) {
         String sql = "SELECT * FROM Voucher WHERE Code = ?";
-        try (Connection conn = new DBContext().getConnection();
+        try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, code);
             try (ResultSet rs = ps.executeQuery()) {
@@ -103,7 +103,7 @@ public class VoucherDAO {
     public boolean create(VoucherModel voucher) {
         String sql = "INSERT INTO Voucher (Code, Discount_type, Value, Max_discount, Min_order_value, Usage_limit, Start_date, End_date) " +
                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = new DBContext().getConnection();
+        try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, voucher.getCode());
             ps.setString(2, voucher.getDiscountType());
@@ -134,7 +134,7 @@ public class VoucherDAO {
 
     public boolean update(VoucherModel voucher) {
         String sql = "UPDATE Voucher SET Code = ?, Discount_type = ?, Value = ?, Max_discount = ?, Min_order_value = ?, Usage_limit = ?, Start_date = ?, End_date = ? WHERE ID = ?";
-        try (Connection conn = new DBContext().getConnection();
+        try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, voucher.getCode());
             ps.setString(2, voucher.getDiscountType());
@@ -158,7 +158,7 @@ public class VoucherDAO {
 
     public boolean updateStatus(int id, String status) {
         String sql = "UPDATE Voucher SET Status = ? WHERE ID = ?";
-        try (Connection conn = new DBContext().getConnection();
+        try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, status);
             ps.setInt(2, id);
@@ -171,7 +171,7 @@ public class VoucherDAO {
 
     public boolean saveVoucherForUser(int userId, int voucherId) {
         String sql = "INSERT INTO User_Voucher (UserID, VoucherID) VALUES (?, ?)";
-        try (Connection conn = new DBContext().getConnection();
+        try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
             ps.setInt(2, voucherId);
@@ -189,7 +189,7 @@ public class VoucherDAO {
                      "JOIN Voucher v ON uv.VoucherID = v.ID " +
                      "WHERE uv.UserID = ? AND uv.Is_used = FALSE " +
                      "ORDER BY uv.Saved_at DESC";
-        try (Connection conn = new DBContext().getConnection();
+        try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
             try (ResultSet rs = ps.executeQuery()) {
