@@ -47,6 +47,9 @@ public class VnpayReturnController extends HttpServlet {
                     return;
                 } else {
                     checkoutDAO.markOnlinePaymentFailed(orderId);
+                    response.sendRedirect(vnpayService.browserRedirectUrl(request,
+                            "/cart?payment=failed&orderId=" + orderId));
+                    return;
                 }
             } catch (SQLException exception) {
                 throw new ServletException("Cannot update VNPay order.", exception);

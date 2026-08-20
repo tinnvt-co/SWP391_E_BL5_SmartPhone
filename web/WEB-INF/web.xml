@@ -170,6 +170,10 @@
         <servlet-name>SaveVoucherController</servlet-name>
         <servlet-class>controller.SaveVoucherController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>SupplierController</servlet-name>
+        <servlet-class>controller.SupplierController</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>HomeController</servlet-name>
         <url-pattern>/home</url-pattern>
@@ -340,6 +344,11 @@
     <servlet-mapping>
         <servlet-name>SaveVoucherController</servlet-name>
         <url-pattern>/voucher/save</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>SupplierController</servlet-name>
+        <url-pattern>/manager/supplier</url-pattern>
+        <url-pattern>/manager/supplier/detail</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>30</session-timeout>

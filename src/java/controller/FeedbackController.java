@@ -7,7 +7,6 @@ import model.FeedbackModel;
 import model.UserModel;
 
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -116,10 +115,8 @@ public class FeedbackController extends HttpServlet {
             ).forward(request, response);
 
         } catch (SQLException ex) {
-            throw new ServletException(
-                    "Cannot load feedback form",
-                    ex
-            );
+            response.sendRedirect(request.getContextPath() + "/order-history?flash="
+                    + encode("Cannot load feedback form. Please try again."));
         }
     }
 
@@ -305,10 +302,18 @@ public class FeedbackController extends HttpServlet {
             );
 
         } catch (SQLException ex) {
-
-            throw new ServletException(
-                    "Cannot save review",
-                    ex
+            response.sendRedirect(
+                    request.getContextPath()
+                    + "/feedback?orderId="
+                    + orderId
+                    + "&variantId="
+                    + variantId
+                    + "&rating="
+                    + rating
+                    + "&content="
+                    + encode(content)
+                    + "&flash="
+                    + encode("Cannot save review. Please try again.")
             );
         }
     }
