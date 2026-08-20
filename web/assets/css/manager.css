@@ -145,6 +145,10 @@
     min-width: 110px;
 }
 
+.brand-products-search {
+    grid-template-columns: minmax(260px, 1fr) auto;
+}
+
 .category-picker-panel .selection-cell {
     width: 82px;
     text-align: center;
