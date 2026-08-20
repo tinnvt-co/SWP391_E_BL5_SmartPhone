@@ -66,6 +66,7 @@ public class AuthFilter implements Filter {
             rule("/manager/refunds", perms("REFUND_MANAGE")),
             rule("/manager/feedback", perms("FEEDBACK_VIEW", "FEEDBACK_REPLY")),
             rule("/manager/orders", perms("ORDER_VIEW", "ORDER_UPDATE_STATUS")),
+            rule("/manager/storeinfor", perms("STOREINFO_VIEW", "STOREINFO_UPDATE")),
             rule("/staff/orders", perms("ORDER_VIEW", "ORDER_UPDATE_STATUS")),
             rule("/staff/cancel-request", perms("ORDER_VIEW", "ORDER_UPDATE_STATUS")),
             rule("/orders/manage", perms("ORDER_VIEW", "ORDER_UPDATE_STATUS")),

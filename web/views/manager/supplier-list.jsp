@@ -1,7 +1,7 @@
 <%--
     Document   : supplier-list
     Created on : Aug 19, 2026
-    Author     : admin
+    Author     : KhanhVNHE191788
 --%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="jakarta.tags.core"%>

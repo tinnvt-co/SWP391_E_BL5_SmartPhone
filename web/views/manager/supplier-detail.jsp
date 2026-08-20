@@ -1,6 +1,7 @@
 <%--
     Document   : supplier-detail
     Created on : Aug 19, 2026
+    Author     : KhanhVNHE191788
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>

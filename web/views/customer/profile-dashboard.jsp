@@ -52,6 +52,11 @@
                             <a class="active" href="${pageContext.request.contextPath}/profile">
                                 <i class="bi bi-person"></i> My Profile
                             </a>
+                            <c:if test="${fn:toLowerCase(profile.roleName) == 'manager'}">
+                                <a href="${pageContext.request.contextPath}/manager/storeinfor">
+                                    <i class="bi bi-house-door"></i> Store Information
+                                </a>
+                            </c:if>
                             <c:if test="${fn:toLowerCase(profile.roleName) == 'admin'}">
                                 <a href="${pageContext.request.contextPath}/admin/users">
                                     <i class="bi bi-people"></i> User Management
