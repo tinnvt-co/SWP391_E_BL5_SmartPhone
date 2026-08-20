@@ -740,4 +740,31 @@ public class SupplierDAO {
 
         return 0;
     }
+
+    public boolean isSupplierProvidingVariant(
+            int supplierId,
+            int productVariantId)
+            throws SQLException {
+
+        String sql
+                = "SELECT 1 "
+                + "FROM Supplier_ProductVariant "
+                + "WHERE SupplierID = ? "
+                + "AND ProductVariantID = ? "
+                + "LIMIT 1";
+
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement
+                = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, supplierId);
+            statement.setInt(2, productVariantId);
+
+            try (ResultSet resultSet
+                    = statement.executeQuery()) {
+
+                return resultSet.next();
+            }
+
+        }
+    }
 }
