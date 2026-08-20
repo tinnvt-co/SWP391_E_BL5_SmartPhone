@@ -17,7 +17,9 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class SupplierController extends HttpServlet {
@@ -49,7 +51,6 @@ public class SupplierController extends HttpServlet {
                 showDetail(request, response);
                 return;
             }
-
             listSuppliers(request, response);
         } catch (SQLException e) {
             HttpSession session = request.getSession();
@@ -209,7 +210,7 @@ public class SupplierController extends HttpServlet {
             );
         }
 
-        loadProducts(request, supplier);
+        loadProductVariants(request, supplier);
 
         List<BrandModel> brands
                 = brandDAO.findAll(true);
@@ -229,7 +230,7 @@ public class SupplierController extends HttpServlet {
         ).forward(request, response);
     }
 
-    private void loadProducts(
+    private void loadProductVariants(
             HttpServletRequest request,
             SupplierModel supplier)
             throws SQLException {
@@ -242,6 +243,11 @@ public class SupplierController extends HttpServlet {
                 request.getParameter("brand")
         );
 
+        // FIX: dropdown lọc theo tên sản phẩm mới, param "product" = ProductID.
+        Integer selectedProductId = parseIntegerOrNull(
+                request.getParameter("product")
+        );
+
         String suppliedFilter
                 = request.getParameter("supplied");
 
@@ -250,7 +256,6 @@ public class SupplierController extends HttpServlet {
                 1
         );
 
-        //tận dụng lại ProductDAO đang trả Product + các ProductVariant
         List<ProductModel> allProducts
                 = productDAO.findAll(
                         keyword,
@@ -260,50 +265,75 @@ public class SupplierController extends HttpServlet {
                         true
                 );
 
+        // FIX: áp dụng thêm filter theo Product cụ thể (dropdown mới).
+        if (selectedProductId != null) {
+            allProducts.removeIf(
+                    product -> product.getId() != selectedProductId
+            );
+        }
+
         Set<Integer> suppliedIds
                 = new HashSet<>(
                         supplier.getProductVariantIds()
                 );
 
+        // FIX: làm phẳng Product + Variant thành 1 list các "dòng variant", mỗi
+        // dòng tự mang theo tên product/brand để hiển thị (vì không còn group
+        // theo product-card nữa). Dùng Map thay vì tạo model mới cho gọn.
+        List<Map<String, Object>> allVariantRows = new ArrayList<>();
+
+        for (ProductModel product : allProducts) {
+
+            if (product.getVariants() == null) {
+                continue;
+            }
+
+            for (var variant : product.getVariants()) {
+
+                Map<String, Object> row = new LinkedHashMap<>();
+
+                row.put("variantId", variant.getId());
+                row.put("productId", product.getId());
+                row.put("productName", product.getName());
+                row.put("brandName", product.getBrandName());
+                row.put("ramGb", variant.getRamGb());
+                row.put("storageGb", variant.getStorageGb());
+                row.put("colorName", variant.getColorName());
+                row.put("sku", variant.getSku());
+                row.put("stock", variant.getStock());
+                row.put("supplied", suppliedIds.contains(variant.getId()));
+
+                allVariantRows.add(row);
+            }
+        }
+
         /*
-         * Filter theo checkbox:
-         *
-         * all      -> tất cả
-         * supplied -> chỉ variant supplier cung cấp
-         * not      -> variant supplier chưa cung cấp
+     * Filter theo checkbox:
+     *
+     * all      -> tất cả
+     * supplied -> chỉ variant supplier cung cấp
+     * not      -> variant supplier chưa cung cấp
          */
         if ("supplied".equals(suppliedFilter)) {
 
-            filterVariants(
-                    allProducts,
-                    suppliedIds,
-                    true
+            allVariantRows.removeIf(
+                    row -> !(Boolean) row.get("supplied")
             );
 
         } else if ("not".equals(suppliedFilter)) {
 
-            filterVariants(
-                    allProducts,
-                    suppliedIds,
-                    false
+            allVariantRows.removeIf(
+                    row -> (Boolean) row.get("supplied")
             );
         }
 
-        /*
-         * Chỉ giữ Product còn variant.
-         */
-        allProducts.removeIf(
-                product -> product.getVariants() == null
-                || product.getVariants().isEmpty()
-        );
-
-        int totalProducts
-                = allProducts.size();
+        int totalVariants
+                = allVariantRows.size();
 
         int totalPages = Math.max(
                 1,
                 (int) Math.ceil(
-                        totalProducts / (double) PAGE_SIZE
+                        totalVariants / (double) PAGE_SIZE
                 )
         );
 
@@ -318,87 +348,83 @@ public class SupplierController extends HttpServlet {
         int to
                 = Math.min(
                         from + PAGE_SIZE,
-                        totalProducts
+                        totalVariants
                 );
 
-        List<ProductModel> pageProducts
+        List<Map<String, Object>> pageRows
                 = from < to
                         ? new ArrayList<>(
-                                allProducts.subList(from, to)
+                                allVariantRows.subList(from, to)
                         )
                         : new ArrayList<>();
 
-        int startPage
-                = Math.max(1, currentPage - 2);
+        int startItem = totalVariants == 0
+                ? 0
+                : from + 1;
 
-        int endPage
-                = Math.min(totalPages, currentPage + 2);
+        int endItem = to;
 
-        request.setAttribute(
-                "products",
-                pageProducts
+        // FIX: danh sách sản phẩm để đổ vào dropdown mới, không phụ thuộc
+        // keyword/brand đang lọc (luôn hiển thị đầy đủ để user tìm nhanh).
+        List<ProductModel> productOptions
+                = productDAO.findAll(null, null, null, "newest", true);
+
+        productOptions.sort(
+                java.util.Comparator.comparing(
+                        ProductModel::getName,
+                        String.CASE_INSENSITIVE_ORDER
+                )
         );
 
-        request.setAttribute(
-                "productKeyword",
-                keyword
-        );
+        request.setAttribute("variantRows", pageRows);
+        request.setAttribute("totalVariants", totalVariants);
+        request.setAttribute("variantCurrentPage", currentPage);
+        request.setAttribute("variantTotalPages", totalPages);
+        request.setAttribute("startItem", startItem);
+        request.setAttribute("endItem", endItem);
 
-        request.setAttribute(
-                "selectedBrand",
-                brandId
-        );
+        // FIX: danh sách số trang rút gọn kiểu "1 ... 4 5 6 ... 20" tính sẵn ở
+        // server, JSP chỉ việc render, không cần tính toán windowing trong EL.
+        request.setAttribute("pageItems", buildPageItems(currentPage, totalPages));
 
-        request.setAttribute(
-                "suppliedFilter",
-                suppliedFilter
-        );
-
-        request.setAttribute(
-                "productCurrentPage",
-                currentPage
-        );
-
-        request.setAttribute(
-                "productTotalPages",
-                totalPages
-        );
-
-        request.setAttribute(
-                "productStartPage",
-                startPage
-        );
-
-        request.setAttribute(
-                "productEndPage",
-                endPage
-        );
-
-        request.setAttribute(
-                "suppliedVariantIds",
-                suppliedIds
-        );
+        request.setAttribute("productKeyword", keyword);
+        request.setAttribute("selectedBrand", brandId);
+        request.setAttribute("selectedProduct", selectedProductId);
+        request.setAttribute("suppliedFilter", suppliedFilter);
+        request.setAttribute("productOptions", productOptions);
     }
 
-    private void filterVariants(
-            List<ProductModel> products,
-            Set<Integer> suppliedIds,
-            boolean shouldBeSupplied) {
+    private List<String> buildPageItems(int currentPage, int totalPages) {
 
-        for (ProductModel product : products) {
+        List<String> items = new ArrayList<>();
 
-            product.getVariants().removeIf(
-                    variant -> {
-
-                        boolean supplied
-                        = suppliedIds.contains(
-                                variant.getId()
-                        );
-
-                        return supplied != shouldBeSupplied;
-                    }
-            );
+        if (totalPages <= 7) {
+            for (int i = 1; i <= totalPages; i++) {
+                items.add(String.valueOf(i));
+            }
+            return items;
         }
+
+        items.add("1");
+
+        if (currentPage > 3) {
+            items.add("...");
+        }
+
+        int start = Math.max(2, currentPage - 1);
+        int end = Math.min(totalPages - 1, currentPage + 1);
+
+        for (int i = start; i <= end; i++) {
+            items.add(String.valueOf(i));
+        }
+
+        if (currentPage < totalPages - 2) {
+            items.add("...");
+        }
+
+        items.add(String.valueOf(totalPages));
+
+        return items;
     }
 
     @Override
@@ -464,35 +490,21 @@ public class SupplierController extends HttpServlet {
                 )
         );
 
-        /*
-         * Các checkbox có:
-         *
-         * name="productVariantIds"
-         *
-         * nên request.getParameterValues()
-         * sẽ trả về toàn bộ variant được check.
-         */
-        String[] selectedIds
-                = request.getParameterValues(
-                        "productVariantIds"
-                );
+        //Các checkbox có: name="productVariantIds" nên request.getParameterValues() sẽ trả về toàn bộ variant được check.
+        String rawVariantIds = request.getParameter("productVariantIds");
 
-        List<Integer> productVariantIds
-                = new ArrayList<>();
+        List<Integer> productVariantIds = new ArrayList<>();
 
-        if (selectedIds != null) {
+        if (rawVariantIds != null && !rawVariantIds.isBlank()) {
 
-            for (String value : selectedIds) {
+            for (String rawId : rawVariantIds.split(",")) {
 
-                int variantId
-                        = parseInt(value, 0);
+                int variantId = parseInt(rawId.trim(), 0);
 
                 if (variantId > 0
                         && !productVariantIds.contains(variantId)) {
 
-                    productVariantIds.add(
-                            variantId
-                    );
+                    productVariantIds.add(variantId);
                 }
             }
         }
@@ -571,7 +583,7 @@ public class SupplierController extends HttpServlet {
             List<String> errors)
             throws SQLException, ServletException, IOException {
 
-        loadProducts(request, supplier);
+        loadProductVariants(request, supplier);
 
         List<BrandModel> brands = brandDAO.findAll(true);
 

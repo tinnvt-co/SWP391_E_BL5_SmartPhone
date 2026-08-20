@@ -134,14 +134,18 @@
 
             .product-filter {
                 display: grid;
-                grid-template-columns: 2fr 1fr auto;
+                grid-template-columns: 2fr 1fr 1fr auto;
                 gap: 12px;
                 margin-bottom: 20px;
                 padding: 16px;
                 background: #f8f9fb;
                 border-radius: 14px;
             }
-
+            .variant-flat-list {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
             .filter-input,
             .filter-select {
                 width: 100%;
@@ -271,25 +275,25 @@
                 margin: 0;
             }
 
-            .pagination a {
+            .pagination a,
+            .pagination button.page-btn-nav {
                 min-width: 36px;
                 height: 36px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-
                 border: 1px solid #e1e5ea;
                 border-radius: 9px;
-
                 text-decoration: none;
                 color: #475569;
                 background: #fff;
-
                 font-size: 13px;
                 font-weight: 600;
+                cursor: pointer;
             }
 
-            .pagination a:hover {
+            .pagination a:hover,
+            .pagination button.page-btn-nav:hover{
                 background: #f8fafc;
             }
 
@@ -302,6 +306,49 @@
             .pagination .disabled a {
                 opacity: .45;
                 pointer-events: none;
+            }
+            .pagination li.active button.page-btn-nav {
+                background: #20242b;
+                color: #fff;
+                border-color: #20242b;
+            }
+
+            .pagination li.disabled button.page-btn-nav {
+                opacity: .45;
+                pointer-events: none;
+            }
+
+            .pagination li.page-dots {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 25px;
+                color: #8b929c;
+            }
+
+            /* FIX: ô nhảy nhanh tới trang */
+            .pagination-wrapper {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 16px;
+                margin-top: 24px;
+                flex-wrap: wrap;
+            }
+
+            .page-jump {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .page-jump input {
+                width: 70px;
+                height: 36px;
+                border: 1px solid #dfe3e8;
+                border-radius: 9px;
+                padding: 0 10px;
+                font-size: 13px;
             }
 
             /* =========================
@@ -592,6 +639,20 @@
                             </c:forEach>
                         </select>
 
+                        <!--Product-->
+                        <select id="product"
+                                class="filter-select">
+                            <option value="">
+                                All Products
+                            </option>
+                            <c:forEach var="p" items="${productOptions}">
+                                <option value="${p.id}"
+                                        ${selectedProduct == p.id ? 'selected' : ''}>
+                                    <c:out value="${p.name}"/>
+                                </option>
+                            </c:forEach>
+                        </select>
+
                         <!-- SUPPLIED -->
 
                         <label class="supplied-filter">
@@ -604,66 +665,45 @@
 
 
                     <!-- ========================================= -->
-                    <!-- PRODUCT LIST -->
+                    <!-- PRODUCT VARIANT LIST (FLAT) -->
                     <!-- ========================================= -->
 
+                    <!-- FIX: bỏ group theo product-card, hiển thị thẳng danh sách
+                         ProductVariant (mỗi dòng tự mang tên product/brand) để trang ngắn
+                         lại và số dòng mỗi trang cố định theo PAGE_SIZE. -->
                     <c:choose>
-                        <c:when test="${empty products}">
+                        <c:when test="${empty variantRows}">
                             <div class="empty-products">
                                 <i class="bi bi-box-seam"></i>
-                                No products found.
+                                No product variants found.
                             </div>
                         </c:when>
 
                         <c:otherwise>
-                            <div class="product-list">
-                                <c:forEach var="product"
-                                           items="${products}">
-                                    <div class="product-card">
-                                        <!-- PRODUCT HEADER -->
-                                        <div class="product-header">
-                                            <div>
-                                                <div class="product-name">
-                                                    <c:out value="${product.name}"/>
-                                                </div>
-                                                <div class="product-brand">
-                                                    <c:out value="${product.brandName}"/>
-                                                </div>
-                                            </div>
+                            <div class="variant-flat-list">
+                                <c:forEach var="row" items="${variantRows}">
+                                    <label class="variant-row"
+                                           data-variant-id="${row.variantId}">
+                                        <input
+                                            type="checkbox"
+                                            class="variant-checkbox"
+                                            value="${row.variantId}"
+                                            ${row.supplied ? 'checked' : ''}>
+                                        <div class="variant-info">
+                                            <span class="variant-name">
+                                                <c:out value="${row.productName}"/> —
+                                                ${row.ramGb}GB - ${row.storageGb}GB -
+                                                <c:out value="${row.colorName}"/>
+                                            </span>
+                                            <span class="variant-sku">
+                                                <c:out value="${row.brandName}"/> · SKU:
+                                                <c:out value="${row.sku}"/>
+                                            </span>
                                         </div>
-
-                                        <!-- VARIANTS -->
-                                        <div class="variant-list">
-                                            <c:forEach var="variant"
-                                                       items="${product.variants}">
-                                                <label class="variant-row"
-                                                       data-variant-id="${variant.id}">
-                                                    <input
-                                                        type="checkbox"
-                                                        class="variant-checkbox"
-                                                        value="${variant.id}"
-                                                        ${suppliedVariantIds.contains(variant.id)
-                                                          ? 'checked'
-                                                          : ''}>
-                                                    <div class="variant-info">
-                                                        <span class="variant-name">
-                                                            ${variant.ramGb}GB -
-                                                            ${variant.storageGb}GB -
-                                                            <c:out value="${variant.colorName}"/>
-                                                        </span>
-                                                        <span class="variant-sku">
-                                                            SKU:
-                                                            <c:out value="${variant.sku}"/>
-                                                        </span>
-                                                    </div>
-                                                    <span class="variant-stock">
-                                                        Stock:
-                                                        ${variant.stock}
-                                                    </span>
-                                                </label>
-                                            </c:forEach>
-                                        </div>
-                                    </div>
+                                        <span class="variant-stock">
+                                            Stock: ${row.stock}
+                                        </span>
+                                    </label>
                                 </c:forEach>
                             </div>
                         </c:otherwise>
@@ -672,35 +712,77 @@
                     <!-- ========================================= -->
                     <!-- PAGINATION -->
                     <!-- ========================================= -->
-                    <c:if test="${productTotalPages > 1}">
+                    <!-- FIX: đổi từ hiển thị đủ tất cả số trang sang kiểu rút gọn
+                         "1 ... 4 5 6 ... 20" (tính sẵn ở server trong pageItems), dùng
+                         <button data-page> thay vì <a href> để 1 hàm JS dùng chung xử lý
+                         điều hướng (đọc đúng toàn bộ filter hiện tại kể cả dropdown Product
+                         mới, tránh phải lặp lại query string thủ công ở từng link). Thêm ô
+                         nhảy nhanh tới trang. -->
+                    <c:if test="${variantTotalPages > 1}">
                         <div class="pagination-wrapper">
+                            <div class="pagination-info">
+                                Showing
+                                <strong>${startItem}</strong>
+                                -
+                                <strong>${endItem}</strong>
+                                of
+                                <strong>${totalVariants}</strong>
+                                variants
+                            </div>
+
                             <ul class="pagination">
                                 <!-- PREVIOUS -->
-                                <li class="${productCurrentPage  == 1 ? 'disabled' : ''}">
-                                    <a href="${pageContext.request.contextPath}/manager/supplier?action=detail&id=${supplier.id}&page=${currentPage - 1}&keyword=${keyword}&brand=${selectedBrand}&suppliedOnly=${suppliedOnly}"
-                                       data-page-link>
+                                <li class="${variantCurrentPage == 1 ? 'disabled' : ''}">
+                                    <button type="button"
+                                            class="page-btn-nav"
+                                            data-page="${variantCurrentPage - 1}">
                                         ←
-                                    </a>
+                                    </button>
                                 </li>
-                                <!-- PAGE NUMBERS -->
-                                <c:forEach begin="1"
-                                           end="${productTotalPages}"
-                                           var="page">
-                                    <li class="${page == productCurrentPage  ? 'active' : ''}">
-                                        <a href="${pageContext.request.contextPath}/manager/supplier?action=detail&id=${supplier.id}&page=${page}&keyword=${keyword}&brand=${selectedBrand}&suppliedOnly=${suppliedOnly}"
-                                           data-page-link>
-                                            ${page}
-                                        </a>
-                                    </li>
+
+                                <!-- PAGE NUMBERS (rút gọn) -->
+                                <c:forEach var="item" items="${pageItems}">
+                                    <c:choose>
+                                        <c:when test="${item == '...'}">
+                                            <li class="page-dots">
+                                                …
+                                            </li>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <li class="${item == variantCurrentPage ? 'active' : ''}">
+                                                <button type="button"
+                                                        class="page-btn-nav"
+                                                        data-page="${item}">
+                                                    ${item}
+                                                </button>
+                                            </li>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </c:forEach>
+
                                 <!-- NEXT -->
-                                <li class="${productCurrentPage  == productTotalPages ? 'disabled' : ''}">
-                                    <a href="${pageContext.request.contextPath}/manager/supplier?action=detail&id=${supplier.id}&page=${currentPage + 1}&keyword=${keyword}&brand=${selectedBrand}&suppliedOnly=${suppliedOnly}"
-                                       data-page-link>
+                                <li class="${variantCurrentPage == variantTotalPages ? 'disabled' : ''}">
+                                    <button type="button"
+                                            class="page-btn-nav"
+                                            data-page="${variantCurrentPage + 1}">
                                         →
-                                    </a>
+                                    </button>
                                 </li>
                             </ul>
+
+                            <!-- FIX: ô điền số để nhảy nhanh tới trang -->
+                            <div class="page-jump">
+                                <input type="number"
+                                       id="jumpPageInput"
+                                       min="1"
+                                       max="${variantTotalPages}"
+                                       placeholder="Page #">
+                                <button type="button"
+                                        id="jumpPageBtn"
+                                        class="btn subtle">
+                                    Go
+                                </button>
+                            </div>
                         </div>
                     </c:if>
                 </section>
@@ -935,22 +1017,19 @@
              * SEARCH / FILTER
              * =========================================================
              */
-            function applyFilter() {
+            function buildFilterUrl(page) {
+
                 const keyword =
-                        document
-                        .getElementById('keyword')
-                        .value
-                        .trim();
+                        document.getElementById('keyword').value.trim();
 
                 const brand =
-                        document
-                        .getElementById('brand')
-                        .value;
+                        document.getElementById('brand').value;
+
+                const product =
+                        document.getElementById('product').value;
 
                 const suppliedOnly =
-                        document
-                        .getElementById('suppliedOnly')
-                        .checked;
+                        document.getElementById('suppliedOnly').checked;
 
                 const url =
                         new URL(
@@ -958,89 +1037,96 @@
                                 window.location.origin
                                 );
 
-                url.searchParams.set(
-                        'action',
-                        'edit'
-                        );
-
-                url.searchParams.set(
-                        'id',
-                        supplierId
-                        );
-
-                url.searchParams.set(
-                        'page',
-                        '1'
-                        );
+                url.searchParams.set('action', 'detail');
+                url.searchParams.set('id', supplierId);
+                url.searchParams.set('page', String(page));
 
                 if (keyword) {
-                    url.searchParams.set(
-                            'keyword',
-                            keyword
-                            );
+                    url.searchParams.set('keyword', keyword);
                 }
-
-
                 if (brand) {
-                    url.searchParams.set(
-                            'brand',
-                            brand
-                            );
+                    url.searchParams.set('brand', brand);
                 }
-
-
+                if (product) {
+                    url.searchParams.set('product', product);
+                }
                 if (suppliedOnly) {
-                    url.searchParams.set(
-                            'supplied',
-                            'supplied'
-                            );
+                    url.searchParams.set('supplied', 'supplied');
                 }
 
-                /*
-                 * Selection vẫn nằm trong sessionStorage,
-                 * nên reload/filter không mất checkbox.
-                 */
-                saveSelectedVariants();
-                window.location.href =
-                        url.toString();
+                return url.toString();
             }
 
+            function goToPage(page) {
+                saveSelectedVariants();
+                window.location.href = buildFilterUrl(page);
+            }
 
-            /*
-             * SEARCH ENTER
-             */
+            function applyFilter() {
+                goToPage(1);
+            }
+
+            /* SEARCH ENTER */
             document
                     .getElementById('keyword')
-                    .addEventListener(
-                            'keydown',
-                            function (event) {
-                                if (event.key === 'Enter') {
-                                    event.preventDefault();
-                                    applyFilter();
-                                }
-                            }
-                    );
+                    .addEventListener('keydown', function (event) {
+                        if (event.key === 'Enter') {
+                            event.preventDefault();
+                            applyFilter();
+                        }
+                    });
 
-            /*
-             * BRAND CHANGE
-             */
+            /* BRAND CHANGE */
             document
                     .getElementById('brand')
-                    .addEventListener(
-                            'change',
-                            applyFilter
-                            );
+                    .addEventListener('change', applyFilter);
 
-            /*
-             * SUPPLIED ONLY CHANGE
-             */
+            /* FIX: PRODUCT DROPDOWN CHANGE (mới) */
+            document
+                    .getElementById('product')
+                    .addEventListener('change', applyFilter);
+
+            /* SUPPLIED ONLY CHANGE */
             document
                     .getElementById('suppliedOnly')
-                    .addEventListener(
-                            'change',
-                            applyFilter
-                            );
+                    .addEventListener('change', applyFilter);
 
+            /* FIX: nút số trang / ← / → giờ là <button data-page>, không phải <a> */
+            document
+                    .querySelectorAll('.page-btn-nav')
+                    .forEach(function (btn) {
+                        btn.addEventListener('click', function () {
+                            const page = parseInt(this.dataset.page, 10);
+                            if (!isNaN(page) && page >= 1) {
+                                goToPage(page);
+                            }
+                        });
+                    });
+
+            /* FIX: ô nhảy nhanh tới trang */
+            const jumpBtn = document.getElementById('jumpPageBtn');
+            if (jumpBtn) {
+                jumpBtn.addEventListener('click', function () {
+                    const totalPages = ${variantTotalPages};
+                    const input = document.getElementById('jumpPageInput');
+                    let page = parseInt(input.value, 10);
+                    if (isNaN(page) || page < 1) {
+                        page = 1;
+                    }
+                    if (page > totalPages) {
+                        page = totalPages;
+                    }
+                    goToPage(page);
+                });
+                document
+                        .getElementById('jumpPageInput')
+                        .addEventListener('keydown', function (event) {
+                            if (event.key === 'Enter') {
+                                event.preventDefault();
+                                jumpBtn.click();
+                            }
+                        });
+            }
             /*
              * =========================================================
              * PAGINATION
