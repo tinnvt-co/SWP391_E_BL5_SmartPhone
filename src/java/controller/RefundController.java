@@ -104,7 +104,8 @@ public class RefundController extends HttpServlet {
             request.getRequestDispatcher("/views/customer/return-request.jsp").forward(request, response);
 
         } catch (SQLException ex) {
-            throw new ServletException("Cannot load refund request", ex);
+            response.sendRedirect(request.getContextPath() + "/order-history?flash="
+                    + encode("Cannot load refund request. Please try again."));
         }
     }
 
@@ -222,16 +223,15 @@ public class RefundController extends HttpServlet {
             if (order != null) {
                 prepareRefundForm(request, user, order);
             }
-        } catch (SQLException ex) {
-            throw new ServletException(
-                    "Cannot prepare refund form",
-                    ex
-            );
+            request.getRequestDispatcher(
+                    "/views/customer/return-request.jsp"
+            ).forward(request, response);
+        } catch (SQLException | ServletException ex) {
+            // Không throw ra ngoài nữa: nếu prepare/forward lỗi thì redirect về order-history kèm flash
+            response.sendRedirect(request.getContextPath() + "/return-request?orderId="
+                    + (order != null ? order.getId() : 0)
+                    + "&flash=" + encode("Cannot load refund form. Please try again."));
         }
-
-        request.getRequestDispatcher(
-                "/views/customer/return-request.jsp"
-        ).forward(request, response);
     }
 
     private void prepareRefundForm(

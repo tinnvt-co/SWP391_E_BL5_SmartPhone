@@ -3,8 +3,8 @@ package controller;
 import DAO.BrandDAO;
 import DAO.ProductDAO;
 import DAO.SupplierDAO;
+import static controller.ProductController.integer;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,71 +20,64 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@WebServlet(
-        name = "SupplierController",
-        urlPatterns = {
-            "/manager/suppliers",
-            "/manager/suppliers/detail"
-        }
-)
 public class SupplierController extends HttpServlet {
 
-    private static final int PAGE_SIZE = 12;
+    private static final int PAGE_SIZE = 10;
+    private static final int NAME_MAX_LENGTH = 150;
+    private static final int ADDRESS_MAX_LENGTH = 255;
+    private static final int DESCRIPTION_MAX_LENGTH = 255;
+    private static final int NOTE_MAX_LENGTH = 500;
 
     private final SupplierDAO supplierDAO = new SupplierDAO();
     private final ProductDAO productDAO = new ProductDAO();
     private final BrandDAO brandDAO = new BrandDAO();
 
     @Override
-    protected void doGet(
-            HttpServletRequest request,
+    protected void doGet(HttpServletRequest request,
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        if (!isManager(request)) {
-            response.sendError(
-                    HttpServletResponse.SC_FORBIDDEN,
-                    "Manager access required."
-            );
-            return;
-        }
-
-        String path = request.getServletPath();
-
         try {
-
-            if ("/manager/suppliers/detail".equals(path)) {
-                showDetail(request, response);
-            } else {
-                showList(request, response);
+            String action = request.getParameter("action");
+            if (action == null || action.isBlank()
+                    || "list".equals(action)) {
+                listSuppliers(request, response);
+                return;
             }
 
+            if ("detail".equals(action)) {
+                showDetail(request, response);
+                return;
+            }
+
+            listSuppliers(request, response);
         } catch (SQLException e) {
-            throw new ServletException(
-                    "Cannot load supplier data.",
-                    e
-            );
+            HttpSession session = request.getSession();
+            session.setAttribute("msgErr", "Cannot load suppliers. Please try again.");
+            response.sendRedirect(request.getContextPath() + "/manager/supplier/list");
         }
     }
 
-    private void showList(
-            HttpServletRequest request,
+    private void listSuppliers(HttpServletRequest request,
             HttpServletResponse response)
             throws SQLException, ServletException, IOException {
 
-        String keyword = normalizeKeyword(
-                request.getParameter("keyword")
-        );
-
+        String keyword = request.getParameter("keyword");
         String status = request.getParameter("status");
 
-        int requestedPage = parseInt(
-                request.getParameter("page"),
-                1
-        );
+        if (keyword == null) {
+            keyword = "";
+        }
 
-        int totalSuppliers =
-                supplierDAO.countAll(keyword, status);
+        keyword = keyword.trim();
+
+        int requestedPage = integer(
+                request.getParameter("page"), 1);
+
+        int totalSuppliers = supplierDAO.countAll(
+                keyword,
+                status
+        );
 
         int totalPages = Math.max(
                 1,
@@ -98,42 +91,39 @@ public class SupplierController extends HttpServlet {
                 totalPages
         );
 
-        int offset =
-                (currentPage - 1) * PAGE_SIZE;
+        int offset = (currentPage - 1) * PAGE_SIZE;
 
-        List<SupplierModel> suppliers =
-                supplierDAO.findAll(
+        List<SupplierModel> suppliers
+                = supplierDAO.findAll(
                         keyword,
                         status,
                         PAGE_SIZE,
                         offset
                 );
 
-        int startPage =
-                Math.max(1, currentPage - 2);
-
-        int endPage =
-                Math.min(totalPages, currentPage + 2);
-
-        request.setAttribute(
-                "suppliers",
-                suppliers
+        int startPage = Math.max(
+                1,
+                currentPage - 2
         );
 
-        request.setAttribute(
-                "keyword",
-                keyword
+        int endPage = Math.min(
+                totalPages,
+                currentPage + 2
         );
 
-        request.setAttribute(
-                "status",
-                status
-        );
+        int startItem = totalSuppliers == 0
+                ? 0
+                : offset + 1;
 
-        request.setAttribute(
-                "totalSuppliers",
+        int endItem = Math.min(
+                offset + PAGE_SIZE,
                 totalSuppliers
         );
+
+        request.setAttribute("suppliers", suppliers);
+
+        request.setAttribute("keyword", keyword);
+        request.setAttribute("status", status);
 
         request.setAttribute(
                 "currentPage",
@@ -153,6 +143,30 @@ public class SupplierController extends HttpServlet {
         request.setAttribute(
                 "endPage",
                 endPage
+        );
+
+        request.setAttribute(
+                "totalSuppliers",
+                totalSuppliers
+        );
+
+        request.setAttribute(
+                "startItem",
+                startItem
+        );
+
+        request.setAttribute(
+                "endItem",
+                endItem
+        );
+
+        //Dùng khi đưa keyword vào URL. Nếu keyword có &, ?, khoảng trắng thì nên encode trước khi truyền sang JSP.
+        request.setAttribute(
+                "urlKeyword",
+                java.net.URLEncoder.encode(
+                        keyword,
+                        java.nio.charset.StandardCharsets.UTF_8
+                )
         );
 
         request.getRequestDispatcher(
@@ -197,8 +211,8 @@ public class SupplierController extends HttpServlet {
 
         loadProducts(request, supplier);
 
-        List<BrandModel> brands =
-                brandDAO.findAll(true);
+        List<BrandModel> brands
+                = brandDAO.findAll(true);
 
         request.setAttribute(
                 "supplier",
@@ -228,20 +242,17 @@ public class SupplierController extends HttpServlet {
                 request.getParameter("brand")
         );
 
-        String suppliedFilter =
-                request.getParameter("supplied");
+        String suppliedFilter
+                = request.getParameter("supplied");
 
         int requestedPage = parseInt(
                 request.getParameter("page"),
                 1
         );
 
-        /*
-         * ProductDAO đang trả Product + các ProductVariant
-         * nên chúng ta tận dụng lại luôn.
-         */
-        List<ProductModel> allProducts =
-                productDAO.findAll(
+        //tận dụng lại ProductDAO đang trả Product + các ProductVariant
+        List<ProductModel> allProducts
+                = productDAO.findAll(
                         keyword,
                         brandId,
                         null,
@@ -249,8 +260,8 @@ public class SupplierController extends HttpServlet {
                         true
                 );
 
-        Set<Integer> suppliedIds =
-                new HashSet<>(
+        Set<Integer> suppliedIds
+                = new HashSet<>(
                         supplier.getProductVariantIds()
                 );
 
@@ -283,11 +294,11 @@ public class SupplierController extends HttpServlet {
          */
         allProducts.removeIf(
                 product -> product.getVariants() == null
-                        || product.getVariants().isEmpty()
+                || product.getVariants().isEmpty()
         );
 
-        int totalProducts =
-                allProducts.size();
+        int totalProducts
+                = allProducts.size();
 
         int totalPages = Math.max(
                 1,
@@ -301,27 +312,27 @@ public class SupplierController extends HttpServlet {
                 totalPages
         );
 
-        int from =
-                (currentPage - 1) * PAGE_SIZE;
+        int from
+                = (currentPage - 1) * PAGE_SIZE;
 
-        int to =
-                Math.min(
+        int to
+                = Math.min(
                         from + PAGE_SIZE,
                         totalProducts
                 );
 
-        List<ProductModel> pageProducts =
-                from < to
+        List<ProductModel> pageProducts
+                = from < to
                         ? new ArrayList<>(
                                 allProducts.subList(from, to)
                         )
                         : new ArrayList<>();
 
-        int startPage =
-                Math.max(1, currentPage - 2);
+        int startPage
+                = Math.max(1, currentPage - 2);
 
-        int endPage =
-                Math.min(totalPages, currentPage + 2);
+        int endPage
+                = Math.min(totalPages, currentPage + 2);
 
         request.setAttribute(
                 "products",
@@ -379,10 +390,10 @@ public class SupplierController extends HttpServlet {
             product.getVariants().removeIf(
                     variant -> {
 
-                        boolean supplied =
-                                suppliedIds.contains(
-                                        variant.getId()
-                                );
+                        boolean supplied
+                        = suppliedIds.contains(
+                                variant.getId()
+                        );
 
                         return supplied != shouldBeSupplied;
                     }
@@ -395,49 +406,34 @@ public class SupplierController extends HttpServlet {
             HttpServletRequest request,
             HttpServletResponse response)
             throws ServletException, IOException {
-
-        if (!isManager(request)) {
-            response.sendError(
-                    HttpServletResponse.SC_FORBIDDEN,
-                    "Manager access required."
-            );
-            return;
-        }
-
-        String path = request.getServletPath();
-
-        if (!"/manager/suppliers/detail".equals(path)) {
-            response.sendError(
-                    HttpServletResponse.SC_METHOD_NOT_ALLOWED
-            );
-            return;
-        }
-
         try {
-
             saveSupplier(request, response);
-
-        } catch (SQLException e) {
-
-            throw new ServletException(
-                    "Cannot save supplier.",
-                    e
-            );
+        } catch (SQLException | ServletException | IOException e) {
+            int supplierId = parseInt(request.getParameter("id"), 0);
+            HttpSession session = request.getSession();
+            session.setAttribute("msgErr", "Cannot save supplier. Please try again.");
+            if (!response.isCommitted()) {
+                response.sendRedirect(
+                        request.getContextPath()
+                        + "/manager/supplier/detail"
+                        + (supplierId > 0 ? "?id=" + supplierId : "")
+                );
+            }
         }
     }
 
     private void saveSupplier(
             HttpServletRequest request,
             HttpServletResponse response)
-            throws SQLException, IOException {
+            throws SQLException, IOException, ServletException {
 
         int supplierId = parseInt(
                 request.getParameter("id"),
                 0
         );
 
-        SupplierModel supplier =
-                new SupplierModel();
+        SupplierModel supplier
+                = new SupplierModel();
 
         supplier.setId(supplierId);
 
@@ -476,20 +472,20 @@ public class SupplierController extends HttpServlet {
          * nên request.getParameterValues()
          * sẽ trả về toàn bộ variant được check.
          */
-        String[] selectedIds =
-                request.getParameterValues(
+        String[] selectedIds
+                = request.getParameterValues(
                         "productVariantIds"
                 );
 
-        List<Integer> productVariantIds =
-                new ArrayList<>();
+        List<Integer> productVariantIds
+                = new ArrayList<>();
 
         if (selectedIds != null) {
 
             for (String value : selectedIds) {
 
-                int variantId =
-                        parseInt(value, 0);
+                int variantId
+                        = parseInt(value, 0);
 
                 if (variantId > 0
                         && !productVariantIds.contains(variantId)) {
@@ -505,15 +501,19 @@ public class SupplierController extends HttpServlet {
                 productVariantIds
         );
 
-        validateSupplier(supplier);
+        List<String> errors = validateSupplier(supplier);
 
-        HttpSession session =
-                request.getSession();
+        if (!errors.isEmpty()) {
+            showSupplierFormWithError(request, response, supplier, errors);
+            return;
+        }
+
+        HttpSession session
+                = request.getSession();
 
         if (supplierId == 0) {
-
-            int newId =
-                    supplierDAO.create(supplier);
+            int newId
+                    = supplierDAO.create(supplier);
 
             supplierDAO.updateProductVariants(
                     newId,
@@ -527,14 +527,14 @@ public class SupplierController extends HttpServlet {
 
             response.sendRedirect(
                     request.getContextPath()
-                    + "/manager/suppliers/detail?id="
+                    + "/manager/supplier/detail?id="
                     + newId
             );
 
         } else {
 
-            boolean updated =
-                    supplierDAO.update(supplier);
+            boolean updated
+                    = supplierDAO.update(supplier);
 
             if (!updated) {
 
@@ -558,57 +558,79 @@ public class SupplierController extends HttpServlet {
 
             response.sendRedirect(
                     request.getContextPath()
-                    + "/manager/suppliers/detail?id="
+                    + "/manager/supplier/detail?id="
                     + supplierId
             );
         }
     }
 
-    private void validateSupplier(
-            SupplierModel supplier) {
+    private void showSupplierFormWithError(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            SupplierModel supplier,
+            List<String> errors)
+            throws SQLException, ServletException, IOException {
 
-        if (supplier.getName() == null
-                || supplier.getName().isBlank()) {
+        loadProducts(request, supplier);
 
-            throw new IllegalArgumentException(
-                    "Supplier name is required."
-            );
-        }
+        List<BrandModel> brands = brandDAO.findAll(true);
 
-        if (supplier.getAddress() == null
-                || supplier.getAddress().isBlank()) {
+        request.setAttribute("supplier", supplier);
+        request.setAttribute("brands", brands);
+        request.setAttribute("errors", errors);
 
-            throw new IllegalArgumentException(
-                    "Supplier address is required."
-            );
-        }
-
-        if (supplier.getPhone() == null
-                || supplier.getPhone().isBlank()) {
-
-            throw new IllegalArgumentException(
-                    "Supplier phone is required."
-            );
-        }
+        request.getRequestDispatcher(
+                "/views/manager/supplier-detail.jsp"
+        ).forward(request, response);
     }
 
-    private boolean isManager(
-            HttpServletRequest request) {
+    private List<String> validateSupplier(SupplierModel supplier) {
 
-        HttpSession session =
-                request.getSession(false);
+        List<String> errors = new ArrayList<>();
 
-        if (session == null) {
-            return false;
+        String name = supplier.getName();
+        if (name == null || name.isBlank()) {
+            errors.add("Supplier name is required.");
+        } else if (name.length() > NAME_MAX_LENGTH) {
+            errors.add("Supplier name must be " + NAME_MAX_LENGTH + " characters or fewer.");
         }
 
-        Object role =
-                session.getAttribute("role");
+        String address = supplier.getAddress();
+        if (address == null || address.isBlank()) {
+            errors.add("Supplier address is required.");
+        } else if (address.length() > ADDRESS_MAX_LENGTH) {
+            errors.add("Supplier address must be " + ADDRESS_MAX_LENGTH + " characters or fewer.");
+        }
 
-        return role != null
-                && "MANAGER".equalsIgnoreCase(
-                        role.toString()
-                );
+        String phone = supplier.getPhone();
+        if (phone == null || phone.isBlank()) {
+            errors.add("Supplier phone is required.");
+        } else if (!isValidPhone(phone)) {
+            // FIX: siết lại theo yêu cầu - đúng 10 chữ số, không cho phép
+            // dấu +, khoảng trắng, gạch ngang hay ký tự nào khác.
+            errors.add("Supplier phone must be exactly 10 digits (no other characters).");
+        }
+
+        String description = supplier.getDescription();
+        if (description != null && description.length() > DESCRIPTION_MAX_LENGTH) {
+            errors.add("Description must be " + DESCRIPTION_MAX_LENGTH + " characters or fewer.");
+        }
+
+        String note = supplier.getNote();
+        if (note != null && note.length() > NOTE_MAX_LENGTH) {
+            errors.add("Note must be " + NOTE_MAX_LENGTH + " characters or fewer.");
+        }
+
+        String status = supplier.getStatus();
+        if (!"ACTIVE".equals(status) && !"INACTIVE".equals(status)) {
+            errors.add("Invalid supplier status.");
+        }
+
+        return errors;
+    }
+
+    private boolean isValidPhone(String phone) {
+        return phone.matches("\\d{10}");
     }
 
     private String normalizeKeyword(
@@ -654,8 +676,8 @@ public class SupplierController extends HttpServlet {
     private Integer parseIntegerOrNull(
             String value) {
 
-        int result =
-                parseInt(value, 0);
+        int result
+                = parseInt(value, 0);
 
         return result > 0
                 ? result
