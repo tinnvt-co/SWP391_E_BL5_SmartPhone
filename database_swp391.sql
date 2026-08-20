@@ -110,7 +110,8 @@ CREATE TABLE `Brand` (
   `Created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `Updated_at` TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   `Status` VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
-  PRIMARY KEY (`ID`)
+  PRIMARY KEY (`ID`),
+  UNIQUE KEY `uk_Brand_Name` (`Name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
  
 CREATE TABLE `Supplier` (
@@ -433,8 +434,7 @@ INSERT INTO `Category` (`ID`, `Name`, `Description`, `Status`) VALUES
 (2, 'Gaming Phone', 'Phones optimized for mobile gaming', 'ACTIVE'),
 (3, 'Foldable Phone', 'Foldable and flip smartphones', 'ACTIVE'),
 (4, 'Camera Phone', 'Phones focused on camera quality', 'ACTIVE'),
-(5, 'Long Battery Phone', 'Phones focused on long battery life', 'ACTIVE'),
-(6, 'Everyday Phone', 'Phones for common daily needs', 'ACTIVE');
+(5, 'Long Battery Phone', 'Phones focused on long battery life', 'ACTIVE');
 
 INSERT INTO `Brand` (`ID`, `Name`, `Description`, `Status`) VALUES
 (1, 'Apple', 'Apple iPhone products', 'ACTIVE'),
@@ -723,16 +723,6 @@ WHERE `Name` REGEXP 'Pro|Ultra|Find X|Note';
 INSERT IGNORE INTO `Product_Category` (`ProductID`, `CategoryID`)
 SELECT `ID`, 5 FROM `Product`
 WHERE `Name` REGEXP 'Galaxy M|Galaxy A|Redmi|POCO|OPPO A';
-
-INSERT IGNORE INTO `Product_Category` (`ProductID`, `CategoryID`)
-SELECT `ID`, 6 FROM `Product`
-WHERE `Name` REGEXP 'iPhone SE|Galaxy A|Redmi Note|OPPO A';
-
-INSERT INTO `Product_Category` (`ProductID`, `CategoryID`)
-SELECT p.`ID`, 6 FROM `Product` p
-WHERE NOT EXISTS (
-  SELECT 1 FROM `Product_Category` pc WHERE pc.`ProductID` = p.`ID`
-);
 
 INSERT INTO `ProductVariant` (`ID`, `ProductID`, `RAM_GB`, `Storage_GB`, `ColorName`, `SKU`, `Selling_price`, `Latest_cost`, `Image`, `BackImage`, `Status`) VALUES
 (1, 1, 8, 256, 'Black Titanium', 'APL-001-8R-256G-C1', 34990000, 28691800, 'iphone-17-pro-max-8gb-256gb-black-titanium.jpg', 'iphone-17-pro-max-black-titanium-back.jpg', 'ACTIVE'),

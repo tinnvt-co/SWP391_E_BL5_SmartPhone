@@ -17,21 +17,38 @@
         <main class="page-shell">
             <c:url var="addProductUrl" value="/manager/products">
                 <c:param name="action" value="form"/>
-                <c:if test="${not empty selectedCategory}">
-                    <c:param name="category" value="${selectedCategory}"/>
-                </c:if>
+            </c:url>
+            <c:url var="addCategoryProductsUrl" value="/manager/products">
+                <c:param name="action" value="category-picker"/>
+                <c:param name="category" value="${selectedCategory}"/>
             </c:url>
             <div class="page-heading">
                 <div>
-                    <h1>Product Management</h1>
+                    <h1><c:choose><c:when test="${fromCategory}"><c:out value="${selectedCategoryName}"/> Products</c:when><c:otherwise>Product Management</c:otherwise></c:choose></h1>
                     <p>${filteredTotal} products found</p>
                 </div>
                 <div class="page-heading-actions">
-                    <a class="btn subtle" href="${pageContext.request.contextPath}/manager">← Back to dashboard</a>
-                    <a class="btn primary large"
-                       href="${addProductUrl}">
-                        + Add Product
-                    </a>
+                    <c:choose>
+                        <c:when test="${fromCategory}">
+                            <a class="btn subtle" href="${pageContext.request.contextPath}/manager/categories">← Back to category management</a>
+                        </c:when>
+                        <c:otherwise>
+                            <a class="btn subtle" href="${pageContext.request.contextPath}/manager">← Back to dashboard</a>
+                        </c:otherwise>
+                    </c:choose>
+                    <c:choose>
+                        <c:when test="${fromCategory}">
+                            <button class="btn primary large" type="button"
+                                    data-open-category-product-modal>
+                                + Add Products
+                            </button>
+                        </c:when>
+                        <c:otherwise>
+                            <a class="btn primary large" href="${addProductUrl}">
+                                + Add Product
+                            </a>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
             </div>
 
@@ -39,31 +56,11 @@
                 <div class="alert success"><c:out value="${param.message}"/></div>
             </c:if>
 
-            <section class="stats-grid">
-                <article>
-                    <span>TOTAL PRODUCTS</span>
-                    <strong>${total}</strong>
-                    <i></i>
-                </article>
-                <article>
-                    <span>ACTIVE</span>
-                    <strong>${active}</strong>
-                    <i class="green"></i>
-                </article>
-                <article>
-                    <span>BRANDS</span>
-                    <strong>${brands.size()}</strong>
-                    <i class="pink"></i>
-                </article>
-                <article>
-                    <span>CATEGORIES</span>
-                    <strong>${categories.size()}</strong>
-                    <i class="purple"></i>
-                </article>
-            </section>
-
             <section class="table-panel">
                 <form class="search-row" method="get">
+                    <c:if test="${fromCategory}">
+                        <input type="hidden" name="from" value="category">
+                    </c:if>
                     <input name="q" value="<c:out value='${keyword}'/>"
                            placeholder="Search product name...">
                     <c:if test="${not empty selectedSort}">
@@ -80,15 +77,23 @@
                         </c:forEach>
                     </select>
 
-                    <select name="category">
-                        <option value="">Category</option>
-                        <c:forEach items="${categories}" var="category">
-                            <option value="${category.id}"
-                                    ${selectedCategory == category.id ? 'selected' : ''}>
-                                <c:out value="${category.name}"/>
-                            </option>
-                        </c:forEach>
-                    </select>
+                    <c:choose>
+                        <c:when test="${fromCategory}">
+                            <input type="hidden" name="category" value="${selectedCategory}">
+                            <div class="locked-filter"><c:out value="${selectedCategoryName}"/></div>
+                        </c:when>
+                        <c:otherwise>
+                            <select name="category">
+                                <option value="">Category</option>
+                                <c:forEach items="${categories}" var="category">
+                                    <option value="${category.id}"
+                                            ${selectedCategory == category.id ? 'selected' : ''}>
+                                        <c:out value="${category.name}"/>
+                                    </option>
+                                </c:forEach>
+                            </select>
+                        </c:otherwise>
+                    </c:choose>
 
                     <select name="priceRange">
                         <option value="">All prices</option>
@@ -105,7 +110,7 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th>No.</th>
                                 <th>Product name</th>
                                 <th>Brand</th>
                                 <th>Category</th>
@@ -119,9 +124,9 @@
                             <c:if test="${empty products}">
                                 <tr><td colspan="8" class="manager-empty-row">No products match the current filters.</td></tr>
                             </c:if>
-                            <c:forEach items="${products}" var="product">
+                            <c:forEach items="${products}" var="product" varStatus="row">
                                 <tr>
-                                    <td class="mono">${product.id}</td>
+                                    <td class="mono">${pageStart + row.index}</td>
                                     <td>
                                         <strong><c:out value="${product.name}"/></strong>
                                         <small><c:out value="${product.sku}"/></small>
@@ -145,16 +150,29 @@
                                     </td>
                                     <td>
                                         <div class="actions">
-                                            <a class="btn subtle"
-                                               href="${pageContext.request.contextPath}/manager/products?action=form&id=${product.id}">
-                                                Edit
-                                            </a>
-                                            <form method="post"
-                                                  onsubmit="return confirmDeactivate('product')">
-                                                <input type="hidden" name="action" value="deactivate">
-                                                <input type="hidden" name="id" value="${product.id}">
-                                                <button class="btn danger">Remove</button>
-                                            </form>
+                                            <c:choose>
+                                                <c:when test="${fromCategory}">
+                                                    <form method="post"
+                                                          onsubmit="return confirm('Remove this product from the category? The product will remain in Product Management.');">
+                                                        <input type="hidden" name="action" value="remove-category-product">
+                                                        <input type="hidden" name="categoryId" value="${selectedCategory}">
+                                                        <input type="hidden" name="productId" value="${product.id}">
+                                                        <button class="btn danger">Remove</button>
+                                                    </form>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <a class="btn subtle"
+                                                       href="${pageContext.request.contextPath}/manager/products?action=form&id=${product.id}">
+                                                        Edit
+                                                    </a>
+                                                    <form method="post"
+                                                          onsubmit="return confirmDeactivate('product')">
+                                                        <input type="hidden" name="action" value="deactivate">
+                                                        <input type="hidden" name="id" value="${product.id}">
+                                                        <button class="btn danger">Remove</button>
+                                                    </form>
+                                                </c:otherwise>
+                                            </c:choose>
                                         </div>
                                     </td>
                                 </tr>
@@ -171,6 +189,7 @@
                         <c:if test="${not empty selectedCategory}"><c:param name="category" value="${selectedCategory}"/></c:if>
                         <c:if test="${not empty selectedPriceRange}"><c:param name="priceRange" value="${selectedPriceRange}"/></c:if>
                         <c:if test="${not empty selectedSort}"><c:param name="sort" value="${selectedSort}"/></c:if>
+                        <c:if test="${fromCategory}"><c:param name="from" value="category"/></c:if>
                     </c:url>
                     <c:url var="previousPageUrl" value="/manager/products">
                         <c:param name="page" value="${currentPage - 1}"/>
@@ -179,6 +198,7 @@
                         <c:if test="${not empty selectedCategory}"><c:param name="category" value="${selectedCategory}"/></c:if>
                         <c:if test="${not empty selectedPriceRange}"><c:param name="priceRange" value="${selectedPriceRange}"/></c:if>
                         <c:if test="${not empty selectedSort}"><c:param name="sort" value="${selectedSort}"/></c:if>
+                        <c:if test="${fromCategory}"><c:param name="from" value="category"/></c:if>
                     </c:url>
                     <c:url var="nextPageUrl" value="/manager/products">
                         <c:param name="page" value="${currentPage + 1}"/>
@@ -187,6 +207,7 @@
                         <c:if test="${not empty selectedCategory}"><c:param name="category" value="${selectedCategory}"/></c:if>
                         <c:if test="${not empty selectedPriceRange}"><c:param name="priceRange" value="${selectedPriceRange}"/></c:if>
                         <c:if test="${not empty selectedSort}"><c:param name="sort" value="${selectedSort}"/></c:if>
+                        <c:if test="${fromCategory}"><c:param name="from" value="category"/></c:if>
                     </c:url>
                     <c:url var="lastPageUrl" value="/manager/products">
                         <c:param name="page" value="${totalPages}"/>
@@ -195,6 +216,7 @@
                         <c:if test="${not empty selectedCategory}"><c:param name="category" value="${selectedCategory}"/></c:if>
                         <c:if test="${not empty selectedPriceRange}"><c:param name="priceRange" value="${selectedPriceRange}"/></c:if>
                         <c:if test="${not empty selectedSort}"><c:param name="sort" value="${selectedSort}"/></c:if>
+                        <c:if test="${fromCategory}"><c:param name="from" value="category"/></c:if>
                     </c:url>
 
                     <nav class="manager-pagination" aria-label="Product management pagination">
@@ -211,9 +233,105 @@
                     </nav>
                 </c:if>
             </section>
+
+            <c:if test="${fromCategory}">
+                <div class="category-product-modal" data-category-product-modal hidden>
+                    <div class="category-product-modal-dialog" role="dialog"
+                         aria-modal="true" aria-labelledby="categoryProductModalTitle">
+                        <div class="category-product-modal-header">
+                            <div>
+                                <h2 id="categoryProductModalTitle">
+                                    Add Products to <c:out value="${selectedCategoryName}"/>
+                                </h2>
+                                <p>Only products that are not in this category are shown</p>
+                            </div>
+                            <button class="category-product-modal-close" type="button"
+                                    data-close-category-product-modal aria-label="Close">×</button>
+                        </div>
+
+                        <div class="category-product-modal-search">
+                            <i class="bi bi-search"></i>
+                            <input type="search" data-category-product-search
+                                   placeholder="Search product name...">
+                        </div>
+
+                        <form method="post" data-category-product-form
+                              action="${pageContext.request.contextPath}/manager/products">
+                            <input type="hidden" name="action" value="add-category-products">
+                            <input type="hidden" name="categoryId" value="${selectedCategory}">
+
+                            <div class="category-product-modal-table">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th class="selection-cell">Select</th>
+                                            <th>No.</th>
+                                            <th>Product name</th>
+                                            <th>Brand</th>
+                                            <th>Current categories</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <c:forEach items="${availableCategoryProducts}" var="availableProduct" varStatus="availableRow">
+                                            <tr data-category-product-row
+                                                data-product-name="<c:out value='${availableProduct.name}'/>">
+                                                <td class="selection-cell">
+                                                    <input type="checkbox" name="productIds"
+                                                           value="${availableProduct.id}"
+                                                           aria-label="Select product">
+                                                </td>
+                                                <td class="mono" data-visible-number>${availableRow.index + 1}</td>
+                                                <td>
+                                                    <strong><c:out value="${availableProduct.name}"/></strong>
+                                                    <small><c:out value="${availableProduct.sku}"/></small>
+                                                </td>
+                                                <td><c:out value="${availableProduct.brandName}"/></td>
+                                                <td>
+                                                    <c:choose>
+                                                        <c:when test="${empty availableProduct.categoryNames}">
+                                                            <span class="muted-copy">Not assigned</span>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <span class="category-chip"><c:out value="${availableProduct.categoryNames}"/></span>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </td>
+                                                <td>
+                                                    <span class="status ${availableProduct.active ? 'active' : 'inactive'}">
+                                                        ${availableProduct.status}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </c:forEach>
+                                        <tr data-category-product-empty hidden>
+                                            <td colspan="6" class="manager-empty-row">No available products match the search.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="category-product-modal-footer">
+                                <div class="category-modal-page-summary" data-category-modal-summary></div>
+                                <div class="category-modal-pagination">
+                                    <button class="manager-page-button wide" type="button"
+                                            data-category-modal-previous>Previous</button>
+                                    <span class="manager-page-current" data-category-modal-page></span>
+                                    <button class="manager-page-button wide" type="button"
+                                            data-category-modal-next>Next</button>
+                                </div>
+                                <span class="category-selection-count" data-category-modal-selection>0 product(s) selected</span>
+                                <button class="btn subtle" type="button" data-close-category-product-modal>Cancel</button>
+                                <button class="btn primary" type="submit">Add Selected Products</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </c:if>
         </main>
 
         <script src="${pageContext.request.contextPath}/assets/js/store.js"></script>
+        <script src="${pageContext.request.contextPath}/assets/js/manager-category-modal.js"></script>
         <%@ include file="/views/common/footer.jsp" %>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     </body>

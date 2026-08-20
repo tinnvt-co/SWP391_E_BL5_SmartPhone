@@ -45,6 +45,10 @@
 
                         <div class="actions">
                             <a class="btn subtle"
+                               href="${pageContext.request.contextPath}/manager/brands?action=products&id=${brand.id}">
+                                Products
+                            </a>
+                            <a class="btn subtle"
                                href="${pageContext.request.contextPath}/manager/brands?action=form&id=${brand.id}">
                                 Edit
                             </a>
