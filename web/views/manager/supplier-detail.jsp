@@ -576,7 +576,7 @@
                                id="keyword"
                                class="filter-input"
                                placeholder="Search product..."
-                               value="<c:out value='${keyword}'/>">
+                               value="<c:out value='${productKeyword}'/>">
 
                         <!-- BRAND -->
                         <select id="brand"
@@ -597,7 +597,7 @@
                         <label class="supplied-filter">
                             <input type="checkbox"
                                    id="suppliedOnly"
-                                   ${suppliedOnly ? 'checked' : ''}>
+                                   ${suppliedFilter == 'supplied' ? 'checked' : ''}>
                             Supplied only
                         </label>
                     </div>
@@ -672,30 +672,30 @@
                     <!-- ========================================= -->
                     <!-- PAGINATION -->
                     <!-- ========================================= -->
-                    <c:if test="${totalPages > 1}">
+                    <c:if test="${productTotalPages > 1}">
                         <div class="pagination-wrapper">
                             <ul class="pagination">
                                 <!-- PREVIOUS -->
-                                <li class="${currentPage == 1 ? 'disabled' : ''}">
-                                    <a href="${pageContext.request.contextPath}/manager/supplier?action=edit&id=${supplier.id}&page=${currentPage - 1}&keyword=${keyword}&brand=${selectedBrand}&suppliedOnly=${suppliedOnly}"
+                                <li class="${productCurrentPage  == 1 ? 'disabled' : ''}">
+                                    <a href="${pageContext.request.contextPath}/manager/supplier?action=detail&id=${supplier.id}&page=${currentPage - 1}&keyword=${keyword}&brand=${selectedBrand}&suppliedOnly=${suppliedOnly}"
                                        data-page-link>
                                         ←
                                     </a>
                                 </li>
                                 <!-- PAGE NUMBERS -->
                                 <c:forEach begin="1"
-                                           end="${totalPages}"
+                                           end="${productTotalPages}"
                                            var="page">
-                                    <li class="${page == currentPage ? 'active' : ''}">
-                                        <a href="${pageContext.request.contextPath}/manager/supplier?action=edit&id=${supplier.id}&page=${page}&keyword=${keyword}&brand=${selectedBrand}&suppliedOnly=${suppliedOnly}"
+                                    <li class="${page == productCurrentPage  ? 'active' : ''}">
+                                        <a href="${pageContext.request.contextPath}/manager/supplier?action=detail&id=${supplier.id}&page=${page}&keyword=${keyword}&brand=${selectedBrand}&suppliedOnly=${suppliedOnly}"
                                            data-page-link>
                                             ${page}
                                         </a>
                                     </li>
                                 </c:forEach>
                                 <!-- NEXT -->
-                                <li class="${currentPage == totalPages ? 'disabled' : ''}">
-                                    <a href="${pageContext.request.contextPath}/manager/supplier?action=edit&id=${supplier.id}&page=${currentPage + 1}&keyword=${keyword}&brand=${selectedBrand}&suppliedOnly=${suppliedOnly}"
+                                <li class="${productCurrentPage  == productTotalPages ? 'disabled' : ''}">
+                                    <a href="${pageContext.request.contextPath}/manager/supplier?action=detail&id=${supplier.id}&page=${currentPage + 1}&keyword=${keyword}&brand=${selectedBrand}&suppliedOnly=${suppliedOnly}"
                                        data-page-link>
                                         →
                                     </a>
@@ -991,8 +991,8 @@
 
                 if (suppliedOnly) {
                     url.searchParams.set(
-                            'suppliedOnly',
-                            'true'
+                            'supplied',
+                            'supplied'
                             );
                 }
 
