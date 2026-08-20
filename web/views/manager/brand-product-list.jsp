@@ -37,8 +37,8 @@
                 <div class="alert error">Activate this brand before moving products to it.</div>
             </c:if>
 
-            <section class="manager-table-panel">
-                <form class="category-picker-search" method="get">
+            <section class="table-panel brand-products-panel">
+                <form class="search-row brand-products-search" method="get">
                     <input type="hidden" name="action" value="products">
                     <input type="hidden" name="id" value="${selectedBrand.id}">
                     <input type="search" name="q" maxlength="100"
@@ -47,7 +47,7 @@
                     <button class="btn primary search-submit" type="submit">Search</button>
                 </form>
 
-                <div class="table-scroll">
+                <div class="table-wrap">
                     <table>
                         <thead>
                             <tr>
@@ -70,7 +70,7 @@
                                             <c:otherwise><span class="category-chip"><c:out value="${product.categoryNames}"/></span></c:otherwise>
                                         </c:choose>
                                     </td>
-                                    <td class="price"><fmt:formatNumber value="${product.sellingPrice}" type="number"/>đ</td>
+                                    <td class="price-small"><fmt:formatNumber value="${product.sellingPrice}" pattern="#,##0"/>₫</td>
                                     <td>${product.stock}</td>
                                     <td><span class="status ${product.active ? 'active' : 'inactive'}">${product.status}</span></td>
                                 </tr>
