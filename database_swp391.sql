@@ -136,7 +136,7 @@ CREATE TABLE `Supplier_ProductVariant` (
 CREATE TABLE `User` (
   `ID` INT NOT NULL,
   `Username` VARCHAR(255) NOT NULL,
-  `Password` VARCHAR(20) NOT NULL,
+  `Password` VARCHAR(255) NOT NULL,
   `Name` VARCHAR(255) NOT NULL,
   `Phone` VARCHAR(255) NOT NULL,
   `Address` VARCHAR(255) NOT NULL,
@@ -494,13 +494,13 @@ INSERT INTO `Permisson_Role` (`PermissonID`, `RoleID`) VALUES
 (29,5),(30,5);
 
 INSERT INTO `User` (`ID`, `Username`, `Password`, `Name`, `Phone`, `Address`, `Image`, `Age`, `Email`, `RoleID`, `Status`) VALUES
-(1, 'admin', '123456', 'System Admin', '0900000001', 'Ho Chi Minh City', NULL, 30, 'admin@swp.com', 1, 'ACTIVE'),
-(2, 'manager', '123456', 'Store Manager', '0900000002', 'Ha Noi', NULL, 32, 'manager@swp.com', 2, 'ACTIVE'),
-(3, 'staff', '123456', 'Order Staff', '0900000003', 'Da Nang', NULL, 25, 'staff@swp.com', 3, 'ACTIVE'),
-(4, 'customer', '123456', 'Demo Customer', '0900000004', 'Thu Duc, Ho Chi Minh City', NULL, 22, 'customer@swp.com', 4, 'ACTIVE'),
-(5, 'shipper', '123456', 'Demo Shipper', '0900000005', 'Binh Thanh, Ho Chi Minh City', NULL, 28, 'shipper@swp.com', 5, 'ACTIVE'),
-(6, 'kimtuyen', '123456', 'Chị Kim Tuyến', '0900000303', 'Quan 7, Ho Chi Minh City', NULL, 29, 'kimtuyen@example.com', 4, 'ACTIVE'),
-(7, 'shipper2', '123456', 'Shipper Hanoi', '0900000007', 'Cau Giay, Ha Noi', NULL, 25, 'shipper2@swp.com', 5, 'ACTIVE');
+(1, 'admin', 'pbkdf2_sha256$210000$KfliqC+9tbiKNkX/Dvda3w==$uA+JcN/PSsMHJyjDJ0Kcjpsthj5W18QRPN+zMCCt6/Q=', 'System Admin', '0900000001', 'Ho Chi Minh City', NULL, 30, 'admin@swp.com', 1, 'ACTIVE'),
+(2, 'manager', 'pbkdf2_sha256$210000$FwZgHSfjKlvW1gr63uUFDw==$39nqII4+xpDW9yTSNtZNlbbFwW4pzgHRNLgVbEbMvHM=', 'Store Manager', '0900000002', 'Ha Noi', NULL, 32, 'manager@swp.com', 2, 'ACTIVE'),
+(3, 'staff', 'pbkdf2_sha256$210000$Mcv/MEdiUePiCf2/+sxhwA==$hd5x62aRP0qlcr5KwA6m7A7bTx0OMVdiLLqLEFk45n8=', 'Order Staff', '0900000003', 'Da Nang', NULL, 25, 'staff@swp.com', 3, 'ACTIVE'),
+(4, 'customer', 'pbkdf2_sha256$210000$7N5NkWPcJSpmfGUJ7tMWVA==$zXtCW1jufKKvPgLpLmchAlHepwaJ2grRMkJdgeg55tw=', 'Demo Customer', '0900000004', 'Thu Duc, Ho Chi Minh City', NULL, 22, 'customer@swp.com', 4, 'ACTIVE'),
+(5, 'shipper', 'pbkdf2_sha256$210000$0dMTL2FPDjyy6pPtFy/pSA==$fQNkvbMHCcdmhG6JH/xEb7G/qNZCrv7RFsYo6QnTOb4=', 'Demo Shipper', '0900000005', 'Binh Thanh, Ho Chi Minh City', NULL, 28, 'shipper@swp.com', 5, 'ACTIVE'),
+(6, 'kimtuyen', 'pbkdf2_sha256$210000$GeN4G6aQFxQjr/L4DLXDrQ==$VrslVm1ctMarWdCiuIL5KIQS5gXv8Lv3weWlWuj0bLk=', 'Chị Kim Tuyến', '0900000303', 'Quan 7, Ho Chi Minh City', NULL, 29, 'kimtuyen@example.com', 4, 'ACTIVE'),
+(7, 'shipper2', 'pbkdf2_sha256$210000$/SKyVqLRvTyA8M1mAQqhiQ==$NdJgXQr6ugt9wejbPk5gIR99TtlVERP/IYfOI19Rrxg=', 'Shipper Hanoi', '0900000007', 'Cau Giay, Ha Noi', NULL, 25, 'shipper2@swp.com', 5, 'ACTIVE');
 
 INSERT INTO `Product` (`ID`, `Name`, `Description`, `Release_Year`, `Rating`, `warranty_months`, `BrandID`, `Status`) VALUES
 (1, 'iPhone 17 Pro Max', 'iPhone 17 Pro Max genuine smartphone with selectable RAM, storage and colors', 2025, 5, 12, 1, 'ACTIVE'),

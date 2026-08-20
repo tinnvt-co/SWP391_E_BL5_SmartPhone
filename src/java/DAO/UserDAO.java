@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import model.UserModel;
 import model.Permission;
+import util.PasswordHasher;
 
 public class UserDAO {
 
@@ -17,22 +18,30 @@ public class UserDAO {
 
     public UserModel findActiveByCredentials(String username, String password) throws SQLException {
         String sql = "SELECT u.ID, u.Username, u.Name, u.Phone, u.Address, u.Image, u.Age, "
-                + "u.Email, u.RoleID, u.Status, r.Name AS RoleName "
+                + "u.Email, u.RoleID, u.Status, u.Password AS PasswordHash, r.Name AS RoleName "
                 + "FROM `User` u "
                 + "JOIN `Role` r ON u.RoleID = r.ID "
-                + "WHERE u.Username = ? AND u.Password = ? "
+                + "WHERE u.Username = ? "
                 + "AND u.Status = 'ACTIVE' AND r.Status = 'ACTIVE'";
 
+        UserModel user = null;
+        String storedPassword = null;
         try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, username);
-            ps.setString(2, password);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return mapUser(rs);
+                    user = mapUser(rs);
+                    storedPassword = rs.getString("PasswordHash");
                 }
             }
         }
-        return null;
+        if (user == null || !PasswordHasher.verify(password, storedPassword)) {
+            return null;
+        }
+        if (PasswordHasher.needsRehash(storedPassword)) {
+            updatePassword(user.getId(), password);
+        }
+        return user;
     }
 
     public UserModel findActiveByEmail(String email) throws SQLException {
@@ -114,6 +123,7 @@ public class UserDAO {
     }
 
     public UserModel createCustomer(UserModel user, String password) throws SQLException {
+        String passwordHash = PasswordHasher.hash(password);
         String nextIdSql = "SELECT COALESCE(MAX(ID), 0) + 1 FROM `User`";
         String insertSql = "INSERT INTO `User` "
                 + "(ID, Username, Password, Name, Phone, Address, Image, Age, Email, RoleID, Status) "
@@ -131,7 +141,7 @@ public class UserDAO {
                 try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
                     ps.setInt(1, nextId);
                     ps.setString(2, user.getUsername());
-                    ps.setString(3, password);
+                    ps.setString(3, passwordHash);
                     ps.setString(4, user.getName());
                     ps.setString(5, user.getPhone());
                     ps.setString(6, user.getAddress());
@@ -158,6 +168,7 @@ public class UserDAO {
     }
 
     public UserModel createUser(UserModel user, String password, int roleId) throws SQLException {
+        String passwordHash = PasswordHasher.hash(password);
         String nextIdSql = "SELECT COALESCE(MAX(ID), 0) + 1 FROM `User`";
         String insertSql = "INSERT INTO `User` "
                 + "(ID, Username, Password, Name, Phone, Address, Image, Age, Email, RoleID, Status) "
@@ -175,7 +186,7 @@ public class UserDAO {
                 try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
                     ps.setInt(1, nextId);
                     ps.setString(2, user.getUsername());
-                    ps.setString(3, password);
+                    ps.setString(3, passwordHash);
                     ps.setString(4, user.getName());
                     ps.setString(5, user.getPhone());
                     ps.setString(6, user.getAddress());
@@ -229,7 +240,7 @@ public class UserDAO {
                 try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
                     ps.setInt(1, nextId);
                     ps.setString(2, username);
-                    ps.setString(3, randomPasswordPlaceholder());
+                    ps.setString(3, PasswordHasher.hash(randomPasswordPlaceholder()));
                     ps.setString(4, emptyToFallback(name, email));
                     ps.setString(5, image);
                     ps.setString(6, email);
@@ -270,14 +281,13 @@ public class UserDAO {
     }
 
     public boolean isCurrentPassword(int userId, String password) throws SQLException {
-        String sql = "SELECT 1 FROM `User` "
-                + "WHERE ID = ? AND Password = ? AND Status = 'ACTIVE'";
+        String sql = "SELECT Password FROM `User` "
+                + "WHERE ID = ? AND Status = 'ACTIVE'";
 
         try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
-            ps.setString(2, password);
             try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
+                return rs.next() && PasswordHasher.verify(password, rs.getString("Password"));
             }
         }
     }
@@ -287,7 +297,7 @@ public class UserDAO {
                 + "WHERE ID = ? AND Status = 'ACTIVE'";
 
         try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, newPassword);
+            ps.setString(1, PasswordHasher.hash(newPassword));
             ps.setInt(2, userId);
             return ps.executeUpdate() > 0;
         }
