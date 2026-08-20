@@ -23,6 +23,8 @@ public class ProductController extends HttpServlet {
     private static final int PAGE_SIZE = 12;
     private static final Set<String> VALID_SORTS = Set.of(
             "newest", "price-asc", "price-desc");
+    private static final Set<String> VALID_PRICE_RANGES = Set.of(
+            "under-5m", "5m-10m", "10m-20m", "over-20m");
     private final ProductDAO productDAO = new ProductDAO();
     private final BrandDAO brandDAO = new BrandDAO();
     private final CategoryDAO categoryDAO = new CategoryDAO();
@@ -42,6 +44,8 @@ public class ProductController extends HttpServlet {
             Integer categoryId = integerOrNull(request.getParameter("category"));
             String keyword = normalizeKeyword(request.getParameter("q"));
             String sort = normalizeSort(request.getParameter("sort"));
+            String priceRange = normalizePriceRange(
+                    request.getParameter("priceRange"));
             int requestedPage = Math.max(1, integer(request.getParameter("page"), 1));
 
             String validationError = validateSearch(keyword);
@@ -52,7 +56,8 @@ public class ProductController extends HttpServlet {
                 request.setAttribute("currentPage", 1);
                 request.setAttribute("totalPages", 1);
             } else {
-                int totalProducts = productDAO.countAll(keyword, brandId, categoryId, true);
+                int totalProducts = productDAO.countAll(
+                        keyword, brandId, categoryId, priceRange, true);
                 int totalPages = Math.max(1,
                         (int) Math.ceil(totalProducts / (double) PAGE_SIZE));
                 int currentPage = Math.min(requestedPage, totalPages);
@@ -61,8 +66,8 @@ public class ProductController extends HttpServlet {
                 int endPage = Math.min(totalPages, currentPage + 2);
 
                 request.setAttribute("products",
-                        productDAO.findAll(keyword, brandId, categoryId, sort, true,
-                                PAGE_SIZE, offset));
+                        productDAO.findAll(keyword, brandId, categoryId,
+                                priceRange, sort, true, PAGE_SIZE, offset));
                 request.setAttribute("totalProducts", totalProducts);
                 request.setAttribute("currentPage", currentPage);
                 request.setAttribute("totalPages", totalPages);
@@ -77,7 +82,7 @@ public class ProductController extends HttpServlet {
                 for (CategoryModel category : categories) {
                     if (category.getId() == categoryId) {
                         selectedCategoryName = category.getName();
-                        catalogTitle = category.getName() + " Smartphones";
+                        catalogTitle = category.getName() + " Collection";
                         break;
                     }
                 }
@@ -91,6 +96,7 @@ public class ProductController extends HttpServlet {
             request.setAttribute("catalogTitle", catalogTitle);
             request.setAttribute("keyword", keyword);
             request.setAttribute("selectedSort", sort);
+            request.setAttribute("selectedPriceRange", priceRange);
             request.setAttribute("pageSize", PAGE_SIZE);
             request.getRequestDispatcher("/views/public/product-list.jsp")
                     .forward(request, response);
@@ -160,6 +166,13 @@ public class ProductController extends HttpServlet {
             return "newest";
         }
         return VALID_SORTS.contains(input) ? input : "newest";
+    }
+
+    static String normalizePriceRange(String input) {
+        if (input == null || input.isBlank()) {
+            return "";
+        }
+        return VALID_PRICE_RANGES.contains(input) ? input : "";
     }
 
     private String validateSearch(String keyword) {

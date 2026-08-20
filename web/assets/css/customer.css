@@ -678,6 +678,10 @@
     padding: 0 28px 18px;
 }
 
+.checkout-voucher-block {
+    padding: 0 28px;
+}
+
 .payment-methods {
     margin-top: 18px;
     display: grid;

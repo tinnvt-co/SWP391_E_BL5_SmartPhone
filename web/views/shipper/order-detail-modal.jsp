@@ -67,6 +67,15 @@
                     </div>
                 </div>
 
+                <c:if test="${not empty order.proofImage}">
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">Proof of Delivery</h6>
+                        <div class="text-center border rounded bg-light p-2">
+                            <img src="${pageContext.request.contextPath}/assets/images/${order.proofImage}" alt="Proof of Delivery" class="img-fluid rounded" style="max-height: 300px; object-fit: contain;">
+                        </div>
+                    </div>
+                </c:if>
+
                 <h6 class="fw-bold mb-3">Products (${order.itemCount})</h6>
                 <div class="shipper-modal-products">
                     <c:forEach items="${order.items}" var="it">

@@ -29,7 +29,7 @@ public class RoleDAO {
     }
 
     public void update(Role role) throws SQLException {
-        String sql = "UPDATE `Role` SET Name = ?, Status = ? WHERE ID = ?";
+        String sql = "UPDATE `Role` SET Name = ?, Status = ?, Updated_at = CURRENT_TIMESTAMP WHERE ID = ?";
         try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, role.getName());
             ps.setString(2, role.getStatus());
@@ -39,7 +39,7 @@ public class RoleDAO {
     }
 
     public void updateStatus(int roleId, String status) throws SQLException {
-        String sql = "UPDATE `Role` SET Status = ? WHERE ID = ?";
+        String sql = "UPDATE `Role` SET Status = ?, Updated_at = CURRENT_TIMESTAMP WHERE ID = ?";
         try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, status);
             ps.setInt(2, roleId);

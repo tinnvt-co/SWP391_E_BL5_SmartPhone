@@ -241,6 +241,10 @@
                                                 <span>Shipping Fee</span>
                                                 <strong data-checkout-shipping>Free</strong>
                                             </div>
+                                            <div class="checkout-summary-line text-success" id="checkoutDiscountRow" style="display:none;">
+                                                <span>Voucher Discount</span>
+                                                <strong data-checkout-discount>-0 đ</strong>
+                                            </div>
                                             <div class="checkout-summary-total">
                                                 <span>Total Cost</span>
                                                 <span data-checkout-grand-total>0 đ</span>
@@ -249,6 +253,42 @@
                                     </div>
                                 </div>
                             </div>
+                            
+                            <c:if test="${not empty savedVouchers}">
+                                <div class="checkout-voucher-block mt-4 mb-4">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <i class="bi bi-ticket-perforated fs-5 text-primary me-2"></i>
+                                        <h4 class="h6 fw-bold mb-0 text-uppercase" style="letter-spacing: 0.5px; color: #475569;">Apply Voucher</h4>
+                                    </div>
+                                    <div class="position-relative">
+                                        <select class="form-select form-select-lg shadow-sm" name="voucherId" id="voucherSelect" style="font-size: 0.95rem; border-radius: 10px; border-color: #cbd5e1; padding: 12px 16px;">
+                                            <option value="">-- No Voucher Selected --</option>
+                                                <c:forEach var="uv" items="${savedVouchers}">
+                                                    <option value="${uv.voucher.id}" 
+                                                        data-min-order="${uv.voucher.minOrderValue != null ? uv.voucher.minOrderValue : 0}"
+                                                        data-discount-type="${uv.voucher.discountType}"
+                                                        data-value="${uv.voucher.value}"
+                                                        data-max-discount="${uv.voucher.maxDiscount != null ? uv.voucher.maxDiscount : 0}">
+                                                        ${uv.voucher.code} - 
+                                                        <c:choose>
+                                                            <c:when test="${uv.voucher.discountType == 'PERCENTAGE'}">
+                                                                <fmt:formatNumber value="${uv.voucher.value}" pattern="#,##0"/>% OFF
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <fmt:formatNumber value="${uv.voucher.value}" pattern="#,##0"/>đ OFF
+                                                            </c:otherwise>
+                                                        </c:choose>
+                                                        <c:if test="${uv.voucher.minOrderValue != null}">
+                                                            (Min: <fmt:formatNumber value="${uv.voucher.minOrderValue}" pattern="#,##0"/>đ)
+                                                        </c:if>
+                                                    </option>
+                                                </c:forEach>
+                                            </select>
+                                            <div id="voucherError" class="text-danger small mt-1" style="display:none;"></div>
+                                        </div>
+                                </div>
+                            </c:if>
+                            
                             <div class="checkout-payment-block">
                                 <div class="payment-methods">
                                     <label class="payment-option is-selected">
@@ -431,11 +471,75 @@
                     });
 
                     checkoutSubtotal.textContent = money.format(subtotal) + ' đ';
-                    checkoutGrandTotal.textContent = money.format(subtotal + shippingFee) + ' đ';
+                    updateVoucherDiscount(subtotal);
+                    
                     checkoutDetails.hidden = false;
                     if (shouldScroll) {
                         checkoutDetails.scrollIntoView({behavior: 'smooth', block: 'start'});
+                    }
                 }
+                
+                function updateVoucherDiscount(subtotal) {
+                    if (subtotal === undefined) {
+                        subtotal = 0;
+                        selectedRows().forEach(row => {
+                            const quantity = clampQuantity(row.querySelector('[data-cart-qty]'));
+                            const unitPrice = Number(row.dataset.unitPrice || 0);
+                            subtotal += (unitPrice * quantity);
+                        });
+                    }
+                    
+                    let discountAmount = 0;
+                    const voucherSelect = document.getElementById('voucherSelect');
+                    const errorDiv = document.getElementById('voucherError');
+                    const discountRow = document.getElementById('checkoutDiscountRow');
+                    const discountText = document.querySelector('[data-checkout-discount]');
+                    
+                    if (voucherSelect && voucherSelect.selectedIndex > 0) {
+                        const option = voucherSelect.options[voucherSelect.selectedIndex];
+                        const minOrder = Number(option.dataset.minOrder || 0);
+                        const discountType = option.dataset.discountType;
+                        const value = Number(option.dataset.value || 0);
+                        const maxDiscount = Number(option.dataset.maxDiscount || 0);
+                        
+                        if (subtotal >= minOrder) {
+                            errorDiv.style.display = 'none';
+                            if (discountType === 'PERCENTAGE') {
+                                discountAmount = Math.floor(subtotal * (value / 100.0));
+                                if (maxDiscount > 0 && discountAmount > maxDiscount) {
+                                    discountAmount = maxDiscount;
+                                }
+                            } else {
+                                discountAmount = value;
+                            }
+                        } else {
+                            errorDiv.textContent = 'Minimum order value of ' + money.format(minOrder) + 'đ is required.';
+                            errorDiv.style.display = 'block';
+                            voucherSelect.selectedIndex = 0; // Reset
+                        }
+                    } else if (errorDiv) {
+                        errorDiv.style.display = 'none';
+                    }
+                    
+                    if (discountAmount > subtotal) {
+                        discountAmount = subtotal;
+                    }
+                    
+                    if (discountRow) {
+                        if (discountAmount > 0) {
+                            discountText.textContent = '-' + money.format(discountAmount) + ' đ';
+                            discountRow.style.display = 'flex';
+                        } else {
+                            discountRow.style.display = 'none';
+                        }
+                    }
+                    
+                    checkoutGrandTotal.textContent = money.format(subtotal + shippingFee - discountAmount) + ' đ';
+                }
+                
+                const voucherSelectEl = document.getElementById('voucherSelect');
+                if (voucherSelectEl) {
+                    voucherSelectEl.addEventListener('change', () => updateVoucherDiscount());
                 }
 
                 cartPanel.addEventListener('click', event => {

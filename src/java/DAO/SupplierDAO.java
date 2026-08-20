@@ -15,8 +15,7 @@ import java.util.List;
 public class SupplierDAO {
 
     private static final String ACTIVE = "ACTIVE";
-    private static final String INACTIVE = "INACTIVE";
-
+    
     /**
      * Get all suppliers.
      *

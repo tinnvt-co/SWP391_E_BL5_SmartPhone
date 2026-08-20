@@ -15,12 +15,14 @@ public class InventoryDAO {
                 "SELECT v.ID AS variant_id, v.ProductID, v.RAM_GB, v.Storage_GB, v.ColorName, "
                 + "v.Selling_price, v.Image AS product_image, v.Status AS variant_status, "
                 + "p.Name AS product_name, p.Status AS product_status, "
-                + "v.Latest_cost, b.Name AS brand_name, c.Name AS category_name, "
+                + "v.Latest_cost, b.Name AS brand_name, "
+                + "COALESCE((SELECT GROUP_CONCAT(c.Name ORDER BY c.Name SEPARATOR ', ') "
+                + "FROM Product_Category pc JOIN Category c ON c.ID = pc.CategoryID "
+                + "WHERE pc.ProductID = p.ID AND c.Status = 'ACTIVE'), 'Uncategorized') AS category_name, "
                 + "i.ID AS inventory_id, COALESCE(i.Amount, 0) AS stock, i.Min_amount, i.Max_amount, i.Status AS inventory_status "
                 + "FROM ProductVariant v "
                 + "JOIN Product p ON p.ID = v.ProductID "
                 + "LEFT JOIN Brand b ON b.ID = p.BrandID "
-                + "LEFT JOIN Category c ON c.ID = p.CategoryID "
                 + "LEFT JOIN Inventory i ON i.ProductVariantID = v.ID "
                 + "WHERE 1=1 ");
         if (keyword != null && !keyword.trim().isEmpty()) {

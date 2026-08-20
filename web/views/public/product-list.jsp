@@ -25,7 +25,6 @@
             </div>
             <form id="catalogForm" class="catalog-toolbar" method="get" action="${pageContext.request.contextPath}/products" novalidate>
                 <input type="hidden" id="brandFilter" name="brand" value="${selectedBrand}">
-                <input type="hidden" name="category" value="${selectedCategory}">
                 <div class="filter-pills">
                     <button class="pill ${empty selectedBrand ? 'active' : ''}" type="button" data-brand="">All</button>
                     <c:forEach items="${brands}" var="b"><button class="pill ${selectedBrand == b.id ? 'active' : ''}" type="button" data-brand="${b.id}"><c:out value="${b.name}"/></button></c:forEach>
@@ -39,6 +38,27 @@
                             <button class="search-button" type="submit"><i class="bi bi-search"></i><span>Search</span></button>
                         </div>
                         <div class="sort-box">
+                            <i class="bi bi-grid" aria-hidden="true"></i>
+                            <select name="category" class="dark-select" onchange="this.form.requestSubmit()" aria-label="Filter by category">
+                                <option value="">All categories</option>
+                                <c:forEach items="${categories}" var="category">
+                                    <option value="${category.id}" ${selectedCategory == category.id ? 'selected' : ''}>
+                                        <c:out value="${category.name}"/>
+                                    </option>
+                                </c:forEach>
+                            </select>
+                        </div>
+                        <div class="sort-box">
+                            <i class="bi bi-cash-stack" aria-hidden="true"></i>
+                            <select name="priceRange" class="dark-select" onchange="this.form.requestSubmit()" aria-label="Filter by price">
+                                <option value="">All prices</option>
+                                <option value="under-5m" ${selectedPriceRange == 'under-5m' ? 'selected' : ''}>Under 5 million</option>
+                                <option value="5m-10m" ${selectedPriceRange == '5m-10m' ? 'selected' : ''}>5–under 10 million</option>
+                                <option value="10m-20m" ${selectedPriceRange == '10m-20m' ? 'selected' : ''}>10–under 20 million</option>
+                                <option value="over-20m" ${selectedPriceRange == 'over-20m' ? 'selected' : ''}>20 million or more</option>
+                            </select>
+                        </div>
+                        <div class="sort-box">
                             <i class="bi bi-sliders" aria-hidden="true"></i>
                             <select name="sort" class="dark-select" onchange="this.form.requestSubmit()" aria-label="Sort products">
                                 <option value="newest" ${selectedSort=='newest'?'selected':''}>Sort: Newest</option>
@@ -47,7 +67,6 @@
                             </select>
                         </div>
                     </div>
-                </div>
             </form>
             <c:if test="${not empty validationError}"><div class="catalog-error"><c:out value="${validationError}"/></div></c:if>
             <c:if test="${param.wishlistStatus == 'added'}"><div class="alert alert-success">Product added to wishlist.</div></c:if>
@@ -89,6 +108,7 @@
                         <c:param name="page" value="${currentPage - 1}"/>
                         <c:if test="${not empty selectedBrand}"><c:param name="brand" value="${selectedBrand}"/></c:if>
                         <c:if test="${not empty selectedCategory}"><c:param name="category" value="${selectedCategory}"/></c:if>
+                        <c:if test="${not empty selectedPriceRange}"><c:param name="priceRange" value="${selectedPriceRange}"/></c:if>
                         <c:if test="${not empty keyword}"><c:param name="q" value="${keyword}"/></c:if>
                         <c:param name="sort" value="${selectedSort}"/>
                     </c:url>
@@ -98,6 +118,7 @@
                                 <c:param name="page" value="${pageNumber}"/>
                                 <c:if test="${not empty selectedBrand}"><c:param name="brand" value="${selectedBrand}"/></c:if>
                                 <c:if test="${not empty selectedCategory}"><c:param name="category" value="${selectedCategory}"/></c:if>
+                                <c:if test="${not empty selectedPriceRange}"><c:param name="priceRange" value="${selectedPriceRange}"/></c:if>
                                 <c:if test="${not empty keyword}"><c:param name="q" value="${keyword}"/></c:if>
                                 <c:param name="sort" value="${selectedSort}"/>
                             </c:url>
@@ -107,6 +128,7 @@
                         <c:param name="page" value="${currentPage + 1}"/>
                         <c:if test="${not empty selectedBrand}"><c:param name="brand" value="${selectedBrand}"/></c:if>
                         <c:if test="${not empty selectedCategory}"><c:param name="category" value="${selectedCategory}"/></c:if>
+                        <c:if test="${not empty selectedPriceRange}"><c:param name="priceRange" value="${selectedPriceRange}"/></c:if>
                         <c:if test="${not empty keyword}"><c:param name="q" value="${keyword}"/></c:if>
                         <c:param name="sort" value="${selectedSort}"/>
                     </c:url>

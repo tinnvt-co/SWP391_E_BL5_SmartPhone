@@ -50,8 +50,7 @@ document.addEventListener('click', function (event) {
             return;
         var wishlistForm = document.createElement('form');
         wishlistForm.method = 'post';
-        var wishlistLink = document.querySelector('a[href$="/wishlist"]');
-        wishlistForm.action = wishlistLink ? wishlistLink.href : '/wishlist';
+        wishlistForm.action = APP_CONTEXT_PATH + '/wishlist';
         [
             ['action', 'add'],
             ['variantId', wishlistVariantId],

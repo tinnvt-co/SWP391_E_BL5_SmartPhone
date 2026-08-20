@@ -37,6 +37,57 @@ public class CheckoutController extends HttpServlet {
             int checkoutTotal = total(checkoutItems);
             String paymentMethod = normalizePaymentMethod(request.getParameter("paymentMethod"));
 
+            // Get saved vouchers
+            DAO.VoucherDAO voucherDAO = new DAO.VoucherDAO();
+            List<model.UserVoucherModel> savedVouchers = voucherDAO.findSavedVouchersByUser(currentUser.getId());
+            
+            // Calculate which vouchers are applicable
+            List<model.UserVoucherModel> applicableVouchers = new ArrayList<>();
+            List<model.UserVoucherModel> disabledVouchers = new ArrayList<>();
+            for (model.UserVoucherModel uv : savedVouchers) {
+                if (uv.getVoucher().getMinOrderValue() == null || 
+                    java.math.BigDecimal.valueOf(checkoutTotal).compareTo(uv.getVoucher().getMinOrderValue()) >= 0) {
+                    applicableVouchers.add(uv);
+                } else {
+                    disabledVouchers.add(uv);
+                }
+            }
+            request.setAttribute("applicableVouchers", applicableVouchers);
+            request.setAttribute("disabledVouchers", disabledVouchers);
+            
+            // Apply selected voucher
+            int discountAmount = 0;
+            model.VoucherModel selectedVoucher = null;
+            String voucherIdParam = request.getParameter("voucherId");
+            if (voucherIdParam != null && !voucherIdParam.isEmpty()) {
+                int selectedVoucherId = Integer.parseInt(voucherIdParam);
+                for (model.UserVoucherModel uv : applicableVouchers) {
+                    if (uv.getVoucherId() == selectedVoucherId) {
+                        selectedVoucher = uv.getVoucher();
+                        
+                        if ("PERCENTAGE".equals(selectedVoucher.getDiscountType())) {
+                            int pctDiscount = (int)(checkoutTotal * selectedVoucher.getValue().doubleValue() / 100);
+                            if (selectedVoucher.getMaxDiscount() != null) {
+                                int maxDiscount = selectedVoucher.getMaxDiscount().intValue();
+                                discountAmount = Math.min(pctDiscount, maxDiscount);
+                            } else {
+                                discountAmount = pctDiscount;
+                            }
+                        } else {
+                            discountAmount = selectedVoucher.getValue().intValue();
+                        }
+                        
+                        // Prevent negative total
+                        discountAmount = Math.min(discountAmount, checkoutTotal);
+                        break;
+                    }
+                }
+            }
+            
+            request.setAttribute("discountAmount", discountAmount);
+            request.setAttribute("finalTotal", checkoutTotal - discountAmount);
+            request.setAttribute("selectedVoucher", selectedVoucher);
+
             if (!"placeOrder".equals(request.getParameter("checkoutAction"))) {
                 request.setAttribute("checkoutTotal", checkoutTotal);
                 request.setAttribute("paymentMethod", paymentMethod);
@@ -51,11 +102,14 @@ public class CheckoutController extends HttpServlet {
             }
 
             CheckoutInfoModel checkoutInfo = checkoutInfo(request);
+            
+            Integer voucherId = (selectedVoucher != null) ? selectedVoucher.getId() : null;
+            
             if ("ONLINE".equals(paymentMethod)) {
                 int orderId = checkoutDAO.createOrder(currentUser.getId(), checkoutItems,
-                        checkoutInfo, "VNPAY", "PENDING", false, false);
+                        checkoutInfo, "VNPAY", "PENDING", false, false, voucherId, discountAmount);
                 String vnpTxnRef = orderId + "-" + System.currentTimeMillis();
-                String paymentUrl = vnpayService.createPaymentUrl(request, checkoutTotal,
+                String paymentUrl = vnpayService.createPaymentUrl(request, checkoutTotal - discountAmount,
                         "Thanh toan SmartPhone store don hang " + orderId,
                         vnpTxnRef);
                 response.sendRedirect(paymentUrl);
@@ -63,7 +117,7 @@ public class CheckoutController extends HttpServlet {
             }
 
             int orderId = checkoutDAO.createOrder(currentUser.getId(), checkoutItems,
-                    checkoutInfo, "COD", "PENDING", false, true);
+                    checkoutInfo, "COD", "PENDING", false, true, voucherId, discountAmount);
             request.setAttribute("checkoutTotal", checkoutTotal);
             request.setAttribute("paymentMethod", paymentMethod);
             request.setAttribute("orderCreated", true);

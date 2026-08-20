@@ -37,6 +37,7 @@ public class OrderModel implements Serializable {
     private Boolean hasBlockingRefund;
     private Boolean hasCancelPending;
     private Integer shipperId;
+    private String proofImage;
 
     public OrderModel() {
     }
@@ -278,6 +279,14 @@ public class OrderModel implements Serializable {
 
     public void setNote(String note) {
         this.note = note;
+    }
+
+    public String getProofImage() {
+        return proofImage;
+    }
+
+    public void setProofImage(String proofImage) {
+        this.proofImage = proofImage;
     }
 
     public String getCode() {

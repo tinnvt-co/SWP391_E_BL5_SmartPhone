@@ -91,7 +91,7 @@
                     <span class="module-icon">◇</span>
                     <span class="module-count">${totalCategories} categories</span>
                     <h3>Manage Categories</h3>
-                    <p>Organize phones into price segments such as budget, mid-range and high-end.</p>
+                    <p>Organize phones by features such as gaming, foldable, AI and camera phone.</p>
                     <b>Open category management <span>→</span></b>
                 </a>
 
@@ -106,9 +106,7 @@
                 <a class="manager-module supplier-module"
                    href="${pageContext.request.contextPath}/manager/supplier">
                     <span class="module-icon">🏢</span>
-                    <span class="module-count">
-                        ${totalSuppliers} suppliers
-                    </span>
+                    <span class="module-count">${totalSuppliers} suppliers</span>
                     <h3>Manage Suppliers</h3>
                     <p>
                         Manage suppliers, contact information
@@ -134,6 +132,14 @@
                     <h3>Manage Discounts</h3>
                     <p>Create promotional campaigns, set percentage rates and define start/end dates.</p>
                     <b>Open discount management <span>→</span></b>
+                </a>
+
+                <a class="manager-module discount-module" href="${pageContext.request.contextPath}/manager/vouchers">
+                    <span class="module-icon">🎟️</span>
+                    <span class="module-count">Vouchers</span>
+                    <h3>Manage Vouchers</h3>
+                    <p>Create and manage discount codes that customers can save and apply during checkout.</p>
+                    <b>Open voucher management <span>→</span></b>
                 </a>
 
                 <a class="manager-module order-module" href="${pageContext.request.contextPath}/manager/orders">

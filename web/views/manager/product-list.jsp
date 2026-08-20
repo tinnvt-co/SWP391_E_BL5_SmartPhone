@@ -15,6 +15,12 @@
         <%@ include file="/views/common/header.jsp" %>
 
         <main class="page-shell">
+            <c:url var="addProductUrl" value="/manager/products">
+                <c:param name="action" value="form"/>
+                <c:if test="${not empty selectedCategory}">
+                    <c:param name="category" value="${selectedCategory}"/>
+                </c:if>
+            </c:url>
             <div class="page-heading">
                 <div>
                     <h1>Product Management</h1>
@@ -23,7 +29,7 @@
                 <div class="page-heading-actions">
                     <a class="btn subtle" href="${pageContext.request.contextPath}/manager">← Back to dashboard</a>
                     <a class="btn primary large"
-                       href="${pageContext.request.contextPath}/manager/products?action=form">
+                       href="${addProductUrl}">
                         + Add Product
                     </a>
                 </div>
@@ -75,13 +81,21 @@
                     </select>
 
                     <select name="category">
-                        <option value="">Price segment</option>
+                        <option value="">Category</option>
                         <c:forEach items="${categories}" var="category">
                             <option value="${category.id}"
                                     ${selectedCategory == category.id ? 'selected' : ''}>
                                 <c:out value="${category.name}"/>
                             </option>
                         </c:forEach>
+                    </select>
+
+                    <select name="priceRange">
+                        <option value="">All prices</option>
+                        <option value="under-5m" ${selectedPriceRange == 'under-5m' ? 'selected' : ''}>Under 5 million</option>
+                        <option value="5m-10m" ${selectedPriceRange == '5m-10m' ? 'selected' : ''}>5–under 10 million</option>
+                        <option value="10m-20m" ${selectedPriceRange == '10m-20m' ? 'selected' : ''}>10–under 20 million</option>
+                        <option value="over-20m" ${selectedPriceRange == 'over-20m' ? 'selected' : ''}>20 million or more</option>
                     </select>
 
                     <button class="btn primary search-submit">Search</button>
@@ -115,7 +129,7 @@
                                     <td><c:out value="${product.brandName}"/></td>
                                     <td>
                                         <span class="category-chip">
-                                            <c:out value="${product.categoryName}"/>
+                                            <c:out value="${product.categoryNames}"/>
                                         </span>
                                     </td>
                                     <td class="price-small">
@@ -155,6 +169,7 @@
                         <c:if test="${not empty keyword}"><c:param name="q" value="${keyword}"/></c:if>
                         <c:if test="${not empty selectedBrand}"><c:param name="brand" value="${selectedBrand}"/></c:if>
                         <c:if test="${not empty selectedCategory}"><c:param name="category" value="${selectedCategory}"/></c:if>
+                        <c:if test="${not empty selectedPriceRange}"><c:param name="priceRange" value="${selectedPriceRange}"/></c:if>
                         <c:if test="${not empty selectedSort}"><c:param name="sort" value="${selectedSort}"/></c:if>
                     </c:url>
                     <c:url var="previousPageUrl" value="/manager/products">
@@ -162,6 +177,7 @@
                         <c:if test="${not empty keyword}"><c:param name="q" value="${keyword}"/></c:if>
                         <c:if test="${not empty selectedBrand}"><c:param name="brand" value="${selectedBrand}"/></c:if>
                         <c:if test="${not empty selectedCategory}"><c:param name="category" value="${selectedCategory}"/></c:if>
+                        <c:if test="${not empty selectedPriceRange}"><c:param name="priceRange" value="${selectedPriceRange}"/></c:if>
                         <c:if test="${not empty selectedSort}"><c:param name="sort" value="${selectedSort}"/></c:if>
                     </c:url>
                     <c:url var="nextPageUrl" value="/manager/products">
@@ -169,6 +185,7 @@
                         <c:if test="${not empty keyword}"><c:param name="q" value="${keyword}"/></c:if>
                         <c:if test="${not empty selectedBrand}"><c:param name="brand" value="${selectedBrand}"/></c:if>
                         <c:if test="${not empty selectedCategory}"><c:param name="category" value="${selectedCategory}"/></c:if>
+                        <c:if test="${not empty selectedPriceRange}"><c:param name="priceRange" value="${selectedPriceRange}"/></c:if>
                         <c:if test="${not empty selectedSort}"><c:param name="sort" value="${selectedSort}"/></c:if>
                     </c:url>
                     <c:url var="lastPageUrl" value="/manager/products">
@@ -176,6 +193,7 @@
                         <c:if test="${not empty keyword}"><c:param name="q" value="${keyword}"/></c:if>
                         <c:if test="${not empty selectedBrand}"><c:param name="brand" value="${selectedBrand}"/></c:if>
                         <c:if test="${not empty selectedCategory}"><c:param name="category" value="${selectedCategory}"/></c:if>
+                        <c:if test="${not empty selectedPriceRange}"><c:param name="priceRange" value="${selectedPriceRange}"/></c:if>
                         <c:if test="${not empty selectedSort}"><c:param name="sort" value="${selectedSort}"/></c:if>
                     </c:url>
 

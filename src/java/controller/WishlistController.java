@@ -40,6 +40,7 @@ public class WishlistController extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         UserModel currentUser = currentUser(request);
+       
         String action = value(request.getParameter("action"), "add");
         int variantId = integer(request.getParameter("variantId"), 0);
 
