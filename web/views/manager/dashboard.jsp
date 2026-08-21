@@ -22,9 +22,18 @@
                     <h1>Welcome back, <c:out value="${currentUser.name}"/>.</h1>
                     <p>Run your smartphone catalog, monitor inventory, track orders and review revenue — all from one workspace.</p>
                 </div>
-                <a class="btn subtle manager-preview" href="${pageContext.request.contextPath}/home">
-                    View storefront →
-                </a>
+                <div class="manager-welcome-actions">
+                    <a class="manager-profile-chip" href="${pageContext.request.contextPath}/profile" title="View profile">
+                        <span class="manager-profile-avatar"><c:out value="${currentUser.name.substring(0,1).toUpperCase()}"/></span>
+                        <span class="manager-profile-meta">
+                            <strong><c:out value="${currentUser.name}"/></strong>
+                            <small><i class="bi bi-person-circle"></i> My profile</small>
+                        </span>
+                    </a>
+                    <a class="btn subtle manager-preview" href="${pageContext.request.contextPath}/home">
+                        View storefront →
+                    </a>
+                </div>
             </section>
 
             <!-- Top summary: 8 KPI cards -->
@@ -164,6 +173,22 @@
                     <h3>Customer Reviews</h3>
                     <p>Read what shoppers are saying and reply to keep the conversation going.</p>
                     <b>Open review queue <span>→</span></b>
+                </a>
+
+                <a class="manager-module complaint-module" href="${pageContext.request.contextPath}/manager/complaint">
+                    <span class="module-icon">⚠️</span>
+                    <span class="module-count">${pendingComplaints} pending</span>
+                    <h3>Customer Complaints</h3>
+                    <p>Review customer-submitted complaints, track resolution status and reply to keep service quality high.</p>
+                    <b>Open complaint queue <span>→</span></b>
+                </a>
+
+                <a class="manager-module cancel-module" href="${pageContext.request.contextPath}/manager/cancel-request">
+                    <span class="module-icon">🚫</span>
+                    <span class="module-count">${totalPending} pending</span>
+                    <h3>Cancel Requests</h3>
+                    <p>Approve or reject customer cancellation requests and keep order statuses in sync.</p>
+                    <b>Open cancel queue <span>→</span></b>
                 </a>
 
                 <a class="manager-module refund-module" href="${pageContext.request.contextPath}/manager/return-request">

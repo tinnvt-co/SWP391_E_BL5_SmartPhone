@@ -293,9 +293,16 @@ public class OrderDAO {
         if (updatedBy == null) {
             updatedBy = resolveFallbackUpdater();
         }
-        String sql = "UPDATE `Transaction` SET Status = ?, Updated_by = ?, Updated_at = CURRENT_TIMESTAMP "
-                + "WHERE ID = ?";
-        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+        // Stamp Delivered_at the first time an order transitions to DELIVERED.
+        // We never overwrite an existing value so subsequent edits (note, proof)
+        // can't shift the 15-day auto-completion deadline.
+        StringBuilder sql = new StringBuilder(
+                "UPDATE `Transaction` SET Status = ?, Updated_by = ?, Updated_at = CURRENT_TIMESTAMP");
+        if ("DELIVERED".equals(status)) {
+            sql.append(", Delivered_at = COALESCE(Delivered_at, CURRENT_TIMESTAMP)");
+        }
+        sql.append(" WHERE ID = ?");
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql.toString())) {
             statement.setString(1, status);
             statement.setInt(2, updatedBy);
             statement.setInt(3, orderId);
@@ -359,9 +366,13 @@ public class OrderDAO {
         if (!VALID_STATUSES.contains(status)) {
             throw new SQLException("Invalid status: " + status);
         }
-        String sql = "UPDATE `Transaction` SET Status = ?, Note = ?, Updated_by = ?, Updated_at = CURRENT_TIMESTAMP "
-                + "WHERE ID = ?";
-        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+        StringBuilder sql = new StringBuilder(
+                "UPDATE `Transaction` SET Status = ?, Note = ?, Updated_by = ?, Updated_at = CURRENT_TIMESTAMP");
+        if ("DELIVERED".equals(status)) {
+            sql.append(", Delivered_at = COALESCE(Delivered_at, CURRENT_TIMESTAMP)");
+        }
+        sql.append(" WHERE ID = ?");
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql.toString())) {
             statement.setString(1, status);
             statement.setString(2, note);
             if (updatedBy == null) {
@@ -379,9 +390,13 @@ public class OrderDAO {
         if (!VALID_STATUSES.contains(status)) {
             throw new SQLException("Invalid status: " + status);
         }
-        String sql = "UPDATE `Transaction` SET Status = ?, Note = ?, Proof_image = ?, Updated_by = ?, Updated_at = CURRENT_TIMESTAMP "
-                + "WHERE ID = ?";
-        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+        StringBuilder sql = new StringBuilder(
+                "UPDATE `Transaction` SET Status = ?, Note = ?, Proof_image = ?, Updated_by = ?, Updated_at = CURRENT_TIMESTAMP");
+        if ("DELIVERED".equals(status)) {
+            sql.append(", Delivered_at = COALESCE(Delivered_at, CURRENT_TIMESTAMP)");
+        }
+        sql.append(" WHERE ID = ?");
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql.toString())) {
             statement.setString(1, status);
             statement.setString(2, note);
             statement.setString(3, proofImage);
@@ -471,5 +486,54 @@ public class OrderDAO {
             return "newest";
         }
         return VALID_SORTS.contains(input) ? input : "newest";
+    }
+
+    /**
+     * Returns the IDs of customer orders that have been DELIVERED for at least
+     * {@code days} days (using the Delivered_at stamp) and have not yet moved
+     * to COMPLETED. Used by the auto-completion scheduler.
+     */
+    public List<Integer> findStaleDeliveredIds(int days) throws SQLException {
+        String sql = "SELECT ID FROM `Transaction` "
+                + "WHERE Type = 'ORDER' AND Status = 'DELIVERED' "
+                + "AND Delivered_at IS NOT NULL "
+                + "AND Delivered_at <= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL ? DAY) "
+                + "ORDER BY Delivered_at ASC";
+        List<Integer> ids = new ArrayList<>();
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, days);
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    ids.add(rs.getInt(1));
+                }
+            }
+        }
+        return ids;
+    }
+
+    /**
+     * Bulk-promotes stale DELIVERED orders to COMPLETED. We don't write a
+     * special "auto-completed" status because the workflow is identical to a
+     * customer pressing "Complete" — the only difference is the Updated_by is
+     * the system user (or whoever resolveFallbackUpdater picks).
+     */
+    public int autoCompleteStale(List<Integer> orderIds, Integer updatedBy) throws SQLException {
+        if (orderIds == null || orderIds.isEmpty()) {
+            return 0;
+        }
+        if (updatedBy == null) {
+            updatedBy = resolveFallbackUpdater();
+        }
+        String placeholders = String.join(",", java.util.Collections.nCopies(orderIds.size(), "?"));
+        String sql = "UPDATE `Transaction` SET Status = 'COMPLETED', "
+                + "Updated_by = ?, Updated_at = CURRENT_TIMESTAMP "
+                + "WHERE ID IN (" + placeholders + ") AND Status = 'DELIVERED'";
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, updatedBy);
+            for (int i = 0; i < orderIds.size(); i++) {
+                statement.setInt(i + 2, orderIds.get(i));
+            }
+            return statement.executeUpdate();
+        }
     }
 }

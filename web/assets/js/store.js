@@ -124,8 +124,9 @@ document.addEventListener('click', function (event) {
 (function () {
     var STEP_LABELS = ['CONFIRMED', 'PROCESSING', 'SHIPPING', 'DELIVERED'];
     var STEP_DESCS = ['Confirmed', 'Processing', 'Shipping', 'Delivered'];
-    var STATUS_CODES = ['CONFIRMED', 'PROCESSING', 'SHIPPING', 'DELIVERED', 'CANCELLED'];
-    var STATUS_DESCS = {CONFIRMED: 'Confirmed by staff', PROCESSING: 'Preparing your order', SHIPPING: 'In transit to customer', DELIVERED: 'Delivered successfully', CANCELLED: 'Cancel this order'};
+    var STATUS_CODES = ['CONFIRMED', 'PROCESSING', 'SHIPPING', 'DELIVERED'];
+    var STATUS_DESCS = {CONFIRMED: 'Confirmed by staff', PROCESSING: 'Preparing your order', SHIPPING: 'In transit to customer', DELIVERED: 'Delivered successfully (manager only)'};
+    var STAFF_LOCKED_STATUSES = ['DELIVERED'];
     var modal = document.getElementById('orderUpdateModal');
     if (!modal)
         return;
@@ -151,9 +152,10 @@ document.addEventListener('click', function (event) {
         });
         gridEl.innerHTML = '';
         STATUS_CODES.forEach(function (code) {
+            var locked = STAFF_LOCKED_STATUSES.indexOf(code) !== -1;
             var option = document.createElement('label');
-            option.className = 'order-status-option' + (code === current ? ' is-selected' : '');
-            option.innerHTML = '<input type="radio" name="status" value="' + code + '"' + (code === current ? ' checked' : '') + '><span class="order-status-option-dot"></span><div class="order-status-option-info"><span class="order-status-option-code">' + code.replace(/_/g, ' ') + '</span><span class="order-status-option-desc">' + STATUS_DESCS[code] + '</span></div>';
+            option.className = 'order-status-option' + (code === current ? ' is-selected' : '') + (locked ? ' is-locked' : '');
+            option.innerHTML = '<input type="radio" name="status" value="' + code + '"' + (code === current ? ' checked' : '') + (locked ? ' disabled' : '') + '><span class="order-status-option-dot"></span><div class="order-status-option-info"><span class="order-status-option-code">' + code.replace(/_/g, ' ') + (locked ? ' <i class="bi bi-lock-fill"></i>' : '') + '</span><span class="order-status-option-desc">' + STATUS_DESCS[code] + '</span></div>';
             gridEl.appendChild(option);
         });
         submitBtn.disabled = current === '' || current === null;
