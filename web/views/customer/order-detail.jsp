@@ -153,11 +153,6 @@
                         <a href="${pageContext.request.contextPath}/order-history" class="btn btn-outline-secondary">
                             <i class="bi bi-arrow-left"></i> Back to history
                         </a>
-                        <c:if test="${order.status == 'DELIVERED' || order.status == 'COMPLETED'}">
-                            <a class="btn btn-success" href="${pageContext.request.contextPath}/feedback?orderId=${order.id}">
-                                <i class="bi bi-star"></i> Review
-                            </a>
-                        </c:if>
                     </div>
                 </div>
             </div>

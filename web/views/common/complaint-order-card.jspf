@@ -1,0 +1,75 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%--
+  Shared fragment that renders the order summary card.
+  Required attributes (set by the parent page):
+    order        - OrderModel
+    orderItems   - List<OrderItemModel>
+--%>
+<c:set var="ctx" value="${pageContext.request.contextPath}"/>
+
+<div class="order-context-card">
+    <div class="order-context-header">
+        <div class="order-context-id">
+            <i class="bi bi-receipt-cutoff"></i>
+            <span>Order <strong>#${order.id}</strong></span>
+            <span class="status-pill ${order.status.toLowerCase()}">${order.status}</span>
+        </div>
+        <div class="order-context-total">
+            <span class="muted">Total</span>
+            <strong><fmt:formatNumber value="${order.totalPrice}" pattern="#,##0"/>₫</strong>
+        </div>
+    </div>
+
+    <c:choose>
+        <c:when test="${empty orderItems}">
+            <div class="order-context-empty">No items found for this order.</div>
+        </c:when>
+        <c:otherwise>
+            <ul class="order-context-items">
+                <c:forEach var="item" items="${orderItems}">
+                    <li class="order-context-item">
+                        <div class="order-context-thumb">
+                            <c:choose>
+                                <c:when test="${not empty item.productImage}">
+                                    <img src="${ctx}${item.productImage}" alt="${item.productName}">
+                                </c:when>
+                                <c:otherwise>
+                                    <div class="order-context-thumb-fallback">
+                                        <i class="bi bi-phone"></i>
+                                    </div>
+                                </c:otherwise>
+                            </c:choose>
+                        </div>
+                        <div class="order-context-info">
+                            <div class="order-context-product">
+                                <strong>${item.productName}</strong>
+                                <c:if test="${not empty item.brandName}">
+                                    <span class="order-context-brand">${item.brandName}</span>
+                                </c:if>
+                            </div>
+                            <div class="order-context-variant">
+                                <c:if test="${not empty item.memoryLabel}">
+                                    <span><i class="bi bi-memory"></i> ${item.memoryLabel}</span>
+                                </c:if>
+                                <c:if test="${not empty item.colorName}">
+                                    <span><i class="bi bi-palette"></i> ${item.colorName}</span>
+                                </c:if>
+                                <span><i class="bi bi-123"></i> Qty ${item.amount}</span>
+                            </div>
+                        </div>
+                        <div class="order-context-price">
+                            <fmt:formatNumber value="${item.total}" pattern="#,##0"/>₫
+                            <c:if test="${item.discountAmount != null && item.discountAmount > 0}">
+                                <small class="muted">
+                                    -<fmt:formatNumber value="${item.discountAmount}" pattern="#,##0"/>₫
+                                </small>
+                            </c:if>
+                        </div>
+                    </li>
+                </c:forEach>
+            </ul>
+        </c:otherwise>
+    </c:choose>
+</div>

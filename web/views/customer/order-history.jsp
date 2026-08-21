@@ -12,6 +12,7 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/complaint.css">
     </head>
     <body>
         <c:set var="activePage" value="orders" scope="request"/>
@@ -139,19 +140,45 @@
                                                             <a class="view-btn" href="${pageContext.request.contextPath}/order-detail?id=${o.id}">
                                                                 <i class="bi bi-eye"></i> View
                                                             </a>
-                                                            <c:if test="${(o.status == 'DELIVERED' || o.status == 'COMPLETED') && !o.hasBlockingRefund}">
-                                                                <a class="review-btn" href="${pageContext.request.contextPath}/feedback?orderId=${o.id}">
-                                                                    <i class="bi bi-star"></i> Review
-                                                                </a>
-                                                            </c:if>
                                                             <c:choose>
-                                                                <c:when test="${o.status == 'DELIVERED' && !o.hasOpenRefund}">
+                                                                <c:when test="${o.status == 'COMPLETED' && !o.hasBlockingRefund}">
+                                                                    <a class="review-btn" href="${pageContext.request.contextPath}/feedback?orderId=${o.id}">
+                                                                        <i class="bi bi-star-fill"></i> Review
+                                                                    </a>
+                                                                </c:when>
+                                                            </c:choose>
+                                                            <c:choose>
+                                                                <c:when test="${o.status == 'COMPLETED' && !o.hasOpenRefund}">
                                                                     <a class="refund-btn" href="${pageContext.request.contextPath}/return-request?orderId=${o.id}">
                                                                         <i class="bi bi-arrow-counterclockwise"></i> Refund
                                                                     </a>
                                                                 </c:when>
-                                                                <c:when test="${o.status == 'DELIVERED' && o.hasOpenRefund}">
+                                                                <c:when test="${(o.status == 'DELIVERED' || o.status == 'COMPLETED') && o.hasOpenRefund}">
                                                                     <span class="refund-pending"><i class="bi bi-clock-history"></i> Refund pending</span>
+                                                                </c:when>
+                                                            </c:choose>
+                                                            <c:choose>
+                                                                <c:when test="${o.status == 'DELIVERED' && !o.hasOpenComplaint}">
+                                                                    <form method="post" action="${pageContext.request.contextPath}/customer/complete-order" class="inline-form">
+                                                                        <input type="hidden" name="orderId" value="${o.id}">
+                                                                        <button type="submit" class="complete-btn"
+                                                                                title="Mark this order as received & completed"
+                                                                                onclick="return confirm('Mark this order as completed? You will then be able to review your products or request a refund.');">
+                                                                            <i class="bi bi-check2-circle"></i> Completed
+                                                                        </button>
+                                                                    </form>
+                                                                </c:when>
+                                                            </c:choose>
+                                                            <c:choose>
+                                                                <c:when test="${o.status == 'DELIVERED' && !o.hasOpenComplaint}">
+                                                                    <a class="complaint-btn" href="${pageContext.request.contextPath}/customer/complaint?orderId=${o.id}">
+                                                                        <i class="bi bi-megaphone-fill"></i> Complaint
+                                                                    </a>
+                                                                </c:when>
+                                                                <c:when test="${o.status == 'DELIVERED' && o.hasOpenComplaint}">
+                                                                    <a class="complaint-btn open" href="${pageContext.request.contextPath}/customer/complaint?orderId=${o.id}">
+                                                                        <i class="bi bi-chat-dots-fill"></i> View complaint
+                                                                    </a>
                                                                 </c:when>
                                                             </c:choose>
                                                             <c:choose>

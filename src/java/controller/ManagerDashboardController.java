@@ -1,7 +1,9 @@
 package controller;
 
 import DAO.BrandDAO;
+import DAO.CancelRequestDAO;
 import DAO.CategoryDAO;
+import DAO.ComplaintDAO;
 import DAO.DiscountDAO;
 import DAO.InventoryDAO;
 import DAO.OrderDAO;
@@ -38,6 +40,8 @@ public class ManagerDashboardController extends HttpServlet {
     private final SalesStatsDAO salesStatsDAO = new SalesStatsDAO();
     private final RefundDAO returnRequestDAO = new RefundDAO();
     private final SupplierDAO supplierDAO = new SupplierDAO();
+    private final ComplaintDAO complaintDAO = new ComplaintDAO();
+    private final CancelRequestDAO cancelRequestDAO = new CancelRequestDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -103,6 +107,10 @@ public class ManagerDashboardController extends HttpServlet {
             List<OrderModel> recentOrders = orderDAO.findOrders(null, null, "ORDER", "newest", true);
             request.setAttribute("recentOrders",
                     recentOrders.size() > 5 ? recentOrders.subList(0, 5) : recentOrders);
+
+            // --- Complaint & cancel-request counters (for module cards) ---
+            request.setAttribute("pendingComplaints", complaintDAO.countOpen());
+            request.setAttribute("totalPending", cancelRequestDAO.countPending());
 
             request.getRequestDispatcher("/views/manager/dashboard.jsp")
                     .forward(request, response);

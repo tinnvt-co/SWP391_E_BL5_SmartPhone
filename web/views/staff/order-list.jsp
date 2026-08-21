@@ -1,5 +1,25 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%><%@taglib prefix="c" uri="jakarta.tags.core"%><%@taglib prefix="fmt" uri="jakarta.tags.fmt"%>
-<!DOCTYPE html><html><head><title>Order Management</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"><link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"><link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css"><%@include file="../common/head.jsp"%></head><body>
+<!DOCTYPE html><html><head><title>Order Management</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"><link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"><link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css">
+<style>
+.order-status-option.is-locked {
+    opacity: 0.45;
+    cursor: not-allowed;
+    background: #f5f7fb;
+}
+.order-status-option.is-locked:hover {
+    border-color: #e3e7ef;
+    background: #f5f7fb;
+}
+.order-status-option.is-locked .order-status-option-code {
+    color: #6b7280;
+    letter-spacing: 0.04em;
+}
+.order-status-option-code .bi-lock-fill {
+    font-size: 0.8em;
+    margin-left: 4px;
+    color: #94a3b8;
+}
+</style><%@include file="../common/head.jsp"%></head><body>
         <c:set var="activePage" value="staff-orders" scope="request"/><%@ include file="/views/common/header.jsp" %>
         <main class="page-shell">
             <div class="page-heading"><div><h1>Order Management</h1><p>${orders.size()} orders shown</p></div></div>
@@ -9,13 +29,16 @@
                     <article><span>TODAY'S ORDERS</span><strong>${totalToday}</strong><i class=""></i></article>
                 <article><span>PROCESSING</span><strong>${totalProcessing}</strong><i class="green"></i></article>
                 <article><span>DELIVERED</span><strong>${totalDelivered}</strong><i class="purple"></i></article>
-                <article><span>CANCELLED</span><strong>${totalCancelled}</strong><i class="pink"></i></article>
             </section>
             <section class="table-panel">
                 <form class="search-row" method="get">
                     <input name="q" value="<c:out value='${keyword}'/>" placeholder="Search by order id, customer name or username..." maxlength="100">
                     <select name="status"><option value="">All Status</option>
-                        <c:forEach items="${statuses}" var="s"><option value="${s}" ${selectedStatus==s?'selected':''}><c:out value="${s}"/></option></c:forEach>
+                        <c:forEach items="${statuses}" var="s">
+                            <c:if test="${s != 'CANCELLED' && s != 'CANCEL_REQUESTED'}">
+                                <option value="${s}" ${selectedStatus==s?'selected':''}><c:out value="${s}"/></option>
+                            </c:if>
+                        </c:forEach>
                         </select>
                         <select name="type"><option value="ALL" ${selectedType=='ALL'?'selected':''}>All Types</option><option value="ORDER" ${selectedType=='ORDER'?'selected':''}>Customer Order</option><option value="IMPORT" ${selectedType=='IMPORT'?'selected':''}>Import</option></select>
                     <button class="btn primary">Search</button>

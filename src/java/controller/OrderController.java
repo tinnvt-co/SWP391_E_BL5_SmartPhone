@@ -19,6 +19,14 @@ public class OrderController extends HttpServlet {
             "PENDING", "CONFIRMED", "PROCESSING", "SHIPPING", "DELIVERED",
             "COMPLETED", "CANCEL_REQUESTED", "CANCELLED");
     private static final Set<String> VALID_TYPES = Set.of("ORDER", "IMPORT", "ALL");
+
+    /**
+     * Statuses a staff member may choose when updating an order.
+     *  - CANCEL_REQUESTED / CANCELLED / DELIVERED are intentionally excluded:
+     *    staff cannot cancel orders nor mark them as delivered.
+     */
+    private static final Set<String> STAFF_UPDATABLE_STATUSES = Set.of(
+            "PENDING", "CONFIRMED", "PROCESSING", "SHIPPING", "COMPLETED");
     private final OrderDAO orderDAO = new OrderDAO();
 
     @Override
@@ -47,8 +55,13 @@ public class OrderController extends HttpServlet {
                 int orderId = integer(request.getParameter("id"), 0);
                 String status = request.getParameter("status");
                 Integer updatedBy = integerOrNull(request.getParameter("updatedBy"));
-                if (orderId <= 0 || status == null || !VALID_STATUSES.contains(status)) {
-                    redirectBack(request, response, "Invalid request");
+                if (orderId <= 0 || status == null
+                        || !VALID_STATUSES.contains(status)
+                        || !STAFF_UPDATABLE_STATUSES.contains(status)) {
+                    redirectBack(request, response,
+                            status != null && "DELIVERED".equals(status)
+                                    ? "Staff cannot mark orders as DELIVERED"
+                                    : "Invalid request");
                     return;
                 }
                 OrderModel existing = orderDAO.findOrderDetail(orderId);
@@ -104,6 +117,7 @@ public class OrderController extends HttpServlet {
             return;
         }
         request.setAttribute("order", order);
+        request.setAttribute("statuses", STAFF_UPDATABLE_STATUSES);
         request.getRequestDispatcher("/views/staff/order-detail.jsp").forward(request, response);
     }
 

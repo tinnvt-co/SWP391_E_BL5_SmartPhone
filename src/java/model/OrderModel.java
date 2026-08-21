@@ -35,6 +35,8 @@ public class OrderModel implements Serializable {
     private Boolean hasOpenRefund;
     private Boolean hasBlockingRefund;
     private Boolean hasCancelPending;
+    private Boolean hasOpenComplaint;
+    private Boolean hasAnyComplaint;
     private Integer shipperId;
     private String proofImage;
 
@@ -231,6 +233,22 @@ public class OrderModel implements Serializable {
 
     public void setHasCancelPending(Boolean hasCancelPending) {
         this.hasCancelPending = hasCancelPending;
+    }
+
+    public Boolean getHasOpenComplaint() {
+        return hasOpenComplaint;
+    }
+
+    public void setHasOpenComplaint(Boolean hasOpenComplaint) {
+        this.hasOpenComplaint = hasOpenComplaint;
+    }
+
+    public Boolean getHasAnyComplaint() {
+        return hasAnyComplaint;
+    }
+
+    public void setHasAnyComplaint(Boolean hasAnyComplaint) {
+        this.hasAnyComplaint = hasAnyComplaint;
     }
 
     public Integer getShipperId() {
