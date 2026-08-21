@@ -10,7 +10,6 @@ public class OrderModel implements Serializable {
 
     private int id;
     private int userId;
-    private String username;
     private String userName;
     private String userPhone;
     private String userEmail;
@@ -57,14 +56,6 @@ public class OrderModel implements Serializable {
 
     public void setUserId(int userId) {
         this.userId = userId;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public String getUserName() {

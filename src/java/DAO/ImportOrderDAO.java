@@ -11,7 +11,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import static java.util.Collections.list;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -137,7 +136,10 @@ public class ImportOrderDAO {
                 + "       u.Username, u.Name AS UserName, "
                 + "       u.Phone, u.Email, "
                 + "       upd.Name AS UpdatedByName, "
-                + "       s.Name AS SupplierName "
+                + "       s.Name AS SupplierName, "
+                + "       (SELECT COALESCE(SUM(tp.Amount), 0) "
+                + "          FROM Transaction_ProductVariant tp "
+                + "         WHERE tp.TransactionID = t.ID) AS ItemCount "
                 + "FROM `Transaction` t "
                 + "JOIN `User` u ON t.UserID = u.ID "
                 + "LEFT JOIN `User` upd ON t.Updated_by = upd.ID "
@@ -635,7 +637,7 @@ public class ImportOrderDAO {
                             rs.getTimestamp("Updated_at"));
 
                     historyList.add(history);
-                   
+
                 }
             }
         }
@@ -697,9 +699,6 @@ public class ImportOrderDAO {
         order.setId(rs.getInt("ID"));
         order.setUserId(rs.getInt("UserID"));
 
-        order.setUsername(
-                rs.getString("Username"));
-
         order.setUserName(
                 rs.getString("UserName"));
 
@@ -735,6 +734,10 @@ public class ImportOrderDAO {
 
         order.setItemCount(
                 rs.getInt("ItemCount"));
+        order.setSupplierName(rs.getString("SupplierName"));
+
+        int supplierId = rs.getInt("SupplierID");
+        order.setSupplierId(rs.wasNull() ? null : supplierId);
 
         return order;
     }

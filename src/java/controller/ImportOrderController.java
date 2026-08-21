@@ -170,12 +170,9 @@ public class ImportOrderController extends HttpServlet {
                 request.getParameter("variantId"),
                 0);
 
-        /*
-         * -----------------------------------------------------
-         * CASE 1:
-         * Không chọn gì -> hiển thị toàn bộ
-         * -----------------------------------------------------
-         */
+        // ================================
+        // LOAD ALL DATA
+        // ================================
         List<SupplierModel> suppliers
                 = supplierDAO.findAll();
 
@@ -187,14 +184,10 @@ public class ImportOrderController extends HttpServlet {
                         "newest",
                         false);
 
-        /*
-         * -----------------------------------------------------
-         * CASE 2:
-         * Đã chọn Supplier
-         *
-         * Chỉ hiển thị ProductVariant mà Supplier cung cấp.
-         * -----------------------------------------------------
-         */
+        // ================================
+        // FILTER BY SUPPLIER
+        // Supplier -> Product Variants
+        // ================================
         if (supplierId > 0) {
 
             List<Integer> suppliedVariantIds
@@ -206,14 +199,10 @@ public class ImportOrderController extends HttpServlet {
                     suppliedVariantIds);
         }
 
-        /*
-         * -----------------------------------------------------
-         * CASE 3:
-         * Đã chọn ProductVariant
-         *
-         * Chỉ hiển thị Supplier cung cấp variant đó.
-         * -----------------------------------------------------
-         */
+        // ================================
+        // FILTER BY PRODUCT VARIANT
+        // Product Variant -> Suppliers
+        // ================================
         if (variantId > 0) {
 
             List<Integer> supplierIds
@@ -225,6 +214,9 @@ public class ImportOrderController extends HttpServlet {
                     supplierIds);
         }
 
+        // ================================
+        // JSP ATTRIBUTES
+        // ================================
         request.setAttribute(
                 "suppliers",
                 suppliers);
@@ -240,6 +232,10 @@ public class ImportOrderController extends HttpServlet {
         request.setAttribute(
                 "selectedVariantId",
                 variantId);
+
+        request.setAttribute(
+                "mode",
+                "create");
 
         request.getRequestDispatcher(
                 "/views/manager/import-detail.jsp")
@@ -282,7 +278,9 @@ public class ImportOrderController extends HttpServlet {
         request.setAttribute(
                 "order",
                 order);
-
+        
+        request.setAttribute("mode", "detail");
+        
         request.getRequestDispatcher(
                 "/views/manager/import-detail.jsp")
                 .forward(request, response);
@@ -535,7 +533,7 @@ public class ImportOrderController extends HttpServlet {
 
         response.sendRedirect(
                 request.getContextPath()
-                + "/manager/import-list");
+                + "/manager/import");
     }
 
     /* =========================================================
@@ -618,7 +616,7 @@ public class ImportOrderController extends HttpServlet {
 
         response.sendRedirect(
                 request.getContextPath()
-                + "/manager/import-list");
+                + "/manager/import");
     }
 
     /* =========================================================
@@ -711,7 +709,7 @@ public class ImportOrderController extends HttpServlet {
 
         response.sendRedirect(
                 request.getContextPath()
-                + "/manager/import-list");
+                + "/manager/import");
     }
 
     private static String value(

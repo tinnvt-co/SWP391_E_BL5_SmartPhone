@@ -1,13 +1,24 @@
-<%-- 
+<%--
     Document   : import-detail
-    Created on : Aug 20, 2026, 10:44:18 PM
+    Created on : Aug 20, 2026
     Author     : KhanhVNHE191788
-    Description:
-           - Create import order
-           - View import order detail
+
+    This JSP is shared by:
+    - Create import order
+    - View import order
+
+    CREATE:
+    - order is empty
+    - show supplier / payment / note / product form
+
+    DETAIL:
+    - order exists
+    - show order information / status / imported products
+
+    HISTORY:
+    - history exists
+    - show history sidebar
 --%>
-
-
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="jakarta.tags.core"%>
@@ -15,36 +26,66 @@
 
 <!DOCTYPE html>
 <html>
-
     <head>
-
         <meta charset="UTF-8">
-
         <title>
-            ${mode == 'create'
-              ? 'Create Import Order'
-              : 'Import Order Detail'}
+            <c:choose>
+                <c:when test="${empty order}">Create Import Order</c:when>
+                <c:otherwise>Import Order #${order.id}</c:otherwise>
+            </c:choose>
         </title>
-
         <link rel="stylesheet"
               href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-
         <link rel="stylesheet"
-              href="${pageContext.request.contextPath}/assets/css/style.css">
-
+              href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+        <%@include file="../common/head.jsp"%>
+        <link rel="stylesheet"
+              href="${pageContext.request.contextPath}/assets/css/app-layout.css">
         <style>
-
+            /* =====================================================
+               PAGE
+               -----------------------------------------------------
+               width:100% is required alongside max-width + margin:
+               auto so the block always spans the available width
+               before being centered — otherwise, if .page-shell
+               (from app-layout.css) doesn't force a width, this
+               element can shrink to its content and margin:auto
+               has nothing to center against.
+               ===================================================== */
             .import-detail-page {
-                max-width: 1200px;
+                width: 100%;
+                max-width: 1400px;
                 margin: 0 auto;
+                padding-left: 20px;
+                padding-right: 20px;
+                box-sizing: border-box;
             }
 
+            /* ===== LAYOUT ===== */
+            .form-control-custom {
+                width: 100%;
+                border: 1px solid #dfe3e8;
+                border-radius: 10px;
+                padding: 11px 13px;
+                font-size: 14px;
+                outline: none;
+                transition: .2s;
+            }
+
+            .form-control-custom:focus {
+                border-color: #94a3b8;
+                box-shadow: 0 0 0 3px rgba(148, 163, 184, .15);
+            }
+
+            textarea.form-control-custom {
+                min-height: 100px;
+                resize: vertical;
+            }
             .detail-grid {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
                 gap: 20px;
             }
-
             .detail-card {
                 background: #fff;
                 border: 1px solid #e5e7eb;
@@ -52,35 +93,33 @@
                 padding: 24px;
                 margin-bottom: 20px;
             }
-
             .detail-card.full {
                 grid-column: 1 / -1;
             }
-
             .detail-card h2 {
+                margin: 0;
                 font-size: 18px;
                 font-weight: 700;
-                margin-bottom: 5px;
+                color: #111827;
             }
-
             .detail-card-subtitle {
+                margin-top: 6px;
+                margin-bottom: 22px;
                 color: #64748b;
                 font-size: 14px;
-                margin-bottom: 22px;
             }
 
+            /* ===== INFORMATION ===== */
             .info-grid {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 18px;
+                gap: 20px;
             }
-
             .info-item {
                 display: flex;
                 flex-direction: column;
                 gap: 5px;
             }
-
             .info-label {
                 font-size: 12px;
                 font-weight: 700;
@@ -88,190 +127,47 @@
                 text-transform: uppercase;
                 letter-spacing: .04em;
             }
-
             .info-value {
                 color: #111827;
                 font-weight: 600;
             }
+            .info-note {
+                margin-top: 20px;
+                padding-top: 18px;
+                border-top: 1px solid #f1f5f9;
+            }
 
+            /* ===== STATUS ===== */
             .status-pill {
                 display: inline-flex;
                 align-items: center;
                 gap: 6px;
                 width: fit-content;
-                padding: 6px 11px;
+                padding: 6px 10px;
                 border-radius: 999px;
                 font-size: 12px;
                 font-weight: 700;
+                white-space: nowrap;
             }
-
             .status-order {
                 background: #fff7ed;
                 color: #c2410c;
             }
-
             .status-complete {
                 background: #ecfdf5;
                 color: #047857;
             }
 
-            /* =================================================
-               HISTORY
-               ================================================= */
-
-            .history-card {
-                background: #fff;
-                border: 1px solid #e5e7eb;
-                border-radius: 14px;
-                padding: 24px;
-                margin-bottom: 20px;
-            }
-
-            .history-title {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                margin-bottom: 22px;
-            }
-
-            .history-title h2 {
-                font-size: 18px;
-                font-weight: 700;
-                margin: 0;
-            }
-
-            .history-list {
-                position: relative;
-                margin: 0;
-                padding: 0;
-                list-style: none;
-            }
-
-            .history-list::before {
-                content: "";
-                position: absolute;
-                top: 8px;
-                bottom: 8px;
-                left: 8px;
-                width: 2px;
-                background: #e5e7eb;
-            }
-
-            .history-item {
-                position: relative;
-                display: flex;
-                gap: 16px;
-                padding-bottom: 20px;
-            }
-
-            .history-item:last-child {
-                padding-bottom: 0;
-            }
-
-            .history-dot {
-                position: relative;
-                z-index: 2;
-                width: 18px;
-                height: 18px;
-                flex: 0 0 18px;
-                border-radius: 50%;
-                background: #fff;
-                border: 4px solid #94a3b8;
-            }
-
-            .history-dot.order {
-                border-color: #f97316;
-            }
-
-            .history-dot.complete {
-                border-color: #10b981;
-            }
-
-            .history-content {
-                flex: 1;
-                padding-top: 0;
-            }
-
-            .history-status {
-                font-weight: 700;
-                color: #111827;
-                margin-bottom: 3px;
-            }
-
-            .history-meta {
-                color: #64748b;
-                font-size: 13px;
-            }
-
-            /* =================================================
-               ITEMS
-               ================================================= */
-
-            .item-table {
-                width: 100%;
-                border-collapse: collapse;
-            }
-
-            .item-table th {
-                background: #f8fafc;
-                color: #64748b;
-                font-size: 12px;
-                text-transform: uppercase;
-                letter-spacing: .04em;
-                padding: 13px 14px;
-                border-bottom: 1px solid #e5e7eb;
-            }
-
-            .item-table td {
-                padding: 14px;
-                border-bottom: 1px solid #f1f5f9;
-                vertical-align: middle;
-            }
-
-            .product-name {
-                font-weight: 700;
-                color: #111827;
-            }
-
-            .variant-info {
-                color: #64748b;
-                font-size: 13px;
-                margin-top: 3px;
-            }
-
-            .item-image {
-                width: 52px;
-                height: 52px;
-                object-fit: cover;
-                border-radius: 8px;
-                border: 1px solid #e5e7eb;
-            }
-
-            .total-row td {
-                font-weight: 700;
-                font-size: 16px;
-                border-bottom: none;
-                padding-top: 18px;
-            }
-
-            /* =================================================
-               FORM
-               ================================================= */
-
-            .form-grid {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 18px;
-            }
-
-            .form-group.full {
-                grid-column: 1 / -1;
-            }
-
+            /* ===== FORM ===== */
             .required {
                 color: #dc2626;
             }
-
+            .form-help {
+                display: block;
+                margin-top: 6px;
+                color: #64748b;
+                font-size: 13px;
+            }
             .import-item-row {
                 display: grid;
                 grid-template-columns: 3fr 1fr 1fr auto;
@@ -283,826 +179,643 @@
                 border-radius: 10px;
                 margin-bottom: 12px;
             }
-
+            .item-actions {
+                display: flex;
+                align-items: end;
+            }
             .form-actions {
                 display: flex;
                 justify-content: flex-end;
                 gap: 10px;
                 margin-top: 24px;
+                padding-top: 20px;
+                border-top: 1px solid #f1f5f9;
             }
 
+            /* ===== PRODUCT TABLE ===== */
+            .item-table-wrapper {
+                overflow-x: auto;
+            }
+            .item-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 0;
+            }
+            .item-table th {
+                background: #f8fafc;
+                color: #64748b;
+                font-size: 12px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: .04em;
+                padding: 14px 16px;
+                border-bottom: 1px solid #e5e7eb;
+                white-space: nowrap;
+            }
+            .item-table td {
+                padding: 15px 16px;
+                border-bottom: 1px solid #f1f5f9;
+                vertical-align: middle;
+            }
+            .item-table tbody tr:hover {
+                background: #fafafa;
+            }
+            .product-name {
+                font-weight: 700;
+                color: #111827;
+            }
+            .variant-info {
+                color: #64748b;
+                font-size: 13px;
+                margin-top: 3px;
+            }
+            .item-image {
+                width: 52px;
+                height: 52px;
+                object-fit: cover;
+                border-radius: 8px;
+                border: 1px solid #e5e7eb;
+                margin-right: 10px;
+            }
+            .product-cell {
+                display: flex;
+                align-items: center;
+                min-width: 220px;
+            }
+            .total-row td {
+                font-weight: 700;
+                font-size: 16px;
+                border-bottom: none;
+                padding-top: 18px;
+            }
+
+            /* ===== STATUS ACTION ===== */
+            .status-action-text {
+                color: #64748b;
+                line-height: 1.6;
+                margin-bottom: 20px;
+            }
             .complete-form {
                 display: inline;
             }
 
-            @media (max-width: 800px) {
+            /* ===== HISTORY SIDEBAR ===== */
+            .history-card {
+                background: #fff;
+                border: 1px solid #e5e7eb;
+                border-radius: 14px;
+                padding: 24px;
+                position: sticky;
+                top: 20px;
+            }
+            .history-list {
+                position: relative;
+                margin-top: 20px;
+            }
+            .history-item {
+                position: relative;
+                padding-left: 28px;
+                padding-bottom: 22px;
+            }
+            .history-item:last-child {
+                padding-bottom: 0;
+            }
+            .history-item::before {
+                content: "";
+                position: absolute;
+                left: 5px;
+                top: 7px;
+                bottom: 0;
+                width: 1px;
+                background: #e5e7eb;
+            }
+            .history-item:last-child::before {
+                display: none;
+            }
+            .history-dot {
+                position: absolute;
+                left: 0;
+                top: 4px;
+                width: 11px;
+                height: 11px;
+                border-radius: 50%;
+                background: #64748b;
+                border: 2px solid #fff;
+                box-shadow: 0 0 0 1px #cbd5e1;
+            }
+            .history-status {
+                font-size: 13px;
+                font-weight: 700;
+                color: #111827;
+            }
+            .history-date {
+                margin-top: 4px;
+                font-size: 12px;
+                color: #64748b;
+            }
+            .history-user {
+                margin-top: 4px;
+                font-size: 13px;
+                color: #475569;
+            }
 
+            /* ===== DETAIL + HISTORY LAYOUT ===== */
+            .detail-with-history {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) 320px;
+                gap: 20px;
+                align-items: start;
+            }
+
+            /* When there's no history sidebar to show, don't reserve
+               the 320px column — otherwise the main content gets
+               pushed left with dead space on the right. */
+            .detail-with-history.no-history {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            /* ===== RESPONSIVE ===== */
+            @media (max-width: 1100px) {
+                .detail-with-history {
+                    grid-template-columns: 1fr;
+                }
+                .history-card {
+                    position: static;
+                }
+            }
+            @media (max-width: 900px) {
                 .detail-grid {
                     grid-template-columns: 1fr;
                 }
-
                 .detail-card.full {
                     grid-column: auto;
                 }
-
-                .info-grid,
-                .form-grid {
+                .info-grid {
+                    grid-template-columns: 1fr 1fr;
+                }
+                .import-item-row {
+                    grid-template-columns: 1fr 1fr;
+                }
+                .item-actions {
+                    justify-content: flex-start;
+                }
+            }
+            @media (max-width: 650px) {
+                .info-grid {
                     grid-template-columns: 1fr;
                 }
-
-                .form-group.full {
-                    grid-column: auto;
-                }
-
                 .import-item-row {
                     grid-template-columns: 1fr;
                 }
-
-                .item-table {
-                    min-width: 800px;
+                .form-actions {
+                    flex-direction: column-reverse;
                 }
-
-                .item-table-wrapper {
-                    overflow-x: auto;
+                .form-actions .btn {
+                    width: 100%;
+                }
+                .item-table {
+                    min-width: 850px;
                 }
             }
-
         </style>
-
     </head>
-
 
     <body>
 
-        <c:set var="activePage"
-               value="manager"
-               scope="request"/>
+        <c:set var="activePage" value="manager" scope="request"/>
 
         <%@ include file="/views/common/header.jsp" %>
 
-
         <main class="page-shell import-detail-page">
 
-
-            <!-- =================================================
-                 HEADING
-                 ================================================= -->
-
+            <!-- PAGE HEADING -->
             <div class="page-heading">
-
                 <div>
-
-                    <span class="manager-kicker">
-                        PROCUREMENT
-                    </span>
-
+                    <span class="manager-kicker">PROCUREMENT</span>
                     <c:choose>
-
-                        <c:when test="${mode == 'create'}">
-
-                            <h1>
-                                Create Import Order
-                            </h1>
-
-                            <p>
-                                Create a new import order from a supplier.
-                            </p>
-
+                        <c:when test="${empty order}">
+                            <h1>Create Import Order</h1>
+                            <p>Create a new import order from a supplier.</p>
                         </c:when>
-
                         <c:otherwise>
-
-                            <h1>
-                                Import Order #${order.id}
-                            </h1>
-
-                            <p>
-                                View import order information,
-                                products and status history.
-                            </p>
-
+                            <h1>Import Order #${order.id}</h1>
+                            <p>View import order information and imported products.</p>
                         </c:otherwise>
-
                     </c:choose>
-
                 </div>
-
-
                 <div class="page-heading-actions">
-
-                    <a class="btn subtle"
-                       href="${pageContext.request.contextPath}/manager/import-list">
-
-                        ← Back to import orders
-
+                    <a class="btn subtle" href="${pageContext.request.contextPath}/manager/import">
+                        <i class="bi bi-arrow-left"></i>
+                        Back to import orders
                     </a>
-
                 </div>
-
             </div>
 
+            <!-- FLASH MESSAGE -->
+            <c:if test="${not empty sessionScope.message}">
+                <div class="alert alert-success">
+                    <i class="bi bi-check-circle"></i>
+                    <c:out value="${sessionScope.message}"/>
+                </div>
+                <c:remove var="message" scope="session"/>
+            </c:if>
 
-            <!-- =================================================
-                 DETAIL MODE
-                 HISTORY
-                 ================================================= -->
-
-            <c:if test="${mode == 'detail'}">
-
-                <section class="history-card">
-
-                    <div class="history-title">
-
-                        <h2>
-                            Order History
-                        </h2>
-
-                        <c:choose>
-
-                            <c:when test="${order.status == 'COMPLETE'}">
-
-                                <span class="status-pill status-complete">
-
-                                    <i class="bi bi-check-circle"></i>
-
-                                    COMPLETE
-
-                                </span>
-
-                            </c:when>
-
-                            <c:otherwise>
-
-                                <span class="status-pill status-order">
-
-                                    <i class="bi bi-clock"></i>
-
-                                    ORDER
-
-                                </span>
-
-                            </c:otherwise>
-
-                        </c:choose>
-
-                    </div>
-
-
-                    <ul class="history-list">
-
-                        <c:forEach var="entry"
-                                   items="${history}">
-
-                            <li class="history-item">
-
-                                <c:choose>
-
-                                    <c:when test="${entry.startsWith('ORDER')}">
-
-                                        <span class="history-dot order"></span>
-
-                                    </c:when>
-
-                                    <c:otherwise>
-
-                                        <span class="history-dot complete"></span>
-
-                                    </c:otherwise>
-
-                                </c:choose>
-
-
-                                <div class="history-content">
-
-                                    <div class="history-status">
-
-                                        <c:choose>
-
-                                            <c:when test="${entry.startsWith('ORDER')}">
-
-                                                Order created
-
-                                            </c:when>
-
-                                            <c:when test="${entry.startsWith('COMPLETE')}">
-
-                                                Order completed
-
-                                            </c:when>
-
-                                            <c:otherwise>
-
-                                                <c:out value="${entry}"/>
-
-                                            </c:otherwise>
-
-                                        </c:choose>
-
-                                    </div>
-
-
-                                    <div class="history-meta">
-
-                                        <c:out value="${entry}"/>
-
-                                    </div>
-
-                                </div>
-
-                            </li>
-
-                        </c:forEach>
-
-                    </ul>
-
-                </section>
-
+            <c:if test="${not empty sessionScope.error}">
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <c:out value="${sessionScope.error}"/>
+                </div>
+                <c:remove var="error" scope="session"/>
             </c:if>
 
 
-            <!-- =================================================
-                 CREATE MODE
-                 ================================================= -->
-
-            <c:if test="${mode == 'create'}">
-
-                <form method="post"
-                      action="${pageContext.request.contextPath}/manager/import">
-
-                    <input type="hidden"
-                           name="action"
-                           value="create">
-
+            <!-- =================== CREATE (order == null) =================== -->
+            <c:if test="${empty order}">
+                <form method="post" action="${pageContext.request.contextPath}/manager/import">
+                    <input type="hidden" name="action" value="create">
 
                     <div class="detail-grid">
 
-
                         <!-- SUPPLIER -->
-
                         <section class="detail-card">
-
-                            <h2>
-                                Supplier
-                            </h2>
-
-                            <p class="detail-card-subtitle">
-                                Select the supplier for this import order.
-                            </p>
-
+                            <h2>Supplier</h2>
+                            <p class="detail-card-subtitle">Select the supplier for this import order.</p>
 
                             <div class="form-group">
-
-                                <label class="form-label">
-                                    Supplier
-                                    <span class="required">*</span>
-                                </label>
-
-                                <select name="supplierId"
-                                        class="form-control-custom"
-                                        required
-                                        onchange="this.form.submit()">
-
-                                    <option value="">
-                                        -- Select supplier --
-                                    </option>
-
-                                    <c:forEach var="supplier"
-                                               items="${suppliers}">
-
+                                <label class="form-label">Supplier <span class="required">*</span></label>
+                                <select name="supplierId" class="form-control-custom" required>
+                                    <option value="">-- Select supplier --</option>
+                                    <c:forEach var="supplier" items="${suppliers}">
                                         <option value="${supplier.id}"
-                                                ${selectedSupplierId == supplier.id
-                                                  ? 'selected'
-                                                  : ''}>
-
-                                            <c:out
-                                                value="${supplier.name}"/>
-
+                                                ${selectedSupplierId == supplier.id ? 'selected' : ''}>
+                                            <c:out value="${supplier.name}"/>
                                         </option>
-
                                     </c:forEach>
-
                                 </select>
-
-                                <small class="text-muted">
-                                    Selecting a supplier filters the
-                                    available product variants.
-                                </small>
-
+                                <span class="form-help">Select a supplier before adding products.</span>
                             </div>
-
                         </section>
 
 
-                        <!-- BASIC INFORMATION -->
-
+                        <!-- ORDER INFORMATION -->
                         <section class="detail-card">
-
-                            <h2>
-                                Order Information
-                            </h2>
-
-                            <p class="detail-card-subtitle">
-                                Additional information for this import order.
-                            </p>
-
+                            <h2>Order Information</h2>
+                            <p class="detail-card-subtitle">Additional information for this import order.</p>
 
                             <div class="form-group">
-
-                                <label class="form-label">
-                                    Payment Method
-                                </label>
-
-                                <select name="method"
-                                        class="form-control-custom">
-
-                                    <option value="CASH">
-                                        Cash
-                                    </option>
-
-                                    <option value="BANK_TRANSFER">
-                                        Bank transfer
-                                    </option>
-
+                                <label class="form-label">Payment Method</label>
+                                <select name="method" class="form-control-custom">
+                                    <option value="CASH">Cash</option>
+                                    <option value="BANK_TRANSFER">Bank transfer</option>
                                 </select>
-
                             </div>
 
-
-                            <div class="form-group"
-                                 style="margin-top: 16px;">
-
-                                <label class="form-label">
-                                    Note
-                                </label>
-
-                                <textarea name="note"
-                                          class="form-control-custom"
-                                          rows="4"
-                                          maxlength="500"
-                                          placeholder="Optional note..."></textarea>
-
+                            <div class="form-group" style="margin-top: 18px;">
+                                <label class="form-label">Note</label>
+                                <textarea name="note" class="form-control-custom" rows="4"
+                                          maxlength="500" placeholder="Optional note..."></textarea>
                             </div>
-
                         </section>
 
 
                         <!-- PRODUCTS -->
-
                         <section class="detail-card full">
-
-                            <h2>
-                                Import Products
-                            </h2>
-
-                            <p class="detail-card-subtitle">
-                                Add products, quantities and import prices.
-                            </p>
-
+                            <h2>Import Products</h2>
+                            <p class="detail-card-subtitle">Add products, quantities and import prices.</p>
 
                             <div id="itemsContainer">
-
                                 <div class="import-item-row">
 
+                                    <!-- PRODUCT VARIANT -->
                                     <div class="form-group">
-                                        <label class="form-label">
-                                            Product Variant
-                                            <span class="required">*</span>
-                                        </label>
-                                        <select name="variantId"
-                                                class="form-control-custom"
-                                                required>
-
-                                            <option value="">
-                                                -- Select product --
-                                            </option>
-
-                                            <c:forEach var="product"
-                                                       items="${products}">
-                                                <c:forEach
-                                                    var="variant"
-                                                    items="${product.variants}">
-                                                    <option
-                                                        value="${variant.id}"
-                                                        ${selectedVariantId == variant.id
-                                                          ? 'selected'
-                                                          : ''}>
-                                                        <c:out
-                                                            value="${product.name}"/>
-                                                        -
-                                                        ${variant.ramGb}GB /
-
-                                                        ${variant.storageGb}GB /
-                                                        <c:out
-                                                            value="${variant.colorName}"/>
+                                        <label class="form-label">Product Variant <span class="required">*</span></label>
+                                        <select name="variantId" class="form-control-custom" required>
+                                            <option value="">-- Select product --</option>
+                                            <c:forEach var="product" items="${products}">
+                                                <c:forEach var="variant" items="${product.variants}">
+                                                    <option value="${variant.id}">
+                                                        <c:out value="${product.name}"/> -
+                                                        ${variant.ramGb}GB / ${variant.storageGb}GB /
+                                                        <c:out value="${variant.colorName}"/>
                                                     </option>
                                                 </c:forEach>
                                             </c:forEach>
                                         </select>
                                     </div>
 
+                                    <!-- QUANTITY -->
                                     <div class="form-group">
-                                        <label class="form-label">
-                                            Quantity
-                                        </label>
-                                        <input type="number"
-                                               name="quantity"
-                                               class="form-control-custom"
-                                               min="1"
-                                               value="1"
-                                               required>
-
+                                        <label class="form-label">Quantity</label>
+                                        <input type="number" name="quantity" class="form-control-custom"
+                                               min="1" value="1" required>
                                     </div>
 
+                                    <!-- UNIT PRICE -->
                                     <div class="form-group">
-                                        <label class="form-label">
-                                            Unit Price
-                                        </label>
-                                        <input type="number"
-                                               name="unitPrice"
-                                               class="form-control-custom"
-                                               min="1"
-                                               step="1"
-                                               required>
-
+                                        <label class="form-label">Unit Price</label>
+                                        <input type="number" name="unitPrice" class="form-control-custom"
+                                               min="1" step="1" required>
                                     </div>
 
-                                    <div class="form-group">
-                                        <button type="button"
-                                                class="btn subtle"
-                                                onclick="removeItem(this)">
+                                    <!-- REMOVE -->
+                                    <div class="item-actions">
+                                        <button type="button" class="btn subtle" onclick="removeItem(this)">
+                                            <i class="bi bi-trash"></i>
                                             Remove
                                         </button>
                                     </div>
+
                                 </div>
                             </div>
 
-                            <button type="button"
-                                    class="btn subtle"
-                                    onclick="addItem()">
+                            <!-- ADD PRODUCT -->
+                            <button type="button" class="btn subtle" onclick="addItem()">
                                 <i class="bi bi-plus-lg"></i>
                                 Add product
                             </button>
 
+                            <!-- ACTIONS -->
                             <div class="form-actions">
-                                <a class="btn subtle"
-                                   href="${pageContext.request.contextPath}/manager/import-list">
+                                <a class="btn subtle" href="${pageContext.request.contextPath}/manager/import">
                                     Cancel
                                 </a>
-                                <button type="submit"
-                                        class="btn primary-action">
+                                <button type="submit" class="btn primary">
+                                    <i class="bi bi-check-lg"></i>
                                     Create Import Order
                                 </button>
                             </div>
                         </section>
+
                     </div>
                 </form>
             </c:if>
 
-            <!-- =================================================
-                 DETAIL MODE
-                 ORDER INFORMATION
-                 ================================================= -->
-            <c:if test="${mode == 'detail'}">
-                <div class="detail-grid">
-                    <section class="detail-card">
-                        <h2>
-                            Order Information
-                        </h2>
-                        <p class="detail-card-subtitle">
-                            Basic information about this import order.
-                        </p>
 
-                        <div class="info-grid">
-                            <div class="info-item">
-                                <span class="info-label">
-                                    Order ID
-                                </span>
-                                <span class="info-value">
-                                    #${order.id}
-                                </span>
+            <!-- =================== DETAIL (order != null) =================== -->
+            <c:if test="${not empty order}">
+                <div class="detail-with-history ${empty history ? 'no-history' : ''}">
 
-                            </div>
+                    <!-- MAIN DETAIL CONTENT -->
+                    <div>
+                        <div class="detail-grid">
 
-                            <div class="info-item">
-                                <span class="info-label">
-                                    Status
-                                </span>
-                                <span class="info-value">
-                                    <c:choose>
-                                        <c:when test="${order.status == 'COMPLETE'}">
-                                            <span class="status-pill status-complete">
+                            <!-- ORDER INFORMATION -->
+                            <section class="detail-card">
+                                <h2>Order Information</h2>
+                                <p class="detail-card-subtitle">Basic information about this import order.</p>
+
+                                <div class="info-grid">
+
+                                    <div class="info-item">
+                                        <span class="info-label">Order ID</span>
+                                        <span class="info-value">#${order.id}</span>
+                                    </div>
+
+                                    <div class="info-item">
+                                        <span class="info-label">Status</span>
+                                        <span class="info-value">
+                                            <c:choose>
+                                                <c:when test="${order.status == 'COMPLETED'}">
+                                                    <span class="status-pill status-complete">
+                                                        <i class="bi bi-check-circle"></i>
+                                                        COMPLETE
+                                                    </span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="status-pill status-order">
+                                                        <i class="bi bi-clock"></i>
+                                                        ORDER
+                                                    </span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </span>
+                                    </div>
+
+                                    <div class="info-item">
+                                        <span class="info-label">Supplier</span>
+                                        <span class="info-value"><c:out value="${order.supplierName}"/></span>
+                                    </div>
+
+                                    <div class="info-item">
+                                        <span class="info-label">Created By</span>
+                                        <span class="info-value"><c:out value="${order.userName}"/></span>
+                                    </div>
+
+                                    <div class="info-item">
+                                        <span class="info-label">Created At</span>
+                                        <span class="info-value">
+                                            <fmt:formatDate value="${order.createdAt}" pattern="dd/MM/yyyy HH:mm"/>
+                                        </span>
+                                    </div>
+
+                                    <div class="info-item">
+                                        <span class="info-label">Last Updated</span>
+                                        <span class="info-value">
+                                            <c:choose>
+                                                <c:when test="${not empty order.updatedAt}">
+                                                    <fmt:formatDate value="${order.updatedAt}" pattern="dd/MM/yyyy HH:mm"/>
+                                                </c:when>
+                                                <c:otherwise>-</c:otherwise>
+                                            </c:choose>
+                                        </span>
+                                    </div>
+
+                                    <div class="info-item">
+                                        <span class="info-label">Payment Method</span>
+                                        <span class="info-value">
+                                            <c:choose>
+                                                <c:when test="${order.method == 'BANK_TRANSFER'}">Bank transfer</c:when>
+                                                <c:when test="${order.method == 'CASH'}">Cash</c:when>
+                                                <c:otherwise><c:out value="${order.method}"/></c:otherwise>
+                                            </c:choose>
+                                        </span>
+                                    </div>
+
+                                    <div class="info-item">
+                                        <span class="info-label">Total</span>
+                                        <span class="info-value">
+                                            <fmt:formatNumber value="${order.totalPrice}" type="number"
+                                                              groupingUsed="true" maxFractionDigits="0"/> ₫
+                                        </span>
+                                    </div>
+
+                                </div>
+
+                                <c:if test="${not empty order.note}">
+                                    <div class="info-note">
+                                        <span class="info-label">Note</span>
+                                        <div style="margin-top: 6px;"><c:out value="${order.note}"/></div>
+                                    </div>
+                                </c:if>
+                            </section>
+
+
+                            <!-- STATUS ACTION -->
+                            <section class="detail-card">
+                                <h2>Order Status</h2>
+                                <p class="detail-card-subtitle">Available actions for this import order.</p>
+
+                                <c:choose>
+                                    <c:when test="${order.status == 'ORDER'}">
+                                        <p class="status-action-text">
+                                            This order has been created but the imported products
+                                            have not been added to inventory yet.
+                                        </p>
+
+                                        <form method="post" action="${pageContext.request.contextPath}/manager/import"
+                                              class="complete-form">
+                                            <input type="hidden" name="action" value="complete">
+                                            <input type="hidden" name="id" value="${order.id}">
+                                            <button type="submit" class="btn primary-action"
+                                                    onclick="return confirm('Complete this import order? Inventory will be increased.');">
                                                 <i class="bi bi-check-circle"></i>
-                                                COMPLETE
-                                            </span>
-                                        </c:when>
+                                                Complete Import Order
+                                            </button>
+                                        </form>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <div class="alert alert-success">
+                                            <i class="bi bi-check-circle"></i>
+                                            This import order has been completed. Inventory has been updated.
+                                        </div>
+                                    </c:otherwise>
+                                </c:choose>
+                            </section>
 
-                                        <c:otherwise>
-                                            <span class="status-pill status-order">
-                                                <i class="bi bi-clock"></i>
-                                                ORDER
-                                            </span>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </span>
-                            </div>
 
-                            <div class="info-item">
-                                <span class="info-label">
-                                    Supplier
-                                </span>
-                                <span class="info-value">
+                            <!-- PRODUCTS -->
+                            <section class="detail-card full">
+                                <h2>Imported Products</h2>
+                                <p class="detail-card-subtitle">Products included in this import order.</p>
 
-                                    <c:out
-                                        value="${order.supplierName}"/>
-                                </span>
-                            </div>
+                                <div class="item-table-wrapper">
+                                    <table class="item-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Product</th>
+                                                <th>Variant</th>
+                                                <th>Quantity</th>
+                                                <th>Unit Price</th>
+                                                <th>Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <c:forEach var="item" items="${order.items}">
+                                                <tr>
+                                                    <td>
+                                                        <div class="product-cell">
+                                                            <c:if test="${not empty item.productImage}">
+                                                                <img class="item-image"
+                                                                     src="${pageContext.request.contextPath}${item.imageUrl}"
+                                                                     alt="Product">
+                                                            </c:if>
+                                                            <div>
+                                                                <div class="product-name">
+                                                                    <c:out value="${item.productName}"/>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div class="variant-info"><c:out value="${item.memoryLabel}"/></div>
+                                                        <div class="variant-info"><c:out value="${item.colorName}"/></div>
+                                                    </td>
+                                                    <td>${item.amount}</td>
+                                                    <td>
+                                                        <fmt:formatNumber value="${item.unitPrice}" type="number"
+                                                                          groupingUsed="true" maxFractionDigits="0"/> ₫
+                                                    </td>
+                                                    <td>
+                                                        <fmt:formatNumber value="${item.total}" type="number"
+                                                                          groupingUsed="true" maxFractionDigits="0"/> ₫
+                                                    </td>
+                                                </tr>
+                                            </c:forEach>
 
-                            <div class="info-item">
-                                <span class="info-label">
-                                    Created By
-                                </span>
-                                <span class="info-value">
-                                    <c:out
-                                        value="${order.userName}"/>
-                                </span>
-                            </div>
-
-                            <div class="info-item">
-                                <span class="info-label">
-                                    Created At
-                                </span>
-                                <span class="info-value">
-                                    <fmt:formatDate
-                                        value="${order.createdAt}"
-                                        pattern="dd/MM/yyyy HH:mm:ss"/>
-                                </span>
-                            </div>
-
-                            <div class="info-item">
-
-                                <span class="info-label">
-                                    Last Updated
-                                </span>
-
-                                <span class="info-value">
-                                    <c:choose>
-                                        <c:when test="${not empty order.updatedAt}">
-                                            <fmt:formatDate
-                                                value="${order.updatedAt}"
-                                                pattern="dd/MM/yyyy HH:mm:ss"/>
-                                        </c:when>
-                                        <c:otherwise>
-                                            -
-                                        </c:otherwise>
-                                    </c:choose>
-                                </span>
-                            </div>
-
-                            <div class="info-item">
-                                <span class="info-label">
-                                    Payment Method
-                                </span>
-                                <span class="info-value">
-                                    <c:out
-                                        value="${order.method}"/>
-                                </span>
-                            </div>
-
-                            <div class="info-item">
-                                <span class="info-label">
-                                    Total
-                                </span>
-                                <span class="info-value">
-                                    <fmt:formatNumber
-                                        value="${order.totalPrice}"
-                                        type="number"
-                                        groupingUsed="true"
-                                        maxFractionDigits="0"/>
-
-                                    ₫
-                                </span>
-                            </div>
-                        </div>
-
-                        <c:if test="${not empty order.note}">
-                            <div style="margin-top: 20px;">
-                                <span class="info-label">
-                                    Note
-                                </span>
-                                <div style="margin-top: 6px;">
-                                    <c:out
-                                        value="${order.note}"/>
+                                            <tr class="total-row">
+                                                <td colspan="4" style="text-align: right;">Total</td>
+                                                <td>
+                                                    <fmt:formatNumber value="${order.totalPrice}" type="number"
+                                                                      groupingUsed="true" maxFractionDigits="0"/> ₫
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
-                            </div>
-                        </c:if>
-                    </section>
+                            </section>
 
-                    <!-- STATUS ACTION -->
-                    <section class="detail-card">
-                        <h2>
-                            Order Status
-                        </h2>
-                        <p class="detail-card-subtitle">
-                            Available action for this order.
-                        </p>
-
-                        <c:choose>
-                            <c:when test="${order.status == 'ORDER'}">
-                                <p>
-                                    This order has been created but the
-                                    imported products have not been added
-                                    to inventory yet.
-                                </p>
-
-                                <form method="post"
-                                      action="${pageContext.request.contextPath}/manager/import"
-                                      class="complete-form">
-                                    <input type="hidden"
-                                           name="action"
-                                           value="complete">
-                                    <input type="hidden"
-                                           name="id"
-                                           value="${order.id}">
-                                    <button type="submit"
-                                            class="btn primary-action"
-                                            onclick="return confirm('Complete this import order? Inventory will be increased.');">
-                                        <i class="bi bi-check-circle"></i>
-                                        Complete Import Order
-                                    </button>
-                                </form>
-                            </c:when>
-
-                            <c:otherwise>
-                                <div class="alert alert-success">
-                                    <i class="bi bi-check-circle"></i>
-                                    This import order has been completed.
-                                    Inventory has been updated.
-                                </div>
-                            </c:otherwise>
-                        </c:choose>
-                    </section>
-
-                    <!-- PRODUCTS -->
-                    <section class="detail-card full">
-                        <h2>
-                            Imported Products
-                        </h2>
-                        <p class="detail-card-subtitle">
-                            Products included in this import order.
-                        </p>
-
-                        <div class="item-table-wrapper">
-                            <table class="item-table">
-                                <thead>
-                                    <tr>
-                                        <th>
-                                            Product
-                                        </th>
-                                        <th>
-                                            Variant
-                                        </th>
-                                        <th>
-                                            Quantity
-                                        </th>
-                                        <th>
-                                            Unit Price
-                                        </th>
-                                        <th>
-                                            Total
-                                        </th>
-                                    </tr>
-                                </thead>
-
-                                <tbody>
-                                    <c:forEach var="item"
-                                               items="${order.items}">
-                                        <tr>
-                                            <td>
-                                                <c:if test="${not empty item.productImage}">
-                                                    <img class="item-image"
-                                                         src="${pageContext.request.contextPath}/${item.productImage}"
-                                                         alt="Product">
-
-                                                </c:if>
-                                                <div class="product-name">
-                                                    <c:out
-                                                        value="${item.productName}"/>
-                                                </div>
-                                            </td>
-
-                                            <td>
-                                                <div class="variant-info">
-                                                    <c:out
-                                                        value="${item.memoryLabel}"/>
-                                                </div>
-
-                                                <div class="variant-info">
-                                                    <c:out
-                                                        value="${item.colorName}"/>
-                                                </div>
-                                            </td>
-
-                                            <td>
-                                                ${item.amount}
-                                            </td>
-
-                                            <td>
-                                                <fmt:formatNumber
-                                                    value="${item.unitPrice}"
-                                                    type="number"
-                                                    groupingUsed="true"
-                                                    maxFractionDigits="0"/>
-
-                                                ₫
-                                            </td>
-
-                                            <td>
-                                                <fmt:formatNumber
-                                                    value="${item.total}"
-                                                    type="number"
-                                                    groupingUsed="true"
-                                                    maxFractionDigits="0"/>
-
-                                                ₫
-                                            </td>
-                                        </tr>
-                                    </c:forEach>
-
-                                    <tr class="total-row">
-                                        <td colspan="4"
-                                            style="text-align: right;">
-
-                                            Total
-                                        </td>
-
-                                        <td>
-                                            <fmt:formatNumber
-                                                value="${order.totalPrice}"
-                                                type="number"
-                                                groupingUsed="true"
-                                                maxFractionDigits="0"/>
-
-                                            ₫
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
                         </div>
-                    </section>
+                    </div>
+
+
+                    <!-- HISTORY SIDEBAR -->
+                    <c:if test="${not empty history}">
+                        <aside class="history-card">
+                            <h2>Status History</h2>
+                            <p class="detail-card-subtitle">History of this import order.</p>
+
+                            <div class="history-list">
+                                <c:forEach var="h" items="${history}">
+                                    <div class="history-item">
+                                        <span class="history-dot"></span>
+                                        <div class="history-status"><c:out value="${h.status}"/></div>
+                                        <div class="history-date">
+                                            <fmt:formatDate value="${h.createdAt}" pattern="dd/MM/yyyy HH:mm"/>
+                                        </div>
+                                        <c:if test="${not empty h.userName}">
+                                            <div class="history-user">By <c:out value="${h.userName}"/></div>
+                                        </c:if>
+                                    </div>
+                                </c:forEach>
+                            </div>
+                        </aside>
+                    </c:if>
+
                 </div>
             </c:if>
+
         </main>
+
         <%@ include file="/views/common/footer.jsp" %>
 
-        <c:if test="${mode == 'create'}">
+
+        <!-- CREATE MODE JAVASCRIPT (only loaded when order is empty) -->
+        <c:if test="${empty order}">
             <script>
                 function addItem() {
-                    const container =
-                            document.getElementById(
-                                    'itemsContainer'
-                                    );
-                    const firstRow =
-                            container.querySelector(
-                                    '.import-item-row'
-                                    );
-                    const newRow =
-                            firstRow.cloneNode(true);
-                    newRow
-                            .querySelectorAll('input')
-                            .forEach(function (input) {
-                                if (input.name === 'quantity') {
-                                    input.value = '1';
-                                } else {
-                                    input.value = '';
-                                }
-                            });
-                    newRow
-                            .querySelector('select')
-                            .selectedIndex = 0;
+                    const container = document.getElementById('itemsContainer');
+                    const firstRow = container.querySelector('.import-item-row');
+                    const newRow = firstRow.cloneNode(true);
+
+                    const select = newRow.querySelector('select');
+                    if (select) {
+                        select.selectedIndex = 0;
+                    }
+
+                    newRow.querySelectorAll('input').forEach(function (input) {
+                        if (input.name === 'quantity') {
+                            input.value = '1';
+                        } else {
+                            input.value = '';
+                        }
+                    });
+
                     container.appendChild(newRow);
                 }
 
                 function removeItem(button) {
-                    const container =
-                            document.getElementById(
-                                    'itemsContainer'
-                                    );
-                    const rows =
-                            container.querySelectorAll(
-                                    '.import-item-row'
-                                    );
-                    if (rows.length <= 1) {
-                        alert(
-                                'An import order must contain at least one product.'
-                                );
+                    const container = document.getElementById('itemsContainer');
+                    const rows = container.querySelectorAll('.import-item-row');
 
+                    if (rows.length <= 1) {
+                        alert('An import order must contain at least one product.');
                         return;
                     }
-                    button
-                            .closest('.import-item-row')
-                            .remove();
+
+                    button.closest('.import-item-row').remove();
                 }
             </script>
         </c:if>
+
     </body>
 </html>

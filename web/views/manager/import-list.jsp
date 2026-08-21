@@ -22,6 +22,40 @@
         <link rel="stylesheet"
               href="${pageContext.request.contextPath}/assets/css/app-layout.css">
         <style>
+            .form-control-custom {
+                width: 100%;
+                border: 1px solid #dfe3e8;
+                border-radius: 10px;
+                padding: 11px 13px;
+                font-size: 14px;
+                outline: none;
+                transition: .2s;
+            }
+
+            .form-control-custom:focus {
+                border-color: #94a3b8;
+                box-shadow: 0 0 0 3px rgba(148, 163, 184, .15);
+            }
+
+            textarea.form-control-custom {
+                min-height: 100px;
+                resize: vertical;
+            }
+
+            .import-create-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            .import-create-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                height: 42px;
+                padding: 0 17px;
+                border-radius: 10px;
+                text-decoration: none;
+                font-weight: 650;
+            }
             .import-list-page {
                 max-width: 1400px;
                 margin: 0 auto;
@@ -257,8 +291,8 @@
                 </div>
 
                 <div class="page-heading-actions">
-                    <a class="btn primary-action"
-                       href="${pageContext.request.contextPath}/manager/import-detail?action=create">
+                    <a class="btn primary import-create-btn"
+                       href="${pageContext.request.contextPath}/manager/import?action=create">
                         <i class="bi bi-plus-lg"></i>
                         Create Import Order
                     </a>
@@ -290,7 +324,7 @@
                  ================================================= -->
             <div class="import-filter-card">
                 <form method="get"
-                      action="${pageContext.request.contextPath}/manager/import-list">
+                      action="${pageContext.request.contextPath}/manager/import">
 
                     <div class="import-filter-form">
 
@@ -485,7 +519,7 @@
                                         <td>
                                             <div class="table-actions">
                                                 <a class="btn subtle btn-view"
-                                                   href="${pageContext.request.contextPath}/manager/import-detail?action=detail&id=${order.id}">
+                                                   href="${pageContext.request.contextPath}/manager/import?action=detail&id=${order.id}">
                                                     <i class="bi bi-eye"></i>
                                                     View
                                                 </a>

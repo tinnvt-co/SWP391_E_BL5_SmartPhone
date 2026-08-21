@@ -30,7 +30,7 @@ public class OrderDAO {
 
         StringBuilder sql = new StringBuilder()
                 .append("SELECT t.ID, t.UserID, t.Total_price, t.Type, t.Status, ")
-                .append("       t.Paid_amount, t.Change_amount, t.Method, ")
+                .append("       t.Method, ")
                 .append("       t.Updated_by, t.Updated_at, t.Created_at, t.Note, t.Proof_image, ")
                 .append("       t.Reference_transactionID, t.DeliveryInfoID, t.ShipperID, ")
                 .append("       u.Username, u.Name AS UserName, u.Phone, u.Email, ")
@@ -93,7 +93,7 @@ public class OrderDAO {
 
     public List<OrderModel> findAvailableShippingOrders() throws SQLException {
         String sql = "SELECT t.ID, t.UserID, t.Total_price, t.Type, t.Status, "
-                + "       t.Paid_amount, t.Change_amount, t.Method, "
+                + "       t.Method, "
                 + "       t.Updated_by, t.Updated_at, t.Created_at, t.Note, t.Proof_image, "
                 + "       t.Reference_transactionID, t.DeliveryInfoID, t.ShipperID, "
                 + "       u.Username, u.Name AS UserName, u.Phone, u.Email, "
@@ -120,7 +120,7 @@ public class OrderDAO {
 
     public List<OrderModel> findShippingOrdersByShipper(int shipperId) throws SQLException {
         String sql = "SELECT t.ID, t.UserID, t.Total_price, t.Type, t.Status, "
-                + "       t.Paid_amount, t.Change_amount, t.Method, "
+                + "       t.Method, "
                 + "       t.Updated_by, t.Updated_at, t.Created_at, t.Note, t.Proof_image, "
                 + "       t.Reference_transactionID, t.DeliveryInfoID, t.ShipperID, "
                 + "       u.Username, u.Name AS UserName, u.Phone, u.Email, "
@@ -148,7 +148,7 @@ public class OrderDAO {
 
     public List<OrderModel> findDeliveredOrdersByShipper(int shipperId) throws SQLException {
         String sql = "SELECT t.ID, t.UserID, t.Total_price, t.Type, t.Status, "
-                + "       t.Paid_amount, t.Change_amount, t.Method, "
+                + "       t.Method, "
                 + "       t.Updated_by, t.Updated_at, t.Created_at, t.Note, t.Proof_image, "
                 + "       t.Reference_transactionID, t.DeliveryInfoID, t.ShipperID, "
                 + "       u.Username, u.Name AS UserName, u.Phone, u.Email, "
@@ -176,7 +176,7 @@ public class OrderDAO {
 
     public OrderModel findOrderDetail(int id) throws SQLException {
         String sql = "SELECT t.ID, t.UserID, t.Total_price, t.Type, t.Status, "
-                + "       t.Paid_amount, t.Change_amount, t.Method, "
+                + "       t.Method, "
                 + "       t.Updated_by, t.Updated_at, t.Created_at, t.Note, t.Proof_image, "
                 + "       t.Reference_transactionID, t.DeliveryInfoID, t.ShipperID, "
                 + "       u.Username, u.Name AS UserName, u.Phone, u.Email, "
@@ -255,7 +255,7 @@ public class OrderDAO {
 
     public int countProcessing() throws SQLException {
         String sql = "SELECT COUNT(*) FROM `Transaction` "
-                + "WHERE Type = 'ORDER' AND Status IN ('PENDING','CONFIRMED','PAID','SHIPPING')";
+                + "WHERE Type = 'ORDER' AND Status IN ('PENDING','CONFIRMED','SHIPPING')";
         try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql); ResultSet rs = statement.executeQuery()) {
             return rs.next() ? rs.getInt(1) : 0;
         }
@@ -279,7 +279,7 @@ public class OrderDAO {
 
     public BigDecimal totalRevenue() throws SQLException {
         String sql = "SELECT COALESCE(SUM(Total_price), 0) FROM `Transaction` "
-                + "WHERE Type = 'ORDER' AND Status IN ('PAID','SHIPPING','DELIVERED','COMPLETED')";
+                + "WHERE Type = 'ORDER' AND Status IN ('SHIPPING','DELIVERED','COMPLETED')";
         try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql); ResultSet rs = statement.executeQuery()) {
             return rs.next() ? rs.getBigDecimal(1) : BigDecimal.ZERO;
         }
@@ -336,7 +336,7 @@ public class OrderDAO {
 
     public List<OrderModel> findByUserId(int userId) throws SQLException {
         String sql = "SELECT t.ID, t.UserID, t.Total_price, t.Type, t.Status, "
-                + "       t.Paid_amount, t.Change_amount, t.Method, "
+                + "       t.Method, "
                 + "       t.Updated_by, t.Updated_at, t.Created_at, t.Note, t.Proof_image, "
                 + "       t.Reference_transactionID, t.DeliveryInfoID, t.ShipperID, "
                 + "       u.Username, u.Name AS UserName, u.Phone, u.Email, "
@@ -412,76 +412,58 @@ public class OrderDAO {
 
     private OrderModel mapOrderSummary(ResultSet rs) throws SQLException {
         OrderModel order = new OrderModel();
+
         order.setId(rs.getInt("ID"));
         order.setUserId(rs.getInt("UserID"));
-        order.setUsername(
-                rs.getString("Username"));
-        order.setUserName(
-                rs.getString("UserName"));
-        order.setUserPhone(
-                rs.getString("UserPhone"));
-        order.setUserEmail(
-                rs.getString("UserEmail"));
-        order.setTotalPrice(
-                rs.getBigDecimal("Total_price"));
-        order.setType(
-                rs.getString("Type"));
-        order.setStatus(
-                rs.getString("Status"));
-        order.setMethod(
-                rs.getString("Method"));
-        int supplierId = rs.getInt("SupplierID");
-        order.setSupplierId(
-                rs.wasNull() ? null : supplierId);
-        order.setSupplierName(
-                rs.getString("SupplierName"));
+        order.setUserName(rs.getString("UserName"));
+        order.setUserPhone(rs.getString("Phone"));
+        order.setUserEmail(rs.getString("Email"));
+
+        order.setTotalPrice(rs.getBigDecimal("Total_price"));
+        order.setType(rs.getString("Type"));
+        order.setStatus(rs.getString("Status"));
+        order.setMethod(rs.getString("Method"));
+
+        // Chưa có trong SELECT hiện tại — cần join/subquery riêng nếu muốn dùng thật
+        order.setSupplierId(null);
+        order.setSupplierName(null);
+
         int updatedBy = rs.getInt("Updated_by");
-        order.setUpdatedBy(
-                rs.wasNull() ? null : updatedBy);
-        order.setUpdatedByName(
-                rs.getString("UpdatedByName"));
-        order.setUpdatedAt(
-                rs.getTimestamp("Updated_at"));
-        order.setCreatedAt(
-                rs.getTimestamp("Created_at"));
-        int referenceId
-                = rs.getInt("Reference_transactionID");
-        order.setReferenceTransactionId(
-                rs.wasNull() ? null : referenceId);
-        int deliveryId
-                = rs.getInt("DeliveryInfoID");
-        order.setDeliveryInfoId(
-                rs.wasNull() ? null : deliveryId);
-        order.setRecipientName(
-                rs.getString("RecipientName"));
-        order.setRecipientPhone(
-                rs.getString("RecipientPhone"));
-        order.setDeliveryAddress(
-                rs.getString("DeliveryAddress"));
+        order.setUpdatedBy(rs.wasNull() ? null : updatedBy);
+        order.setUpdatedByName(rs.getString("UpdatedByName"));
 
-        order.setItemCount(
-                rs.getInt("ItemCount"));
-        order.setNote(
-                rs.getString("Note"));
-        order.setProofImage(
-                rs.getString("Proof_image"));
-        int shipperId
-                = rs.getInt("ShipperID");
+        order.setUpdatedAt(rs.getTimestamp("Updated_at"));
+        order.setCreatedAt(rs.getTimestamp("Created_at"));
 
-        order.setShipperId(
-                rs.wasNull() ? null : shipperId);
-        order.setHasOpenRefund(
-                rs.getObject("HasOpenRefund") != null
-                ? rs.getBoolean("HasOpenRefund")
-                : null);
-        order.setHasBlockingRefund(
-                rs.getObject("HasBlockingRefund") != null
-                ? rs.getBoolean("HasBlockingRefund")
-                : null);
-        order.setHasCancelPending(
-                rs.getObject("HasCancelPending") != null
-                ? rs.getBoolean("HasCancelPending")
-                : null);
+        int refTransId = rs.getInt("Reference_transactionID");
+        order.setReferenceTransactionId(rs.wasNull() ? null : refTransId);
+
+        int deliveryInfoId = rs.getInt("DeliveryInfoID");
+        order.setDeliveryInfoId(rs.wasNull() ? null : deliveryInfoId);
+
+        // Chưa có trong SELECT hiện tại — thường lấy từ bảng DeliveryInfo qua join riêng
+        order.setRecipientName(null);
+        order.setRecipientPhone(null);
+        order.setDeliveryAddress(null);
+
+        order.setItemCount(rs.getInt("ItemCount"));
+        order.setNote(rs.getString("Note"));
+
+        // items để rỗng ở summary, load riêng khi xem chi tiết đơn
+        order.setItems(new ArrayList<>());
+
+        // Các cờ trạng thái refund/complaint — chưa có trong query này
+        order.setHasOpenRefund(null);
+        order.setHasBlockingRefund(null);
+        order.setHasCancelPending(null);
+        order.setHasOpenComplaint(null);
+        order.setHasAnyComplaint(null);
+
+        int shipperId = rs.getInt("ShipperID");
+        order.setShipperId(rs.wasNull() ? null : shipperId);
+
+        order.setProofImage(rs.getString("Proof_image"));
+
         return order;
     }
 
@@ -535,7 +517,10 @@ public class OrderDAO {
     /**
      * Returns the IDs of customer orders that have been DELIVERED for at least
      * {@code days} days (using the Delivered_at stamp) and have not yet moved
-     * to COMPLETED. Used by the auto-completion scheduler.
+     * to COMPLETED.Used by the auto-completion scheduler.
+     * @param days
+     * @return 
+     * @throws java.sql.SQLException
      */
     public List<Integer> findStaleDeliveredIds(int days) throws SQLException {
         String sql = "SELECT ID FROM `Transaction` "
@@ -556,10 +541,14 @@ public class OrderDAO {
     }
 
     /**
-     * Bulk-promotes stale DELIVERED orders to COMPLETED. We don't write a
-     * special "auto-completed" status because the workflow is identical to a
-     * customer pressing "Complete" — the only difference is the Updated_by is
-     * the system user (or whoever resolveFallbackUpdater picks).
+     * Bulk-promotes stale DELIVERED orders to COMPLETED.We don't write a
+ special "auto-completed" status because the workflow is identical to a
+ customer pressing "Complete" — the only difference is the Updated_by is
+ the system user (or whoever resolveFallbackUpdater picks).
+     * @param orderIds
+     * @param updatedBy
+     * @return 
+     * @throws java.sql.SQLException
      */
     public int autoCompleteStale(List<Integer> orderIds, Integer updatedBy) throws SQLException {
         if (orderIds == null || orderIds.isEmpty()) {

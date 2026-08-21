@@ -130,4 +130,11 @@ public class OrderItemModel implements Serializable {
         }
         return sb.toString();
     }
+
+    public String getImageUrl() {
+        if (productImage == null || productImage.isBlank()) {
+            return "/assets/images/product-placeholder.svg";
+        }
+        return "/assets/images/products/" + productImage;
+    }
 }
