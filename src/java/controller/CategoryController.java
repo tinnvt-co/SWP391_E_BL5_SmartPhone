@@ -42,13 +42,28 @@ public class CategoryController extends HttpServlet {
             if ("deactivate".equals(action)) {
                 int categoryId = ProductController.integer(
                         request.getParameter("id"), 0);
+                if (categoryId <= 0 || categoryDAO.findById(categoryId) == null) {
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    return;
+                }
                 categoryDAO.deactivate(categoryId);
             } else {
+                if (!"save".equals(action)) {
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                    return;
+                }
                 CategoryModel category = readCategory(request);
-                String error = validateCategory(category);
+                String error = validateCategory(category,
+                        request.getParameter("status"));
 
                 if (error != null) {
                     showFormError(request, response, category, error);
+                    return;
+                }
+
+                if (categoryDAO.existsName(category.getName(), category.getId())) {
+                    showFormError(request, response, category,
+                            "Category name already exists.");
                     return;
                 }
 
@@ -79,6 +94,10 @@ public class CategoryController extends HttpServlet {
         CategoryModel category = categoryId > 0
                 ? categoryDAO.findById(categoryId)
                 : new CategoryModel();
+        if (category == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
 
         request.setAttribute("category", category);
         request.getRequestDispatcher("/views/manager/category-form.jsp")
@@ -88,13 +107,14 @@ public class CategoryController extends HttpServlet {
     private CategoryModel readCategory(HttpServletRequest request) {
         CategoryModel category = new CategoryModel();
         category.setId(ProductController.integer(request.getParameter("id"), 0));
-        category.setName(request.getParameter("name"));
-        category.setDescription(request.getParameter("description"));
+        category.setName(normalizeText(request.getParameter("name")));
+        category.setDescription(normalizeText(
+                request.getParameter("description")));
         category.setActive("ACTIVE".equals(request.getParameter("status")));
         return category;
     }
 
-    private String validateCategory(CategoryModel category) {
+    private String validateCategory(CategoryModel category, String status) {
         if (category.getName() == null || category.getName().isBlank()) {
             return "Category name is required.";
         }
@@ -103,7 +123,40 @@ public class CategoryController extends HttpServlet {
             return "Category name cannot exceed 25 characters.";
         }
 
+        if (category.getName().length() < 2) {
+            return "Category name must contain at least 2 characters.";
+        }
+
+        if (!isPlainText(category.getName())) {
+            return "Category name may contain letters, numbers and spaces only.";
+        }
+
+        String description = category.getDescription();
+        if (description != null && description.length() > 255) {
+            return "Description cannot exceed 255 characters.";
+        }
+
+        if (description != null && !description.isBlank()
+                && !isPlainText(description)) {
+            return "Description may contain letters, numbers and spaces only.";
+        }
+
+        if (!"ACTIVE".equals(status) && !"INACTIVE".equals(status)) {
+            return "Invalid category status.";
+        }
+
         return null;
+    }
+
+    private boolean isPlainText(String value) {
+        return value.matches("^[\\p{L}\\p{N}]+(?: [\\p{L}\\p{N}]+)*$");
+    }
+
+    private String normalizeText(String value) {
+        if (value == null) {
+            return null;
+        }
+        return value.trim().replaceAll("\\s+", " ");
     }
 
     private void showFormError(HttpServletRequest request,

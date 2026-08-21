@@ -15,7 +15,7 @@ import java.util.List;
 public class SupplierDAO {
 
     private static final String ACTIVE = "ACTIVE";
-    
+
     /**
      * Get all suppliers.
      *
@@ -150,13 +150,19 @@ public class SupplierDAO {
 
             try (ResultSet rs = statement.executeQuery()) {
 
-                if (rs.next()) {
-                    return mapSupplier(rs);
+                if (!rs.next()) {
+                    return null;
                 }
+
+                SupplierModel supplier = mapSupplier(rs);
+
+                supplier.setProductVariantIds(
+                        findProductVariantIds(id)
+                );
+
+                return supplier;
             }
         }
-
-        return null;
     }
 
     /**
@@ -733,5 +739,32 @@ public class SupplierDAO {
         }
 
         return 0;
+    }
+
+    public boolean isSupplierProvidingVariant(
+            int supplierId,
+            int productVariantId)
+            throws SQLException {
+
+        String sql
+                = "SELECT 1 "
+                + "FROM Supplier_ProductVariant "
+                + "WHERE SupplierID = ? "
+                + "AND ProductVariantID = ? "
+                + "LIMIT 1";
+
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement
+                = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, supplierId);
+            statement.setInt(2, productVariantId);
+
+            try (ResultSet resultSet
+                    = statement.executeQuery()) {
+
+                return resultSet.next();
+            }
+
+        }
     }
 }

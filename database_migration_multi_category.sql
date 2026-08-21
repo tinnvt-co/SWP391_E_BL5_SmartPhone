@@ -21,8 +21,7 @@ INSERT INTO `Category` (`ID`, `Name`, `Description`, `Status`) VALUES
 (2, 'Gaming Phone', 'Phones optimized for mobile gaming', 'ACTIVE'),
 (3, 'Foldable Phone', 'Foldable and flip smartphones', 'ACTIVE'),
 (4, 'Camera Phone', 'Phones focused on camera quality', 'ACTIVE'),
-(5, 'Long Battery Phone', 'Phones focused on long battery life', 'ACTIVE'),
-(6, 'Everyday Phone', 'Phones for common daily needs', 'ACTIVE');
+(5, 'Long Battery Phone', 'Phones focused on long battery life', 'ACTIVE');
 
 CREATE TABLE `Product_Category` (
   `ProductID` INT NOT NULL,
@@ -57,15 +56,5 @@ WHERE `Name` REGEXP 'Pro|Ultra|Find X|Note';
 INSERT IGNORE INTO `Product_Category` (`ProductID`, `CategoryID`)
 SELECT `ID`, 5 FROM `Product`
 WHERE `Name` REGEXP 'Galaxy M|Galaxy A|Redmi|POCO|OPPO A';
-
-INSERT IGNORE INTO `Product_Category` (`ProductID`, `CategoryID`)
-SELECT `ID`, 6 FROM `Product`
-WHERE `Name` REGEXP 'iPhone SE|Galaxy A|Redmi Note|OPPO A';
-
-INSERT INTO `Product_Category` (`ProductID`, `CategoryID`)
-SELECT p.`ID`, 6 FROM `Product` p
-WHERE NOT EXISTS (
-  SELECT 1 FROM `Product_Category` pc WHERE pc.`ProductID` = p.`ID`
-);
 
 SET FOREIGN_KEY_CHECKS = 1;

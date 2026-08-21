@@ -24,8 +24,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import model.CategoryModel;
+import model.BrandModel;
 import model.ProductModel;
 import model.ProductVariantModel;
+import validation.ProductBrandValidator;
 
 @WebServlet(name = "ManagerProductController", urlPatterns = {"/manager/products"})
 @MultipartConfig(fileSizeThreshold = 1024 * 1024,
@@ -35,6 +37,8 @@ public class ManagerProductController extends HttpServlet {
 
     private static final String IMAGE_FOLDER = "/assets/images/products";
     private static final int PAGE_SIZE = 10;
+    private static final int MAX_PRICE = 500_000_000;
+    private static final int MAX_STOCK = 1_000_000;
     private static final List<Integer> RAM_OPTIONS = List.of(
             2, 3, 4, 6, 8, 12, 16, 18, 24);
     private static final List<Integer> STORAGE_OPTIONS = List.of(
@@ -50,12 +54,26 @@ public class ManagerProductController extends HttpServlet {
         try {
             String action = ProductController.value(request.getParameter("action"), "list");
             if ("form".equals(action)) {
+                Integer categoryId = ProductController.integerOrNull(
+                        request.getParameter("category"));
+                int productId = ProductController.integer(
+                        request.getParameter("id"), 0);
+                if (categoryId != null && productId == 0) {
+                    showCategoryPicker(request, response);
+                    return;
+                }
                 showForm(request, response);
+                return;
+            }
+            if ("category-picker".equals(action)) {
+                showCategoryPicker(request, response);
                 return;
             }
 
             Integer brandId = ProductController.integerOrNull(request.getParameter("brand"));
             Integer categoryId = ProductController.integerOrNull(request.getParameter("category"));
+            boolean fromCategory = categoryId != null
+                    && "category".equals(request.getParameter("from"));
             String keyword = request.getParameter("q");
             String sort = request.getParameter("sort");
             String priceRange = ProductController.normalizePriceRange(
@@ -74,8 +92,6 @@ public class ManagerProductController extends HttpServlet {
                     PAGE_SIZE, (currentPage - 1) * PAGE_SIZE);
 
             request.setAttribute("products", products);
-            request.setAttribute("total", productDAO.countAll(
-                    null, null, null, false));
             request.setAttribute("filteredTotal", filteredTotal);
             request.setAttribute("currentPage", currentPage);
             request.setAttribute("totalPages", totalPages);
@@ -86,12 +102,27 @@ public class ManagerProductController extends HttpServlet {
             request.setAttribute("keyword", keyword);
             request.setAttribute("selectedSort", sort);
             request.setAttribute("selectedPriceRange", priceRange);
-            request.setAttribute("active", productDAO.countActive());
-            request.setAttribute("outOfStock", productDAO.countOutOfStock());
             request.setAttribute("brands", brandDAO.findAll(true));
-            request.setAttribute("categories", categoryDAO.findAll(true));
+            var categories = categoryDAO.findAll(true);
+            request.setAttribute("categories", categories);
             request.setAttribute("selectedBrand", brandId);
             request.setAttribute("selectedCategory", categoryId);
+            request.setAttribute("fromCategory", fromCategory);
+            if (categoryId != null) {
+                CategoryModel selectedCategoryModel
+                        = categoryDAO.findById(categoryId);
+                if (selectedCategoryModel != null) {
+                    request.setAttribute("selectedCategoryName",
+                            selectedCategoryModel.getName());
+                }
+                if (fromCategory) {
+                    Set<Integer> assignedIds
+                            = categoryDAO.findProductIds(categoryId);
+                    request.setAttribute("availableCategoryProducts",
+                            productDAO.findAll(null, null, null, "newest",
+                                    false, assignedIds));
+                }
+            }
             request.getRequestDispatcher("/views/manager/product-list.jsp")
                     .forward(request, response);
         } catch (SQLException exception) {
@@ -108,6 +139,14 @@ public class ManagerProductController extends HttpServlet {
         ProductModel product = null;
 
         try {
+            if ("add-category-products".equals(action)) {
+                addProductsToCategory(request, response);
+                return;
+            }
+            if ("remove-category-product".equals(action)) {
+                removeProductFromCategory(request, response);
+                return;
+            }
             if ("deactivate".equals(action)) {
                 int productId = ProductController.integer(request.getParameter("id"), 0);
                 productDAO.deactivate(productId);
@@ -125,6 +164,15 @@ public class ManagerProductController extends HttpServlet {
             String duplicateError = validateUniqueData(product);
             if (duplicateError != null) {
                 forwardFormWithError(request, response, product, duplicateError);
+                return;
+            }
+
+            String brandWarning = brandMismatchWarning(product);
+            if (brandWarning != null
+                    && !"true".equals(request.getParameter(
+                            "confirmBrandMismatch"))) {
+                forwardFormWithBrandWarning(request, response, product,
+                        brandWarning);
                 return;
             }
 
@@ -151,6 +199,96 @@ public class ManagerProductController extends HttpServlet {
             }
             forwardFormWithError(request, response, product, friendly(exception));
         }
+    }
+
+    private void showCategoryPicker(HttpServletRequest request,
+            HttpServletResponse response)
+            throws SQLException, ServletException, IOException {
+        int categoryId = ProductController.integer(
+                request.getParameter("category"), 0);
+        CategoryModel category = categoryId > 0
+                ? categoryDAO.findById(categoryId) : null;
+        if (category == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        String keyword = request.getParameter("q");
+        Set<Integer> assignedIds = categoryDAO.findProductIds(categoryId);
+        List<ProductModel> allAvailableProducts = productDAO.findAll(
+                keyword, null, null, "newest", false, assignedIds);
+
+        int filteredTotal = allAvailableProducts.size();
+        int totalPages = Math.max(1,
+                (int) Math.ceil((double) filteredTotal / PAGE_SIZE));
+        int currentPage = ProductController.integer(
+                request.getParameter("page"), 1);
+        currentPage = Math.max(1, Math.min(currentPage, totalPages));
+        int fromIndex = (currentPage - 1) * PAGE_SIZE;
+        int toIndex = Math.min(fromIndex + PAGE_SIZE, filteredTotal);
+        List<ProductModel> availableProducts = new ArrayList<>(
+                allAvailableProducts.subList(fromIndex, toIndex));
+
+        request.setAttribute("category", category);
+        request.setAttribute("keyword", keyword);
+        request.setAttribute("availableProducts", availableProducts);
+        request.setAttribute("filteredTotal", filteredTotal);
+        request.setAttribute("currentPage", currentPage);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("pageStart", filteredTotal == 0 ? 0 : fromIndex + 1);
+        request.setAttribute("pageEnd", toIndex);
+        request.getRequestDispatcher(
+                "/views/manager/category-product-picker.jsp")
+                .forward(request, response);
+    }
+
+    private void addProductsToCategory(HttpServletRequest request,
+            HttpServletResponse response) throws SQLException, IOException {
+        int categoryId = ProductController.integer(
+                request.getParameter("categoryId"), 0);
+        if (categoryDAO.findById(categoryId) == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        String[] values = request.getParameterValues("productIds");
+        List<Integer> productIds = new ArrayList<>();
+        Set<Integer> uniqueIds = new HashSet<>();
+        if (values != null) {
+            for (String value : values) {
+                int productId = ProductController.integer(value, 0);
+                if (productId > 0 && uniqueIds.add(productId)) {
+                    productIds.add(productId);
+                }
+            }
+        }
+
+        if (productIds.isEmpty()) {
+            redirectToCategoryPicker(response, request, categoryId,
+                    "Please select at least one product.");
+            return;
+        }
+
+        categoryDAO.addProducts(categoryId, productIds);
+        redirectToCategoryProducts(response, request, categoryId,
+                productIds.size() + " product(s) added to category.");
+    }
+
+    private void removeProductFromCategory(HttpServletRequest request,
+            HttpServletResponse response) throws SQLException, IOException {
+        int categoryId = ProductController.integer(
+                request.getParameter("categoryId"), 0);
+        int productId = ProductController.integer(
+                request.getParameter("productId"), 0);
+        if (categoryId <= 0 || productId <= 0) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+
+        boolean removed = categoryDAO.removeProduct(categoryId, productId);
+        redirectToCategoryProducts(response, request, categoryId,
+                removed ? "Product removed from category."
+                        : "Product was not in this category.");
     }
 
     private void showForm(HttpServletRequest request, HttpServletResponse response)
@@ -193,8 +331,8 @@ public class ManagerProductController extends HttpServlet {
     private ProductModel read(HttpServletRequest request) {
         ProductModel product = new ProductModel();
         product.setId(ProductController.integer(request.getParameter("id"), 0));
-        product.setName(request.getParameter("name"));
-        product.setDescription(request.getParameter("description"));
+        product.setName(normalizeText(request.getParameter("name")));
+        product.setDescription(normalizeText(request.getParameter("description")));
 
         int releaseYear = ProductController.integer(
                 request.getParameter("releaseYear"), 0);
@@ -248,8 +386,9 @@ public class ManagerProductController extends HttpServlet {
             variant.setProductId(product.getId());
             variant.setRamGb(integerAt(request, "variantRam", index));
             variant.setStorageGb(integerAt(request, "variantStorage", index));
-            variant.setColorName(valueAt(request, "variantColorName", index));
-            variant.setSku(valueAt(request, "variantSku", index));
+            variant.setColorName(normalizeText(
+                    valueAt(request, "variantColorName", index)));
+            variant.setSku(trim(valueAt(request, "variantSku", index)));
             variant.setSellingPrice(integerAt(request, "variantSellingPrice", index));
             variant.setLatestCost(integerAt(request, "variantLatestCost", index));
             variant.setStock(integerAt(request, "variantStock", index));
@@ -300,12 +439,20 @@ public class ManagerProductController extends HttpServlet {
         if (product.getName().trim().length() > 50) {
             return "Product name cannot exceed 50 characters.";
         }
+        if (product.getName().length() < 2) {
+            return "Product name must contain at least 2 characters.";
+        }
         if (!product.getName().trim().matches(
                 "^[\\p{L}\\p{N}]+(?:[ -][\\p{L}\\p{N}]+)*$")) {
             return "Product name may contain letters, numbers, spaces and hyphens only.";
         }
         if (product.getDescription() != null && product.getDescription().length() > 255) {
             return "Description cannot exceed 255 characters.";
+        }
+        if (product.getDescription() != null
+                && (product.getDescription().contains("<")
+                || product.getDescription().contains(">"))) {
+            return "Description cannot contain angle brackets.";
         }
         int maxReleaseYear = Year.now().getValue() + 1;
         if (product.getReleaseYear() != null
@@ -332,7 +479,7 @@ public class ManagerProductController extends HttpServlet {
 
         Set<String> options = new HashSet<>();
         Set<String> skus = new HashSet<>();
-        Set<String> images = new HashSet<>();
+        Set<String> frontImages = new HashSet<>();
 
         for (int index = 0; index < product.getVariants().size(); index++) {
             ProductVariantModel variant = product.getVariants().get(index);
@@ -358,17 +505,32 @@ public class ManagerProductController extends HttpServlet {
             if (variant.getSku() == null || variant.getSku().isBlank()) {
                 return row + "SKU is required.";
             }
+            if (variant.getSku().length() > 50) {
+                return row + "SKU cannot exceed 50 characters.";
+            }
+            if (!variant.getSku().matches("^[A-Za-z0-9][A-Za-z0-9._-]*$")) {
+                return row + "SKU may contain letters, numbers, dots, underscores and hyphens only.";
+            }
             if (variant.getSellingPrice() <= 0) {
                 return row + "selling price must be greater than 0.";
             }
+            if (variant.getSellingPrice() > MAX_PRICE) {
+                return row + "selling price cannot exceed 500,000,000 VND.";
+            }
             if (variant.getLatestCost() < 0) {
                 return row + "latest cost cannot be negative.";
+            }
+            if (variant.getLatestCost() > MAX_PRICE) {
+                return row + "latest cost cannot exceed 500,000,000 VND.";
             }
             if (variant.getSellingPrice() < variant.getLatestCost()) {
                 return row + "selling price cannot be lower than latest cost.";
             }
             if (variant.getStock() < 0) {
                 return row + "stock cannot be negative.";
+            }
+            if (variant.getStock() > MAX_STOCK) {
+                return row + "stock cannot exceed 1,000,000 units.";
             }
 
             String imageError = validateImage(row, variant.getImage(), "front");
@@ -379,6 +541,10 @@ public class ManagerProductController extends HttpServlet {
             if (imageError != null) {
                 return imageError;
             }
+            if (variant.getImage().trim().equalsIgnoreCase(
+                    variant.getBackImage().trim())) {
+                return row + "front image and back image must be different files.";
+            }
 
             String optionKey = variant.getRamGb() + "|" + variant.getStorageGb()
                     + "|" + variant.getColorName().trim().toLowerCase();
@@ -388,7 +554,7 @@ public class ManagerProductController extends HttpServlet {
             if (!skus.add(variant.getSku().trim().toLowerCase())) {
                 return row + "SKU duplicates another variant.";
             }
-            if (!images.add(variant.getImage().trim().toLowerCase())) {
+            if (!frontImages.add(variant.getImage().trim().toLowerCase())) {
                 return row + "front image name duplicates another variant.";
             }
         }
@@ -409,6 +575,9 @@ public class ManagerProductController extends HttpServlet {
     private String validateUniqueData(ProductModel product) throws SQLException {
         if (productDAO.existsProductName(product.getName(), product.getId())) {
             return "Product name already exists.";
+        }
+        if (!brandDAO.isActive(product.getBrandId())) {
+            return "Selected brand is invalid or inactive.";
         }
         if (!categoryDAO.areAllActive(product.getCategoryIds())) {
             return "One or more selected categories are invalid or inactive.";
@@ -431,6 +600,31 @@ public class ManagerProductController extends HttpServlet {
             }
         }
         return null;
+    }
+
+    private String brandMismatchWarning(ProductModel product)
+            throws SQLException {
+        BrandModel selectedBrand = brandDAO.findById(product.getBrandId());
+        if (selectedBrand == null) {
+            return null;
+        }
+
+        List<String> detectedBrands = ProductBrandValidator.detectBrands(
+                product.getName());
+        if (detectedBrands.size() > 1) {
+            return "The product name contains keywords from multiple brands: "
+                    + String.join(", ", detectedBrands)
+                    + ". Check the product name or choose Save anyway.";
+        }
+        if (!ProductBrandValidator.isMismatch(product.getName(),
+                selectedBrand.getName())) {
+            return null;
+        }
+        String detectedBrand = ProductBrandValidator.detectBrand(
+                product.getName());
+        return "The product name appears to belong to " + detectedBrand
+                + ", but the selected brand is " + selectedBrand.getName()
+                + ". Check the information or choose Save anyway.";
     }
 
     private String saveUploadedImages(HttpServletRequest request,
@@ -597,6 +791,22 @@ public class ManagerProductController extends HttpServlet {
                 .forward(request, response);
     }
 
+    private void forwardFormWithBrandWarning(HttpServletRequest request,
+            HttpServletResponse response, ProductModel product, String warning)
+            throws ServletException, IOException {
+        request.setAttribute("brandWarning", warning);
+        request.setAttribute("confirmBrandMismatch", true);
+        request.setAttribute("product", product);
+        request.setAttribute("selectedCategoryIds",
+                new HashSet<>(product.getCategoryIds()));
+        try {
+            loadChoices(request);
+        } catch (SQLException ignored) {
+        }
+        request.getRequestDispatcher("/views/manager/product-form.jsp")
+                .forward(request, response);
+    }
+
     private String friendly(SQLException exception) {
         if (exception.getErrorCode() == 1062) {
             String detail = exception.getMessage() == null
@@ -625,5 +835,34 @@ public class ManagerProductController extends HttpServlet {
         String encodedMessage = URLEncoder.encode(message, StandardCharsets.UTF_8);
         response.sendRedirect(request.getContextPath()
                 + "/manager/products?message=" + encodedMessage);
+    }
+
+    private String normalizeText(String value) {
+        if (value == null) {
+            return null;
+        }
+        return value.trim().replaceAll("\\s+", " ");
+    }
+
+    private String trim(String value) {
+        return value == null ? null : value.trim();
+    }
+
+    private void redirectToCategoryProducts(HttpServletResponse response,
+            HttpServletRequest request, int categoryId, String message)
+            throws IOException {
+        String encodedMessage = URLEncoder.encode(message, StandardCharsets.UTF_8);
+        response.sendRedirect(request.getContextPath()
+                + "/manager/products?category=" + categoryId
+                + "&from=category&message=" + encodedMessage);
+    }
+
+    private void redirectToCategoryPicker(HttpServletResponse response,
+            HttpServletRequest request, int categoryId, String error)
+            throws IOException {
+        String encodedError = URLEncoder.encode(error, StandardCharsets.UTF_8);
+        response.sendRedirect(request.getContextPath()
+                + "/manager/products?action=category-picker&category="
+                + categoryId + "&error=" + encodedError);
     }
 }

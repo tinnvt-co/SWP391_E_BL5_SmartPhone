@@ -1088,7 +1088,7 @@
     color: var(--cust-red);
 }
 
-.cancel-reason-option:has(input[type="radio"]:checked) {
+.cancel-reason-option.selected {
     border-color: var(--cust-red);
     background: var(--cust-red-soft);
     box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
@@ -1114,7 +1114,7 @@
     justify-content: center;
 }
 
-.cancel-reason-option:has(input[type="radio"]:checked) .cancel-reason-body i {
+.cancel-reason-option.selected .cancel-reason-body i {
     background: var(--cust-red);
     color: #fff;
 }
@@ -1131,7 +1131,7 @@
     font-size: 12.5px;
 }
 
-.cancel-reason-option:has(input[type="radio"]:checked) .cancel-reason-body small {
+.cancel-reason-option.selected .cancel-reason-body small {
     color: var(--cust-red);
 }
 

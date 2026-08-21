@@ -42,11 +42,7 @@ public class VoucherDAO {
     // =========================
     public List<VoucherModel> findAll(String keyword) {
         List<VoucherModel> list = new ArrayList<>();
-
-        String sql = "SELECT * FROM Voucher "
-                + "WHERE Code LIKE ? "
-                + "ORDER BY Created_at DESC";
-
+        String sql = "SELECT * FROM Voucher WHERE Code LIKE ? ORDER BY Created_at DESC";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -70,14 +66,10 @@ public class VoucherDAO {
     // =========================
     public List<VoucherModel> findActiveVouchers() {
         List<VoucherModel> list = new ArrayList<>();
-
-        String sql = "SELECT * FROM Voucher "
-                + "WHERE Status = 'ACTIVE' "
-                + "AND Start_date <= NOW() "
-                + "AND End_date >= NOW() "
-                + "AND (Usage_limit IS NULL OR Used_count < Usage_limit) "
-                + "ORDER BY Created_at DESC";
-
+        String sql = "SELECT * FROM Voucher WHERE Status = 'ACTIVE' " +
+                     "AND Start_date <= NOW() AND End_date >= NOW() " +
+                     "AND (Usage_limit IS NULL OR Used_count < Usage_limit) " +
+                     "ORDER BY Created_at DESC";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -99,7 +91,6 @@ public class VoucherDAO {
     public VoucherModel findById(int id) {
 
         String sql = "SELECT * FROM Voucher WHERE ID = ?";
-
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -124,7 +115,6 @@ public class VoucherDAO {
     public VoucherModel findByCode(String code) {
 
         String sql = "SELECT * FROM Voucher WHERE Code = ?";
-
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -147,17 +137,10 @@ public class VoucherDAO {
     // CREATE VOUCHER
     // =========================
     public boolean create(VoucherModel voucher) {
-
-        String sql = "INSERT INTO Voucher "
-                + "(Code, Discount_type, Value, Max_discount, Min_order_value, "
-                + "Usage_limit, Start_date, End_date) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-
+        String sql = "INSERT INTO Voucher (Code, Discount_type, Value, Max_discount, Min_order_value, Usage_limit, Start_date, End_date) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                     sql,
-                     Statement.RETURN_GENERATED_KEYS)) {
-
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, voucher.getCode());
             ps.setString(2, voucher.getDiscountType());
             ps.setBigDecimal(3, voucher.getValue());
@@ -197,18 +180,7 @@ public class VoucherDAO {
     // UPDATE VOUCHER
     // =========================
     public boolean update(VoucherModel voucher) {
-
-        String sql = "UPDATE Voucher SET "
-                + "Code = ?, "
-                + "Discount_type = ?, "
-                + "Value = ?, "
-                + "Max_discount = ?, "
-                + "Min_order_value = ?, "
-                + "Usage_limit = ?, "
-                + "Start_date = ?, "
-                + "End_date = ? "
-                + "WHERE ID = ?";
-
+        String sql = "UPDATE Voucher SET Code = ?, Discount_type = ?, Value = ?, Max_discount = ?, Min_order_value = ?, Usage_limit = ?, Start_date = ?, End_date = ? WHERE ID = ?";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -241,11 +213,7 @@ public class VoucherDAO {
     // UPDATE STATUS
     // =========================
     public boolean updateStatus(int id, String status) {
-
-        String sql = "UPDATE Voucher "
-                + "SET Status = ? "
-                + "WHERE ID = ?";
-
+        String sql = "UPDATE Voucher SET Status = ? WHERE ID = ?";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -265,11 +233,7 @@ public class VoucherDAO {
     // SAVE VOUCHER FOR USER
     // =========================
     public boolean saveVoucherForUser(int userId, int voucherId) {
-
-        String sql = "INSERT INTO User_Voucher "
-                + "(UserID, VoucherID) "
-                + "VALUES (?, ?)";
-
+        String sql = "INSERT INTO User_Voucher (UserID, VoucherID) VALUES (?, ?)";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -291,25 +255,11 @@ public class VoucherDAO {
     public List<UserVoucherModel> findSavedVouchersByUser(int userId) {
 
         List<UserVoucherModel> list = new ArrayList<>();
-
-        String sql = "SELECT "
-                + "uv.*, "
-                + "v.Code, "
-                + "v.Discount_type, "
-                + "v.Value, "
-                + "v.Max_discount, "
-                + "v.Min_order_value, "
-                + "v.Usage_limit, "
-                + "v.Used_count, "
-                + "v.Start_date, "
-                + "v.End_date, "
-                + "v.Status "
-                + "FROM User_Voucher uv "
-                + "JOIN Voucher v ON uv.VoucherID = v.ID "
-                + "WHERE uv.UserID = ? "
-                + "AND uv.Is_used = FALSE "
-                + "ORDER BY uv.Saved_at DESC";
-
+        String sql = "SELECT uv.*, v.Code, v.Discount_type, v.Value, v.Max_discount, v.Min_order_value, v.Usage_limit, v.Used_count, v.Start_date, v.End_date, v.Status " +
+                     "FROM User_Voucher uv " +
+                     "JOIN Voucher v ON uv.VoucherID = v.ID " +
+                     "WHERE uv.UserID = ? AND uv.Is_used = FALSE " +
+                     "ORDER BY uv.Saved_at DESC";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 

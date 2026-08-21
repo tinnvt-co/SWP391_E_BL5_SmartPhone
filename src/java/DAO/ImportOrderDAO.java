@@ -10,7 +10,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -27,11 +26,12 @@ public class ImportOrderDAO {
 
     /**
      * Get all import invoices.
+     *
      * @param keyword
      * @param status
      * @param sort
-     * @return 
-     * @throws java.sql.SQLException 
+     * @return
+     * @throws java.sql.SQLException
      */
     public List<OrderModel> findImportOrders(
             String keyword,
@@ -82,19 +82,24 @@ public class ImportOrderDAO {
         }
 
         if (null == sort) {
-            
+
             sql.append("ORDER BY t.Created_at DESC, t.ID DESC");
-        } else switch (sort) {
-            case "oldest" -> sql.append("ORDER BY t.Created_at ASC, t.ID ASC");
-            case "total-desc" -> sql.append("ORDER BY t.Total_price DESC, t.ID DESC");
-            case "total-asc" -> sql.append("ORDER BY t.Total_price ASC, t.ID ASC");
-            default -> sql.append("ORDER BY t.Created_at DESC, t.ID DESC");
+        } else {
+            switch (sort) {
+                case "oldest" ->
+                    sql.append("ORDER BY t.Created_at ASC, t.ID ASC");
+                case "total-desc" ->
+                    sql.append("ORDER BY t.Total_price DESC, t.ID DESC");
+                case "total-asc" ->
+                    sql.append("ORDER BY t.Total_price ASC, t.ID ASC");
+                default ->
+                    sql.append("ORDER BY t.Created_at DESC, t.ID DESC");
+            }
         }
 
         List<OrderModel> imports = new ArrayList<>();
 
-        try (Connection connection = DBContext.getConnection();
-                PreparedStatement statement
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement
                 = connection.prepareStatement(sql.toString())) {
 
             for (int i = 0; i < params.size(); i++) {
@@ -114,9 +119,10 @@ public class ImportOrderDAO {
 
     /**
      * Find import invoice detail.
+     *
      * @param transactionId
-     * @return 
-     * @throws java.sql.SQLException 
+     * @return
+     * @throws java.sql.SQLException
      */
     public OrderModel findImportOrderDetail(int transactionId)
             throws SQLException {
@@ -137,8 +143,7 @@ public class ImportOrderDAO {
                 + "WHERE t.ID = ? "
                 + "AND t.Type = 'IMPORT'";
 
-        try (Connection connection = DBContext.getConnection();
-                PreparedStatement statement
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement
                 = connection.prepareStatement(sql)) {
 
             statement.setInt(1, transactionId);
@@ -163,9 +168,10 @@ public class ImportOrderDAO {
 
     /**
      * Find products inside an import invoice.
+     *
      * @param transactionId
-     * @return 
-     * @throws java.sql.SQLException 
+     * @return
+     * @throws java.sql.SQLException
      */
     public List<OrderItemModel> findImportItems(int transactionId)
             throws SQLException {
@@ -222,10 +228,9 @@ public class ImportOrderDAO {
     }
 
     /**
-     * Create import invoice.Initial status:
- ORDER
-
- Inventory is NOT updated here.
+     * Create import invoice.Initial status: ORDER
+     *
+     * Inventory is NOT updated here.
      *
      * @param userId
      * @param supplierId
@@ -264,8 +269,6 @@ public class ImportOrderDAO {
                         userId,
                         supplierId,
                         totalPrice,
-                        paidAmount,
-                        changeAmount,
                         method,
                         note);
 
@@ -300,16 +303,13 @@ public class ImportOrderDAO {
     }
 
     /**
-     * Insert Transaction with Type = IMPORT
-     * and Status = ORDER.
+     * Insert Transaction with Type = IMPORT and Status = ORDER.
      */
     private int insertTransaction(
             Connection connection,
             int userId,
             int supplierId,
             BigDecimal totalPrice,
-            BigDecimal paidAmount,
-            BigDecimal changeAmount,
             String method,
             String note) throws SQLException {
 
@@ -347,10 +347,8 @@ public class ImportOrderDAO {
     /**
      * Insert import invoice item.
      *
-     * For import:
-     * Discount_rate = 0
-     * Discount_amount = 0
-     * Total = Amount * UnitPrice
+     * For import: Discount_rate = 0 Discount_amount = 0 Total = Amount *
+     * UnitPrice
      */
     private void insertImportItem(
             Connection connection,
@@ -380,14 +378,13 @@ public class ImportOrderDAO {
 
     /**
      * Change import status.Only:
-
- ORDER -> COMPLETE
-
- When COMPLETE:
- 1. Insert status history
- 2. Increase Inventory
-
- Both operations are in the same transaction.
+     *
+     * ORDER -> COMPLETE
+     *
+     * When COMPLETE: 1. Insert status history 2. Increase Inventory
+     *
+     * Both operations are in the same transaction.
+     *
      * @param transactionId
      * @param updatedBy
      * @return
@@ -403,8 +400,8 @@ public class ImportOrderDAO {
 
             try {
 
-                String currentStatus =
-                        getImportStatus(
+                String currentStatus
+                        = getImportStatus(
                                 connection,
                                 transactionId);
 
@@ -424,8 +421,8 @@ public class ImportOrderDAO {
                             "Only ORDER import can be completed");
                 }
 
-                List<OrderItemModel> items =
-                        findImportItems(
+                List<OrderItemModel> items
+                        = findImportItems(
                                 connection,
                                 transactionId);
 
@@ -558,11 +555,9 @@ public class ImportOrderDAO {
     /**
      * Increase inventory quantity.
      *
-     * If inventory does not exist:
-     * create it.
+     * If inventory does not exist: create it.
      *
-     * If inventory exists:
-     * Amount = Amount + quantity
+     * If inventory exists: Amount = Amount + quantity
      */
     private void increaseInventory(
             Connection connection,
@@ -594,8 +589,9 @@ public class ImportOrderDAO {
 
     /**
      * Get status history.
+     *
      * @param transactionId
-     * @return 
+     * @return
      * @throws java.sql.SQLException
      */
     public List<String> findStatusHistory(int transactionId)
@@ -612,8 +608,7 @@ public class ImportOrderDAO {
 
         List<String> history = new ArrayList<>();
 
-        try (Connection connection = DBContext.getConnection();
-                PreparedStatement statement
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement
                 = connection.prepareStatement(sql)) {
 
             statement.setInt(1, transactionId);
@@ -622,8 +617,8 @@ public class ImportOrderDAO {
 
                 while (rs.next()) {
 
-                    String value =
-                            rs.getString("Status")
+                    String value
+                            = rs.getString("Status")
                             + " | "
                             + rs.getString("UserName")
                             + " | "
@@ -639,8 +634,9 @@ public class ImportOrderDAO {
 
     /**
      * Count import invoices by status.
+     *
      * @param status
-     * @return 
+     * @return
      * @throws java.sql.SQLException
      */
     public int countByStatus(String status)
@@ -655,8 +651,7 @@ public class ImportOrderDAO {
                 + "WHERE Type = 'IMPORT' "
                 + "AND Status = ?";
 
-        try (Connection connection = DBContext.getConnection();
-                PreparedStatement statement
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement
                 = connection.prepareStatement(sql)) {
 
             statement.setString(1, status);
@@ -672,7 +667,8 @@ public class ImportOrderDAO {
 
     /**
      * Get available import statuses.
-     * @return 
+     *
+     * @return
      */
     public Set<String> findAllStatuses() {
 
@@ -711,8 +707,8 @@ public class ImportOrderDAO {
 
         order.setUpdatedBy(
                 rs.wasNull()
-                        ? null
-                        : updatedBy);
+                ? null
+                : updatedBy);
 
         order.setUpdatedByName(
                 rs.getString("UpdatedByName"));
@@ -738,8 +734,8 @@ public class ImportOrderDAO {
     private OrderModel mapImportDetail(
             ResultSet rs) throws SQLException {
 
-        OrderModel order =
-                mapImportSummary(rs);
+        OrderModel order
+                = mapImportSummary(rs);
 
         order.setUserPhone(
                 rs.getString("Phone"));
@@ -756,8 +752,8 @@ public class ImportOrderDAO {
     private OrderItemModel mapImportItem(
             ResultSet rs) throws SQLException {
 
-        OrderItemModel item =
-                new OrderItemModel();
+        OrderItemModel item
+                = new OrderItemModel();
 
         item.setTransactionId(
                 rs.getInt("TransactionID"));

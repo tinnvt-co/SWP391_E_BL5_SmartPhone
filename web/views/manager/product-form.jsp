@@ -28,15 +28,21 @@
             <c:if test="${not empty error}">
                 <div class="alert error"><c:out value="${error}"/></div>
             </c:if>
+            <c:if test="${not empty brandWarning}">
+                <div class="alert warning"><c:out value="${brandWarning}"/></div>
+            </c:if>
 
-            <form class="entity-form product-form" method="post" enctype="multipart/form-data">
+            <form class="entity-form product-form" method="post" enctype="multipart/form-data"
+                  action="${pageContext.request.contextPath}/manager/products">
                 <input type="hidden" name="action" value="save">
                 <input type="hidden" name="id" value="${product.id}">
+                <input type="hidden" name="confirmBrandMismatch"
+                       value="${confirmBrandMismatch ? 'true' : 'false'}">
 
                 <div class="form-grid">
                     <label class="span-2">
                         Product name *
-                        <input name="name" maxlength="50"
+                        <input name="name" minlength="2" maxlength="50"
                                pattern="[A-Za-zÀ-ỹ0-9]+(?:[ -][A-Za-zÀ-ỹ0-9]+)*"
                                title="Use letters, numbers, spaces and hyphens only."
                                value="<c:out value='${product.name}'/>" required>
@@ -44,10 +50,10 @@
 
                     <label>
                         Brand *
-                        <select name="brandId" required>
+                        <select name="brandId" data-product-brand required>
                             <option value="">Choose brand</option>
                             <c:forEach items="${brands}" var="brand">
-                                <option value="${brand.id}"
+                                <option value="${brand.id}" data-brand-name="<c:out value='${brand.name}'/>"
                                         ${product.brandId == brand.id ? 'selected' : ''}>
                                     <c:out value="${brand.name}"/>
                                 </option>
@@ -82,7 +88,7 @@
                     <label>
                         Warranty period (months)
                         <input type="number" name="warrantyMonths" min="0" max="36"
-                               value="${product.warrantyMonths == 0 ? 12 : product.warrantyMonths}">
+                               value="${product.id == 0 && product.warrantyMonths == 0 ? 12 : product.warrantyMonths}">
                     </label>
 
                     <label>
@@ -144,12 +150,12 @@
                                             <label>Color name *<input name="variantColorName" maxlength="50" value="<c:out value='${variant.colorName}'/>" placeholder="Black Titanium" pattern="[A-Za-zÀ-ỹ]+(?:[ -][A-Za-zÀ-ỹ]+)*" title="Use letters, spaces and hyphens only." required></label>
                                         </td>
                                         <td>
-                                            <label>SKU *<input name="variantSku" maxlength="255" value="<c:out value='${variant.sku}'/>" required></label>
+                                            <label>SKU *<input name="variantSku" maxlength="50" pattern="[A-Za-z0-9][A-Za-z0-9._-]*" title="Use letters, numbers, dots, underscores and hyphens only." value="<c:out value='${variant.sku}'/>" required></label>
                                         </td>
                                         <td>
-                                            <label>Selling price *<input type="number" name="variantSellingPrice" min="0" value="${variant.sellingPrice}" required></label>
-                                            <label>Latest cost *<input type="number" name="variantLatestCost" min="0" value="${variant.latestCost}" required></label>
-                                            <label>Stock *<input type="number" name="variantStock" min="0" value="${variant.stock}" required></label>
+                                            <label>Selling price *<input type="number" name="variantSellingPrice" min="1" max="500000000" value="${variant.sellingPrice}" required></label>
+                                            <label>Latest cost *<input type="number" name="variantLatestCost" min="0" max="500000000" value="${variant.latestCost}" required></label>
+                                            <label>Stock *<input type="number" name="variantStock" min="0" max="1000000" value="${variant.stock}" required></label>
                                         </td>
                                         <td>
                                             <input type="hidden" name="existingVariantImage" value="<c:out value='${variant.image}'/>">
@@ -173,7 +179,9 @@
                        href="${pageContext.request.contextPath}/manager/products">
                         Cancel
                     </a>
-                    <button class="btn primary large">Save Product</button>
+                    <button class="btn primary large">
+                        ${not empty brandWarning ? 'Save anyway' : 'Save Product'}
+                    </button>
                 </div>
             </form>
         </main>
@@ -200,12 +208,12 @@
                     <label>Color name *<input name="variantColorName" maxlength="50" placeholder="Black Titanium" pattern="[A-Za-zÀ-ỹ]+(?:[ -][A-Za-zÀ-ỹ]+)*" title="Use letters, spaces and hyphens only." required></label>
                 </td>
                 <td>
-                    <label>SKU *<input name="variantSku" maxlength="255" required></label>
+                    <label>SKU *<input name="variantSku" maxlength="50" pattern="[A-Za-z0-9][A-Za-z0-9._-]*" title="Use letters, numbers, dots, underscores and hyphens only." required></label>
                 </td>
                 <td>
-                    <label>Selling price *<input type="number" name="variantSellingPrice" min="0" required></label>
-                    <label>Latest cost *<input type="number" name="variantLatestCost" min="0" required></label>
-                    <label>Stock *<input type="number" name="variantStock" min="0" required></label>
+                    <label>Selling price *<input type="number" name="variantSellingPrice" min="1" max="500000000" required></label>
+                    <label>Latest cost *<input type="number" name="variantLatestCost" min="0" max="500000000" required></label>
+                    <label>Stock *<input type="number" name="variantStock" min="0" max="1000000" required></label>
                 </td>
                 <td>
                     <input type="hidden" name="existingVariantImage" value="">
@@ -217,7 +225,7 @@
                 <td><button class="variant-remove" type="button" data-remove-variant aria-label="Remove variant">Remove</button></td>
             </tr>
         </template>
-        <script src="${pageContext.request.contextPath}/assets/js/manager-product-form.js"></script>
+        <script src="${pageContext.request.contextPath}/assets/js/manager-product-form.js?v=20260820-brand-warning"></script>
         <%@ include file="/views/common/footer.jsp" %>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     </body>

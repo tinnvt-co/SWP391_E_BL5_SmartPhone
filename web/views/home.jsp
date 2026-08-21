@@ -166,25 +166,35 @@
                             <p>Quick paths into the current catalog.</p>
                         </div>
                     </div>
-                    <div class="category-strip">
-                        <c:forEach var="category" items="${categories}">
-                            <a class="category-tile" href="${pageContext.request.contextPath}/products?category=${category.id}">
-                                <span class="category-icon">
-                                    <c:choose>
-                                        <c:when test="${category.name == 'Gaming Phone'}"><i class="bi bi-controller"></i></c:when>
-                                        <c:when test="${category.name == 'Foldable Phone'}"><i class="bi bi-phone-flip"></i></c:when>
-                                        <c:when test="${category.name == 'Camera Phone'}"><i class="bi bi-camera"></i></c:when>
-                                        <c:when test="${category.name == 'Long Battery Phone'}"><i class="bi bi-battery-charging"></i></c:when>
-                                        <c:when test="${category.name == 'AI Phone'}"><i class="bi bi-stars"></i></c:when>
-                                        <c:otherwise><i class="bi bi-phone"></i></c:otherwise>
-                                    </c:choose>
-                                </span>
-                                <div>
-                                    <h3>${category.name}</h3>
-                                    <p>${category.productCount} products</p>
-                                </div>
-                            </a>
-                        </c:forEach>
+                    <div class="category-carousel" data-category-carousel>
+                        <button class="category-arrow previous" type="button"
+                                data-category-previous aria-label="Previous categories">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                        <div class="category-strip" data-category-track>
+                            <c:forEach var="category" items="${categories}">
+                                <a class="category-tile" href="${pageContext.request.contextPath}/products?category=${category.id}">
+                                    <span class="category-icon">
+                                        <c:choose>
+                                            <c:when test="${category.name == 'Gaming Phone'}"><i class="bi bi-controller"></i></c:when>
+                                            <c:when test="${category.name == 'Foldable Phone'}"><i class="bi bi-phone-flip"></i></c:when>
+                                            <c:when test="${category.name == 'Camera Phone'}"><i class="bi bi-camera"></i></c:when>
+                                            <c:when test="${category.name == 'Long Battery Phone'}"><i class="bi bi-battery-charging"></i></c:when>
+                                            <c:when test="${category.name == 'AI Phone'}"><i class="bi bi-stars"></i></c:when>
+                                            <c:otherwise><i class="bi bi-phone"></i></c:otherwise>
+                                        </c:choose>
+                                    </span>
+                                    <div>
+                                        <h3><c:out value="${category.name}"/></h3>
+                                        <p>${category.productCount} products</p>
+                                    </div>
+                                </a>
+                            </c:forEach>
+                        </div>
+                        <button class="category-arrow next" type="button"
+                                data-category-next aria-label="Next categories">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
                     </div>
                 </div>
             </section>
@@ -324,6 +334,7 @@
         <%@ include file="/views/common/footer.jsp" %>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="${pageContext.request.contextPath}/assets/js/home-category-carousel.js"></script>
         <script>
             document.querySelectorAll('.save-voucher-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
