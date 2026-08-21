@@ -15,12 +15,11 @@ public class OrderModel implements Serializable {
     private String userPhone;
     private String userEmail;
     private BigDecimal totalPrice;
-    private BigDecimal paidAmount;
-    private BigDecimal changeAmount;
     private String type;
     private String status;
     private String method;
     private Integer supplierId;
+    private String supplierName;
     private Integer updatedBy;
     private String updatedByName;
     private Timestamp updatedAt;
@@ -96,22 +95,6 @@ public class OrderModel implements Serializable {
 
     public void setTotalPrice(BigDecimal totalPrice) {
         this.totalPrice = totalPrice;
-    }
-
-    public BigDecimal getPaidAmount() {
-        return paidAmount;
-    }
-
-    public void setPaidAmount(BigDecimal paidAmount) {
-        this.paidAmount = paidAmount;
-    }
-
-    public BigDecimal getChangeAmount() {
-        return changeAmount;
-    }
-
-    public void setChangeAmount(BigDecimal changeAmount) {
-        this.changeAmount = changeAmount;
     }
 
     public String getType() {
@@ -288,6 +271,15 @@ public class OrderModel implements Serializable {
     public void setProofImage(String proofImage) {
         this.proofImage = proofImage;
     }
+
+    public String getSupplierName() {
+        return supplierName;
+    }
+
+    public void setSupplierName(String supplierName) {
+        this.supplierName = supplierName;
+    }
+    
 
     public String getCode() {
         return String.format("ORD%04d", id);

@@ -124,7 +124,7 @@ public class VnpayReturnController extends HttpServlet {
         }
         try {
             mailService.sendRefundPaymentNotification(order.getUserEmail(), order.getUserName(),
-                    refund.getId(), order.getId(), money(order.getPaidAmount()),
+                    refund.getId(), order.getId(), money(order.getTotalPrice()),
                     refund.getBankName(), refund.getBankAccountNumber(),
                     refund.getBankAccountHolder(), vnpayTransactionNo);
         } catch (MessagingException ignored) {

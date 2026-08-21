@@ -399,30 +399,74 @@ public class OrderDAO {
         OrderModel order = new OrderModel();
         order.setId(rs.getInt("ID"));
         order.setUserId(rs.getInt("UserID"));
-        order.setUsername(rs.getString("Username"));
-        order.setUserName(rs.getString("UserName"));
-        order.setTotalPrice(rs.getBigDecimal("Total_price"));
-        order.setPaidAmount(rs.getBigDecimal("Paid_amount"));
-        order.setChangeAmount(rs.getBigDecimal("Change_amount"));
-        order.setType(rs.getString("Type"));
-        order.setStatus(rs.getString("Status"));
-        order.setMethod(rs.getString("Method"));
+        order.setUsername(
+                rs.getString("Username"));
+        order.setUserName(
+                rs.getString("UserName"));
+        order.setUserPhone(
+                rs.getString("UserPhone"));
+        order.setUserEmail(
+                rs.getString("UserEmail"));
+        order.setTotalPrice(
+                rs.getBigDecimal("Total_price"));
+        order.setType(
+                rs.getString("Type"));
+        order.setStatus(
+                rs.getString("Status"));
+        order.setMethod(
+                rs.getString("Method"));
+        int supplierId = rs.getInt("SupplierID");
+        order.setSupplierId(
+                rs.wasNull() ? null : supplierId);
+        order.setSupplierName(
+                rs.getString("SupplierName"));
         int updatedBy = rs.getInt("Updated_by");
-        order.setUpdatedBy(rs.wasNull() ? null : updatedBy);
-        order.setUpdatedByName(rs.getString("UpdatedByName"));
-        Timestamp updatedAt = rs.getTimestamp("Updated_at");
-        Timestamp createdAt = rs.getTimestamp("Created_at");
-        order.setUpdatedAt(updatedAt);
-        order.setCreatedAt(createdAt);
-        int referenceId = rs.getInt("Reference_transactionID");
-        order.setReferenceTransactionId(rs.wasNull() ? null : referenceId);
-        order.setNote(rs.getString("Note"));
-        order.setProofImage(rs.getString("Proof_image"));
-        int deliveryId = rs.getInt("DeliveryInfoID");
-        order.setDeliveryInfoId(rs.wasNull() ? null : deliveryId);
-        int shipperId = rs.getInt("ShipperID");
-        order.setShipperId(rs.wasNull() ? null : shipperId);
-        order.setItemCount(rs.getInt("ItemCount"));
+        order.setUpdatedBy(
+                rs.wasNull() ? null : updatedBy);
+        order.setUpdatedByName(
+                rs.getString("UpdatedByName"));
+        order.setUpdatedAt(
+                rs.getTimestamp("Updated_at"));
+        order.setCreatedAt(
+                rs.getTimestamp("Created_at"));
+        int referenceId
+                = rs.getInt("Reference_transactionID");
+        order.setReferenceTransactionId(
+                rs.wasNull() ? null : referenceId);
+        int deliveryId
+                = rs.getInt("DeliveryInfoID");
+        order.setDeliveryInfoId(
+                rs.wasNull() ? null : deliveryId);
+        order.setRecipientName(
+                rs.getString("RecipientName"));
+        order.setRecipientPhone(
+                rs.getString("RecipientPhone"));
+        order.setDeliveryAddress(
+                rs.getString("DeliveryAddress"));
+
+        order.setItemCount(
+                rs.getInt("ItemCount"));
+        order.setNote(
+                rs.getString("Note"));
+        order.setProofImage(
+                rs.getString("Proof_image"));
+        int shipperId
+                = rs.getInt("ShipperID");
+
+        order.setShipperId(
+                rs.wasNull() ? null : shipperId);
+        order.setHasOpenRefund(
+                rs.getObject("HasOpenRefund") != null
+                ? rs.getBoolean("HasOpenRefund")
+                : null);
+        order.setHasBlockingRefund(
+                rs.getObject("HasBlockingRefund") != null
+                ? rs.getBoolean("HasBlockingRefund")
+                : null);
+        order.setHasCancelPending(
+                rs.getObject("HasCancelPending") != null
+                ? rs.getBoolean("HasCancelPending")
+                : null);
         return order;
     }
 

@@ -11,9 +11,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import static java.util.Collections.list;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import model.StatusHistory;
 
 public class ImportOrderDAO {
 
@@ -326,9 +328,9 @@ public class ImportOrderDAO {
             statement.setInt(1, userId);
             statement.setBigDecimal(2, totalPrice);
             statement.setInt(3, supplierId);
-            statement.setString(6, method);
-            statement.setString(7, note);
-            statement.setInt(8, userId);
+            statement.setString(4, method);
+            statement.setString(5, note);
+            statement.setInt(6, userId);
 
             statement.executeUpdate();
 
@@ -594,7 +596,7 @@ public class ImportOrderDAO {
      * @return
      * @throws java.sql.SQLException
      */
-    public List<String> findStatusHistory(int transactionId)
+    public List<StatusHistory> findStatusHistory(int transactionId)
             throws SQLException {
 
         String sql = "SELECT h.Status, "
@@ -606,7 +608,7 @@ public class ImportOrderDAO {
                 + "WHERE h.TransactionID = ? "
                 + "ORDER BY h.Updated_at ASC, h.ID ASC";
 
-        List<String> history = new ArrayList<>();
+        List<StatusHistory> historyList = new ArrayList<>();
 
         try (Connection connection = DBContext.getConnection(); PreparedStatement statement
                 = connection.prepareStatement(sql)) {
@@ -617,19 +619,28 @@ public class ImportOrderDAO {
 
                 while (rs.next()) {
 
-                    String value
-                            = rs.getString("Status")
-                            + " | "
-                            + rs.getString("UserName")
-                            + " | "
-                            + rs.getTimestamp("Updated_at");
+                    StatusHistory history
+                            = new StatusHistory();
 
-                    history.add(value);
+                    history.setStatus(
+                            rs.getString("Status"));
+
+                    history.setUserId(
+                            rs.getInt("UserID"));
+
+                    history.setUserName(
+                            rs.getString("UserName"));
+
+                    history.setUpdatedAt(
+                            rs.getTimestamp("Updated_at"));
+
+                    historyList.add(history);
+                   
                 }
             }
         }
 
-        return history;
+        return historyList;
     }
 
     /**

@@ -100,20 +100,13 @@ public class ManagerReturnRequestController extends HttpServlet {
         }
         boolean approve;
         switch (decision.toLowerCase()) {
-            case "approve":
-            case "approved":
-            case "1":
-                approve = true;
-                break;
-            case "reject":
-            case "rejected":
-            case "0":
-                approve = false;
-                break;
-            default:
+            case "approve", "approved", "1" -> approve = true;
+            case "reject", "rejected", "0" -> approve = false;
+            default -> {
                 response.sendRedirect(request.getContextPath() + "/manager/return-request?action=view&id=" + id
                         + "&flash=" + encode("Invalid decision."));
                 return;
+            }
         }
 
         try {
@@ -127,8 +120,7 @@ public class ManagerReturnRequestController extends HttpServlet {
                         return;
                     }
                     String txnRef = "RF-" + id + "-" + manager.getId() + "-" + System.currentTimeMillis();
-                    String paymentUrl = vnpayService.createPaymentUrl(request,
-                            order.getPaidAmount().intValue(),
+                    String paymentUrl = vnpayService.createPaymentUrl(request,order.getTotalPrice().intValue(),
                             "Hoan tien SmartPhone store refund " + id,
                             txnRef);
                     response.sendRedirect(paymentUrl);
@@ -191,7 +183,7 @@ public class ManagerReturnRequestController extends HttpServlet {
     }
 
     private static boolean isPaidOrder(OrderModel order) {
-        BigDecimal paid = order == null ? null : order.getPaidAmount();
+        BigDecimal paid = order == null ? null : order.getTotalPrice();//chưa hoàn thiện đợi có complete
         return paid != null && paid.compareTo(BigDecimal.ZERO) > 0;
     }
 

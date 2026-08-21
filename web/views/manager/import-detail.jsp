@@ -391,7 +391,7 @@
                 <div class="page-heading-actions">
 
                     <a class="btn subtle"
-                       href="${pageContext.request.contextPath}/manager/import-orders">
+                       href="${pageContext.request.contextPath}/manager/import-list">
 
                         ← Back to import orders
 
@@ -527,7 +527,7 @@
             <c:if test="${mode == 'create'}">
 
                 <form method="post"
-                      action="${pageContext.request.contextPath}/manager/import-orders">
+                      action="${pageContext.request.contextPath}/manager/import">
 
                     <input type="hidden"
                            name="action"
@@ -745,7 +745,7 @@
 
                             <div class="form-actions">
                                 <a class="btn subtle"
-                                   href="${pageContext.request.contextPath}/manager/import-orders">
+                                   href="${pageContext.request.contextPath}/manager/import-list">
                                     Cancel
                                 </a>
                                 <button type="submit"
@@ -915,7 +915,7 @@
                                 </p>
 
                                 <form method="post"
-                                      action="${pageContext.request.contextPath}/manager/import-orders"
+                                      action="${pageContext.request.contextPath}/manager/import"
                                       class="complete-form">
                                     <input type="hidden"
                                            name="action"

@@ -14,35 +14,57 @@
         <meta charset="UTF-8">
 
         <title>Import Orders</title>
-
         <link rel="stylesheet"
               href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-
         <link rel="stylesheet"
-              href="${pageContext.request.contextPath}/assets/css/style.css">
-
+              href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+        <%@include file="../common/head.jsp"%>
+        <link rel="stylesheet"
+              href="${pageContext.request.contextPath}/assets/css/app-layout.css">
         <style>
             .import-list-page {
                 max-width: 1400px;
                 margin: 0 auto;
             }
 
-            .filter-card {
+            /* =========================
+               FILTER / TOOLBAR
+               ========================= */
+
+            .import-filter-card {
                 background: #fff;
                 border: 1px solid #e5e7eb;
                 border-radius: 14px;
-                padding: 20px;
+                padding: 18px 20px;
                 margin-bottom: 24px;
             }
 
-            .filter-grid {
-                display: grid;
-                grid-template-columns: 2fr 1fr 1fr auto;
+            .import-filter-form {
+                display: flex;
+                align-items: flex-end;
                 gap: 14px;
-                align-items: end;
+                flex-wrap: wrap;
             }
 
-            .table-card {
+            .import-filter-search {
+                flex: 1;
+                min-width: 280px;
+            }
+
+            .import-filter-field {
+                min-width: 170px;
+            }
+
+            .import-filter-action {
+                display: flex;
+                align-items: flex-end;
+            }
+
+            /* =========================
+               TABLE
+               ========================= */
+
+            .import-table-card {
                 background: #fff;
                 border: 1px solid #e5e7eb;
                 border-radius: 14px;
@@ -55,7 +77,7 @@
                 margin: 0;
             }
 
-            .import-table th {
+            .import-table thead th {
                 background: #f8fafc;
                 color: #64748b;
                 font-size: 12px;
@@ -67,15 +89,23 @@
                 white-space: nowrap;
             }
 
-            .import-table td {
+            .import-table tbody td {
                 padding: 15px 16px;
                 border-bottom: 1px solid #f1f5f9;
                 vertical-align: middle;
             }
 
+            .import-table tbody tr:last-child td {
+                border-bottom: none;
+            }
+
             .import-table tbody tr:hover {
                 background: #fafafa;
             }
+
+            /* =========================
+               CONTENT
+               ========================= */
 
             .order-code {
                 font-weight: 700;
@@ -92,10 +122,20 @@
                 font-size: 14px;
             }
 
+            .item-count {
+                color: #475569;
+                font-weight: 500;
+            }
+
             .amount {
                 font-weight: 700;
+                color: #111827;
                 white-space: nowrap;
             }
+
+            /* =========================
+               STATUS
+               ========================= */
 
             .status-pill {
                 display: inline-flex;
@@ -118,21 +158,14 @@
                 color: #047857;
             }
 
-            .empty-state {
-                text-align: center;
-                padding: 70px 20px;
-                color: #64748b;
-            }
-
-            .empty-state i {
-                font-size: 42px;
-                margin-bottom: 12px;
-            }
+            /* =========================
+               ACTION
+               ========================= */
 
             .table-actions {
                 display: flex;
                 justify-content: flex-end;
-                gap: 8px;
+                align-items: center;
             }
 
             .btn-view {
@@ -140,26 +173,56 @@
                 white-space: nowrap;
             }
 
+            /* =========================
+               EMPTY STATE
+               ========================= */
+
+            .import-empty-state {
+                text-align: center;
+                padding: 70px 20px;
+                color: #64748b;
+            }
+
+            .import-empty-state i {
+                display: block;
+                font-size: 42px;
+                margin-bottom: 12px;
+            }
+
+            .import-empty-state h3 {
+                color: #334155;
+                margin-bottom: 8px;
+            }
+
+            .import-empty-state p {
+                margin: 0;
+            }
+
+            /* =========================
+               RESPONSIVE
+               ========================= */
+
             @media (max-width: 1000px) {
-                .filter-grid {
+                .import-filter-form {
+                    display: grid;
                     grid-template-columns: 1fr 1fr;
                 }
 
-                .filter-grid .search-field {
+                .import-filter-search {
                     grid-column: 1 / -1;
                 }
             }
 
             @media (max-width: 700px) {
-                .filter-grid {
+                .import-filter-form {
                     grid-template-columns: 1fr;
                 }
 
-                .filter-grid .search-field {
+                .import-filter-search {
                     grid-column: auto;
                 }
 
-                .table-card {
+                .import-table-card {
                     overflow-x: auto;
                 }
 
@@ -195,7 +258,7 @@
 
                 <div class="page-heading-actions">
                     <a class="btn primary-action"
-                       href="${pageContext.request.contextPath}/manager/import-orders?action=create">
+                       href="${pageContext.request.contextPath}/manager/import-detail?action=create">
                         <i class="bi bi-plus-lg"></i>
                         Create Import Order
                     </a>
@@ -225,14 +288,17 @@
             <!-- =================================================
                  FILTER
                  ================================================= -->
-            <div class="filter-card">
+            <div class="import-filter-card">
                 <form method="get"
-                      action="${pageContext.request.contextPath}/manager/import-orders">
-                    <div class="filter-grid">
-                        <div class="form-group search-field">
+                      action="${pageContext.request.contextPath}/manager/import-list">
+
+                    <div class="import-filter-form">
+
+                        <div class="form-group import-filter-search">
                             <label class="form-label">
                                 Search
                             </label>
+
                             <input type="text"
                                    name="keyword"
                                    class="form-control-custom"
@@ -240,40 +306,42 @@
                                    placeholder="Order ID, supplier, creator...">
                         </div>
 
-
-                        <div class="form-group">
+                        <div class="form-group import-filter-field">
                             <label class="form-label">
                                 Status
                             </label>
+
                             <select name="status"
                                     class="form-control-custom">
+
                                 <option value="">
                                     All statuses
                                 </option>
+
                                 <option value="ORDER"
-                                        ${selectedStatus == 'ORDER'
-                                          ? 'selected'
-                                          : ''}>
+                                        ${selectedStatus == 'ORDER' ? 'selected' : ''}>
                                     ORDER
                                 </option>
+
                                 <option value="COMPLETE"
-                                        ${selectedStatus == 'COMPLETE'
-                                          ? 'selected'
-                                          : ''}>
+                                        ${selectedStatus == 'COMPLETE' ? 'selected' : ''}>
                                     COMPLETE
                                 </option>
+
                             </select>
                         </div>
 
-                        <div class="form-group">
+                        <div class="form-group import-filter-field">
                             <label class="form-label">
                                 Sort
                             </label>
 
                             <select name="sort"
                                     class="form-control-custom">
+
                                 <option value="newest"
-                                        ${empty selectedSort || selectedSort == 'newest' ? 'selected' : ''}>
+                                        ${empty selectedSort || selectedSort == 'newest'
+                                          ? 'selected' : ''}>
                                     Newest
                                 </option>
 
@@ -281,24 +349,28 @@
                                         ${selectedSort == 'oldest' ? 'selected' : ''}>
                                     Oldest
                                 </option>
+
                                 <option value="total-desc"
                                         ${selectedSort == 'total-desc' ? 'selected' : ''}>
                                     Highest total
                                 </option>
+
                                 <option value="total-asc"
                                         ${selectedSort == 'total-asc' ? 'selected' : ''}>
                                     Lowest total
                                 </option>
+
                             </select>
                         </div>
 
-                        <div class="form-group">
+                        <div class="import-filter-action">
                             <button type="submit"
                                     class="btn primary-action">
                                 <i class="bi bi-search"></i>
                                 Search
                             </button>
                         </div>
+
                     </div>
                 </form>
             </div>
@@ -306,10 +378,10 @@
             <!-- =================================================
                  TABLE
                  ================================================= -->
-            <div class="table-card">
+            <div class="import-table-card">
                 <c:choose>
                     <c:when test="${empty importOrders}">
-                        <div class="empty-state">
+                        <div class="import-empty-state">
                             <i class="bi bi-box-seam"></i>
                             <h3>
                                 No import orders found
@@ -364,7 +436,9 @@
                                         </td>
                                         <!-- ITEMS -->
                                         <td>
-                                            ${order.itemCount}
+                                            <span class="item-count">
+                                                ${order.itemCount}
+                                            </span>
                                         </td>
                                         <!-- TOTAL -->
                                         <td>
@@ -411,7 +485,7 @@
                                         <td>
                                             <div class="table-actions">
                                                 <a class="btn subtle btn-view"
-                                                   href="${pageContext.request.contextPath}/manager/import-orders?action=detail&id=${order.id}">
+                                                   href="${pageContext.request.contextPath}/manager/import-detail?action=detail&id=${order.id}">
                                                     <i class="bi bi-eye"></i>
                                                     View
                                                 </a>
@@ -426,5 +500,6 @@
             </div>
         </main>
         <%@ include file="/views/common/footer.jsp" %>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     </body>
 </html>
