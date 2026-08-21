@@ -339,7 +339,7 @@
     </welcome-file-list>
     <servlet-mapping>
         <servlet-name>ImportOrderController</servlet-name>
-        <url-pattern>/import</url-pattern>
+        <url-pattern>/manager/import</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>ManagerVoucherController</servlet-name>

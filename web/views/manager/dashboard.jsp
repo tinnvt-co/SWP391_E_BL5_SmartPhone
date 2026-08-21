@@ -72,7 +72,7 @@
                 </article>
             </section>
 
-            <!-- Module navigation: 8 cards -->
+            <!-- Module navigation: 13 cards -->
             <div class="manager-section-title">
                 <span>YOUR WORKSPACE</span>
                 <h2>What would you like to manage?</h2>
@@ -124,6 +124,14 @@
                     <h3>Manage Inventory</h3>
                     <p>Track stock levels per variant, perform stock-in, adjustments and monitor low-stock alerts.</p>
                     <b>Open inventory <span>→</span></b>
+                </a>
+                    
+                <a class="manager-module import-module" href="${pageContext.request.contextPath}/manager/import">
+                    <span class="module-icon">📦</span>
+                    <span class="module-count">${totalImportOrder} Import</span>
+                    <h3>Manage Import</h3>
+                    <p>Create, view import order, tracking import status</p>
+                    <b>Open import management<span>→</span></b>
                 </a>
 
                 <a class="manager-module discount-module" href="${pageContext.request.contextPath}/manager/discounts">

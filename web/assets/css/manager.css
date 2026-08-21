@@ -22,7 +22,8 @@
     --mgr-indigo-soft: #eef2ff;
     --mgr-cyan: #00d2d3;
     --mgr-cyan-soft: #e0fbfb;
-    
+    --mgr-yellow: #d97706;
+    --mgr-yellow-soft: #fef3c7;
     /* shared utility tokens */
     --ink: #0f172a;
     --muted: #64748b;
@@ -1077,6 +1078,11 @@ body.category-product-modal-open {
 .inventory-module  {
     --module-color: var(--mgr-indigo);
     --module-soft: var(--mgr-indigo-soft);
+}
+
+.import-module{
+    --module-color: var(--mgr-yellow);
+    --module-soft: var(--mgr-yellow-soft);
 }
 .discount-module   {
     --module-color: var(--mgr-pink);
