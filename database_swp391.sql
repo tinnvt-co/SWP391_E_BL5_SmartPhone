@@ -1,4 +1,4 @@
-﻿CREATE DATABASE IF NOT EXISTS `database_swp391`
+CREATE DATABASE IF NOT EXISTS `database_swp391`
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
  -- DROP DATABASE `database_swp391`
@@ -212,6 +212,7 @@ CREATE TABLE `Transaction` (
   `Updated_by` INT NOT NULL,
   `Updated_at` TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   `Created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `Delivered_at` TIMESTAMP NULL DEFAULT NULL,
   `Reference_transactionID` INT,
   `DeliveryInfoID` INT,
   `ShipperID` INT NULL,

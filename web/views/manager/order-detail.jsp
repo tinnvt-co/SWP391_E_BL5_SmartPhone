@@ -457,6 +457,28 @@
                     </div>
                 </c:if>
 
+                <c:if test="${not empty order.proofImage or not empty order.note}">
+                    <div class="card">
+                        <h3>Delivery Proof & Notes</h3>
+                        <div class="address-box" style="display:flex; gap: 20px; align-items:flex-start;">
+                            <div style="flex: 1;">
+                                <c:if test="${not empty order.note}">
+                                    <div style="margin-bottom: 15px;"><strong>Note:</strong><br><c:out value="${order.note}"/></div>
+                                </c:if>
+                                <c:if test="${empty order.note}">
+                                    <div style="margin-bottom: 15px; color: var(--muted);">No note provided.</div>
+                                </c:if>
+                            </div>
+                            <c:if test="${not empty order.proofImage}">
+                                <div style="flex: 1;">
+                                    <strong>Proof of Delivery:</strong><br>
+                                    <img src="${pageContext.request.contextPath}/assets/images/${order.proofImage}" alt="Proof of Delivery" style="max-width: 100%; border-radius: 8px; margin-top: 5px;">
+                                </div>
+                            </c:if>
+                        </div>
+                    </div>
+                </c:if>
+
                 <div class="card">
                     <h3>Items Ordered (${order.itemCount})</h3>
                     <table class="items-table">
