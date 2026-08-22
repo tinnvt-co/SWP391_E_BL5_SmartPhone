@@ -85,6 +85,14 @@ public class AdminUserController extends HttpServlet {
                     userDAO.updateStatus(id, "ACTIVE");
                 } else if ("deactivate".equals(action)) {
                     userDAO.updateStatus(id, "INACTIVE");
+                } else if ("delete".equals(action)) {
+                    UserModel userToDelete = userDAO.findById(id);
+                    if (userToDelete != null && !"ADMIN".equalsIgnoreCase(userToDelete.getRoleName())) {
+                        userDAO.delete(id);
+                        request.getSession().setAttribute("message", "User deleted successfully.");
+                    } else {
+                        request.getSession().setAttribute("error", "Cannot delete Admin accounts.");
+                    }
                 }
             } catch (Exception ex) {
                 // handle parsing or sql exception silently or add error message

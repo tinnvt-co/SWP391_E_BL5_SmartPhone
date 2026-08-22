@@ -298,7 +298,6 @@
                             <table class="table table-hover align-middle">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>ID</th>
                                         <th>User</th>
                                         <th>Role</th>
                                         <th>Email</th>
@@ -310,7 +309,6 @@
                                 <tbody>
                                     <c:forEach items="${users}" var="u">
                                         <tr>
-                                            <td class="user-id">#${u.id}</td>
                                             <td>
                                                 <div class="d-flex align-items-center gap-3">
                                                     <c:choose>
@@ -365,12 +363,17 @@
                                                         </button>
                                                     </c:otherwise>
                                                 </c:choose>
+                                                <c:if test="${fn:toLowerCase(u.roleName) != 'admin'}">
+                                                    <button type="button" class="btn btn-sm btn-outline-danger border-0 ms-1" onclick="showConfirmModal(${u.id}, 'delete', 'Delete')" title="Delete">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </c:if>
                                             </td>
                                         </tr>
                                     </c:forEach>
                                     <c:if test="${empty users}">
                                         <tr>
-                                            <td colspan="7" class="text-center py-4 text-muted">No users found.</td>
+                                            <td colspan="6" class="text-center py-4 text-muted">No users found.</td>
                                         </tr>
                                     </c:if>
                                 </tbody>
@@ -434,7 +437,10 @@
                                                                         'Are you sure you want to ' + actionText.toLowerCase() + ' this user?';
 
                                                                 var confirmBtn = document.getElementById('modalConfirmBtn');
-                                                                if (action === 'deactivate') {
+                                                                if (action === 'delete') {
+                                                                    confirmBtn.className = 'btn btn-danger px-4 rounded-pill';
+                                                                    confirmBtn.innerText = 'Delete User';
+                                                                } else if (action === 'deactivate') {
                                                                     confirmBtn.className = 'btn btn-danger px-4 rounded-pill';
                                                                     confirmBtn.innerText = 'Lock User';
                                                                 } else {
