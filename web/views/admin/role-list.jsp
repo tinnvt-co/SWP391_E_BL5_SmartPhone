@@ -192,7 +192,7 @@
         <section class="profile-hero">
             <div class="container">
                 <h1>Role Management</h1>
-                <p>Manage system roles, permissions, and security access levels.</p>
+                <p>Manage system roles and security access levels.</p>
             </div>
         </section>
 
@@ -265,7 +265,6 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th class="text-nowrap">Role Name</th>
-                                        <th>Permissions</th>
                                         <th class="text-nowrap">Created At</th>
                                         <th class="text-nowrap">Updated At</th>
                                         <th class="text-nowrap">Status</th>
@@ -277,14 +276,6 @@
                                         <tr>
                                             <td class="text-nowrap">
                                                 <div class="fw-bold text-dark"><c:out value="${r.name}"/></div>
-                                            </td>
-                                            <td>
-                                                <c:forEach items="${r.permissions}" var="p">
-                                                    <span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 me-1 mb-1 fw-semibold"><c:out value="${p}"/></span>
-                                                </c:forEach>
-                                                <c:if test="${empty r.permissions}">
-                                                    <span class="text-muted small fst-italic">No permissions</span>
-                                                </c:if>
                                             </td>
                                             <td class="text-secondary text-nowrap">
                                                 <fmt:formatDate value="${r.createdAt}" pattern="dd/MM/yyyy HH:mm"/>
@@ -306,15 +297,6 @@
                                                         <li>
                                                             <button class="dropdown-item" type="button" onclick="openEditRoleModal(${r.id}, '${r.name}', '${r.status}', ${r.id == currentUser.roleId})">
                                                                 <i class="bi bi-pencil me-2 text-primary"></i> Edit Information
-                                                            </button>
-                                                        </li>
-                                                        <li>
-                                                            <button class="dropdown-item" type="button" onclick="openPermissionModal(${r.id}, '${r.name}', [
-                                                                <c:forEach items="${r.permissions}" var="p" varStatus="loop">
-                                                                    '${p}'${!loop.last ? ',' : ''}
-                                                                </c:forEach>
-                                                                ])">
-                                                                <i class="bi bi-shield-lock me-2 text-success"></i> Update Permissions
                                                             </button>
                                                         </li>
                                                         <c:if test="${r.id != currentUser.roleId}">
@@ -349,43 +331,6 @@
         </main>
 
         <%@ include file="/views/common/footer.jsp" %>
-
-        <!-- Update Permission Modal -->
-        <div class="modal fade" id="permissionModal" tabindex="-1" aria-labelledby="permissionModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
-                <div class="modal-content border-0 shadow">
-                    <div class="modal-header bg-light">
-                        <h5 class="modal-title fw-bold" id="permissionModalLabel">Update Permissions: <span id="modalRoleName" class="text-primary"></span></h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <form action="${pageContext.request.contextPath}/admin/roles" method="post">
-                        <div class="modal-body">
-                            <input type="hidden" name="action" value="updatePermissions">
-                            <input type="hidden" name="roleId" id="modalRoleId" value="">
-                            
-                            <p class="text-muted mb-3">Select the permissions you want to grant to this role:</p>
-                            
-                            <div class="row g-3">
-                                <c:forEach items="${allPermissions}" var="perm">
-                                    <div class="col-md-4 col-sm-6">
-                                        <div class="form-check custom-checkbox">
-                                            <input class="form-check-input perm-checkbox" type="checkbox" name="permissions" value="${perm.id}" id="perm_${perm.id}" data-name="${perm.name}">
-                                            <label class="form-check-label user-select-none" for="perm_${perm.id}">
-                                                <c:out value="${perm.name}"/>
-                                            </label>
-                                        </div>
-                                    </div>
-                                </c:forEach>
-                            </div>
-                        </div>
-                        <div class="modal-footer bg-light">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Save Changes</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
 
         <!-- Edit Role Info Modal -->
         <div class="modal fade" id="editRoleModal" tabindex="-1" aria-labelledby="editRoleModalLabel" aria-hidden="true">
@@ -425,27 +370,6 @@
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         <script>
-            function openPermissionModal(roleId, roleName, permissions) {
-                document.getElementById('modalRoleId').value = roleId;
-                document.getElementById('modalRoleName').textContent = roleName;
-                
-                // Uncheck all first
-                const checkboxes = document.querySelectorAll('.perm-checkbox');
-                checkboxes.forEach(cb => cb.checked = false);
-                
-                // Check the ones that match the role's current permissions
-                checkboxes.forEach(cb => {
-                    const permName = cb.getAttribute('data-name');
-                    if (permissions.includes(permName)) {
-                        cb.checked = true;
-                    }
-                });
-                
-                // Show modal
-                const modal = new bootstrap.Modal(document.getElementById('permissionModal'));
-                modal.show();
-            }
-
             function openEditRoleModal(roleId, roleName, roleStatus, isOwnRole) {
                 document.getElementById('editRoleId').value = roleId;
                 document.getElementById('editRoleName').value = roleName;
