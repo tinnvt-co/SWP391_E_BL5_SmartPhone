@@ -67,7 +67,7 @@
                 </div>
             </section>
 
-            <c:if test="${not empty activeVouchers}">
+            <c:if test="${not empty activeVouchers and (empty currentRole or currentRole == 'Customer')}">
                 <section class="section-band bg-light py-5">
                     <div class="container">
                         <div class="d-flex align-items-center mb-4">
