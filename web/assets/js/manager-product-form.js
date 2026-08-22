@@ -48,19 +48,13 @@
 
     function validateVariants() {
         const optionKeys = new Set();
-        const skuKeys = new Set();
 
         rows.querySelectorAll('.variant-row').forEach(function (row) {
             const ram = row.querySelector('[name="variantRam"]');
             const storage = row.querySelector('[name="variantStorage"]');
             const color = row.querySelector('[name="variantColorName"]');
-            const sku = row.querySelector('[name="variantSku"]');
-            const sellingPrice = row.querySelector('[name="variantSellingPrice"]');
-            const latestCost = row.querySelector('[name="variantLatestCost"]');
 
             color.setCustomValidity('');
-            sku.setCustomValidity('');
-            sellingPrice.setCustomValidity('');
 
             const normalizedColor = color.value.trim().replace(/\s+/g, ' ').toLowerCase();
             const optionKey = `${ram.value}|${storage.value}|${normalizedColor}`;
@@ -72,20 +66,6 @@
                 }
             }
 
-            const skuKey = sku.value.trim().toLowerCase();
-            if (skuKey) {
-                if (skuKeys.has(skuKey)) {
-                    sku.setCustomValidity('SKU duplicates another variant.');
-                } else {
-                    skuKeys.add(skuKey);
-                }
-            }
-
-            if (sellingPrice.value && latestCost.value
-                    && Number(sellingPrice.value) < Number(latestCost.value)) {
-                sellingPrice.setCustomValidity(
-                        'Selling price cannot be lower than latest cost.');
-            }
         });
     }
 

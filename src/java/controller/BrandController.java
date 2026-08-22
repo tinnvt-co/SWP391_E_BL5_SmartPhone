@@ -48,13 +48,21 @@ public class BrandController extends HttpServlet {
         String action = request.getParameter("action");
 
         try {
-            if ("deactivate".equals(action)) {
+            if ("deactivate".equals(action) || "set-status".equals(action)) {
                 int brandId = ProductController.integer(request.getParameter("id"), 0);
                 if (brandId <= 0 || brandDAO.findById(brandId) == null) {
                     response.sendError(HttpServletResponse.SC_NOT_FOUND);
                     return;
                 }
-                brandDAO.deactivate(brandId);
+                String requestedStatus = "deactivate".equals(action)
+                        ? "INACTIVE" : request.getParameter("status");
+                if (!"ACTIVE".equals(requestedStatus)
+                        && !"INACTIVE".equals(requestedStatus)) {
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                    return;
+                }
+                boolean activate = "ACTIVE".equals(requestedStatus);
+                brandDAO.setActive(brandId, activate);
             } else if ("move-products".equals(action)) {
                 moveProducts(request, response);
                 return;
@@ -74,7 +82,7 @@ public class BrandController extends HttpServlet {
 
                 if (brandDAO.existsName(brand.getName(), brand.getId())) {
                     showFormError(request, response, brand,
-                            "Brand name already exists.");
+                            "Brand name already exists. Reactivate the existing brand if it is inactive.");
                     return;
                 }
 
@@ -90,7 +98,7 @@ public class BrandController extends HttpServlet {
             }
             BrandModel brand = readBrand(request);
             String error = exception.getErrorCode() == 1062
-                    ? "Brand name already exists."
+                    ? "Brand name already exists. Reactivate the existing brand if it is inactive."
                     : exception.getMessage();
             showFormError(request, response, brand, error);
         }

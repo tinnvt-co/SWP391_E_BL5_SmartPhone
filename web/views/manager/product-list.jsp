@@ -115,14 +115,13 @@
                                 <th>Brand</th>
                                 <th>Category</th>
                                 <th>Price</th>
-                                <th>Stock</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <c:if test="${empty products}">
-                                <tr><td colspan="8" class="manager-empty-row">No products match the current filters.</td></tr>
+                                <tr><td colspan="7" class="manager-empty-row">No products match the current filters.</td></tr>
                             </c:if>
                             <c:forEach items="${products}" var="product" varStatus="row">
                                 <tr>
@@ -139,9 +138,6 @@
                                     </td>
                                     <td class="price-small">
                                         <fmt:formatNumber value="${product.finalPrice}" pattern="#,##0"/>₫
-                                    </td>
-                                    <td class="${product.stock == 0 ? 'danger' : 'stock'}">
-                                        ${product.stock}
                                     </td>
                                     <td>
                                         <span class="status ${product.active ? 'active' : 'inactive'}">

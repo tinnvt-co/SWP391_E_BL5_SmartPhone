@@ -14,6 +14,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import model.CategoryModel;
 import model.ProductModel;
 import model.ProductVariantModel;
@@ -348,7 +349,7 @@ public class ProductDAO {
                 saveCategories(connection, product.getId(), product.getCategoryIds());
                 for (ProductVariantModel variant : product.getVariants()) {
                     int variantId = insertVariant(connection, product.getId(), variant);
-                    saveInventory(connection, variantId, variant.getStock());
+                    saveInventory(connection, variantId, 0);
                 }
                 connection.commit();
             } catch (SQLException exception) {
@@ -387,12 +388,14 @@ public class ProductDAO {
                 saveCategories(connection, product.getId(), product.getCategoryIds());
                 List<Integer> savedVariantIds = new ArrayList<>();
                 for (ProductVariantModel variant : product.getVariants()) {
+                    boolean newVariantCreated = false;
                     if (variant.getId() == 0) {
                         int existingId = findVariantIdByOption(
                                 connection, product.getId(), variant);
                         if (existingId == 0) {
                             variant.setId(insertVariant(
                                     connection, product.getId(), variant));
+                            newVariantCreated = true;
                         } else {
                             variant.setId(existingId);
                             updateVariant(connection, product.getId(), variant);
@@ -400,7 +403,9 @@ public class ProductDAO {
                     } else {
                         updateVariant(connection, product.getId(), variant);
                     }
-                    saveInventory(connection, variant.getId(), variant.getStock());
+                    if (newVariantCreated) {
+                        saveInventory(connection, variant.getId(), 0);
+                    }
                     savedVariantIds.add(variant.getId());
                 }
                 deactivateMissingVariants(connection, product.getId(), savedVariantIds);
@@ -681,12 +686,30 @@ public class ProductDAO {
         try (PreparedStatement statement = connection.prepareStatement(
                 sql, Statement.RETURN_GENERATED_KEYS)) {
             statement.setInt(1, productId);
-            setVariantParameters(statement, variant, 2);
+            statement.setInt(2, variant.getRamGb());
+            statement.setInt(3, variant.getStorageGb());
+            statement.setString(4, variant.getColorName().trim());
+            statement.setString(5, "TMP-" + UUID.randomUUID());
+            statement.setInt(6, variant.getSellingPrice());
+            statement.setInt(7, 0);
+            statement.setString(8, variant.getImage().trim());
+            statement.setString(9, variant.getBackImage().trim());
             statement.executeUpdate();
 
             try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
-                generatedKeys.next();
-                return generatedKeys.getInt(1);
+                if (!generatedKeys.next()) {
+                    throw new SQLException("Cannot create product variant ID");
+                }
+                int variantId = generatedKeys.getInt(1);
+                String generatedSku = "PV-" + productId + "-" + variantId;
+                try (PreparedStatement skuStatement = connection.prepareStatement(
+                        "UPDATE ProductVariant SET SKU = ? WHERE ID = ?")) {
+                    skuStatement.setString(1, generatedSku);
+                    skuStatement.setInt(2, variantId);
+                    skuStatement.executeUpdate();
+                }
+                variant.setSku(generatedSku);
+                return variantId;
             }
         }
     }
@@ -694,14 +717,18 @@ public class ProductDAO {
     private void updateVariant(Connection connection, int productId,
             ProductVariantModel variant) throws SQLException {
         String sql = "UPDATE ProductVariant SET RAM_GB = ?, Storage_GB = ?, "
-                + "ColorName = ?, SKU = ?, "
-                + "Selling_price = ?, Latest_cost = ?, Image = ?, BackImage = ?, "
+                + "ColorName = ?, Selling_price = ?, Image = ?, BackImage = ?, "
                 + "Status = 'ACTIVE' WHERE ID = ? AND ProductID = ?";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            setVariantParameters(statement, variant, 1);
-            statement.setInt(9, variant.getId());
-            statement.setInt(10, productId);
+            statement.setInt(1, variant.getRamGb());
+            statement.setInt(2, variant.getStorageGb());
+            statement.setString(3, variant.getColorName().trim());
+            statement.setInt(4, variant.getSellingPrice());
+            statement.setString(5, variant.getImage().trim());
+            statement.setString(6, variant.getBackImage().trim());
+            statement.setInt(7, variant.getId());
+            statement.setInt(8, productId);
             if (statement.executeUpdate() == 0) {
                 throw new SQLException("Product variant does not exist");
             }
@@ -722,18 +749,6 @@ public class ProductDAO {
                 return resultSet.next() ? resultSet.getInt("ID") : 0;
             }
         }
-    }
-
-    private void setVariantParameters(PreparedStatement statement,
-            ProductVariantModel variant, int startIndex) throws SQLException {
-        statement.setInt(startIndex, variant.getRamGb());
-        statement.setInt(startIndex + 1, variant.getStorageGb());
-        statement.setString(startIndex + 2, variant.getColorName().trim());
-        statement.setString(startIndex + 3, variant.getSku().trim());
-        statement.setInt(startIndex + 4, variant.getSellingPrice());
-        statement.setInt(startIndex + 5, variant.getLatestCost());
-        statement.setString(startIndex + 6, variant.getImage().trim());
-        statement.setString(startIndex + 7, variant.getBackImage().trim());
     }
 
     private void saveInventory(Connection connection, int variantId, int stock)

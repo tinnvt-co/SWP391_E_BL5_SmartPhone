@@ -51,10 +51,13 @@
                                href="${pageContext.request.contextPath}/manager/categories?action=form&id=${category.id}">
                                 Edit
                             </a>
-                            <form method="post" onsubmit="return confirmDeactivate('category')">
-                                <input type="hidden" name="action" value="deactivate">
+                            <form method="post" onsubmit="return confirmStatusChange('category', ${!category.active})">
+                                <input type="hidden" name="action" value="set-status">
                                 <input type="hidden" name="id" value="${category.id}">
-                                <button class="btn danger">Deactivate</button>
+                                <input type="hidden" name="status" value="${category.active ? 'INACTIVE' : 'ACTIVE'}">
+                                <button class="btn ${category.active ? 'danger' : 'primary'}">
+                                    ${category.active ? 'Deactivate' : 'Activate'}
+                                </button>
                             </form>
                         </div>
                     </article>

@@ -100,9 +100,14 @@ public class BrandDAO {
     }
 
     public void deactivate(int id) throws SQLException {
-        String sql = "UPDATE Brand SET Status = 'INACTIVE' WHERE ID = ?";
+        setActive(id, false);
+    }
+
+    public void setActive(int id, boolean active) throws SQLException {
+        String sql = "UPDATE Brand SET Status = ? WHERE ID = ?";
         try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, id);
+            statement.setString(1, active ? "ACTIVE" : "INACTIVE");
+            statement.setInt(2, id);
             statement.executeUpdate();
         }
     }
