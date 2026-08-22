@@ -30,7 +30,7 @@ public class CheckoutDAO {
 
                 insertDeliveryInfo(connection, deliveryInfoId, userId, info);
                 insertTransaction(connection, transactionId, userId, total - discountAmount,
-                        method, status, paid, deliveryInfoId, voucherId);
+                        method, status, deliveryInfoId, voucherId);
                 insertOrderItems(connection, transactionId, items);
                 if (reduceStockAndClearCart) {
                     reduceStock(connection, items);
@@ -94,7 +94,7 @@ public class CheckoutDAO {
 
     public void markOnlinePaymentFailed(int transactionId) throws SQLException {
         String sql = "UPDATE `Transaction` "
-                + "SET Status = 'CANCELLED', Paid_amount = 0, Updated_at = CURRENT_TIMESTAMP "
+                + "SET Status = 'CANCELLED', Updated_at = CURRENT_TIMESTAMP "
                 + "WHERE ID = ? AND Method = 'VNPAY' AND Status = 'PENDING'";
         try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, transactionId);
@@ -118,25 +118,24 @@ public class CheckoutDAO {
     }
 
     private void insertTransaction(Connection connection, int id, int userId,
-            int total, String method, String status, boolean paid,
+            int total, String method, String status,
             int deliveryInfoId, Integer voucherId) throws SQLException {
         String sql = "INSERT INTO `Transaction` "
-                + "(ID, UserID, Total_price, Type, Status, SupplierID, Paid_amount, "
-                + "Change_amount, Method, Updated_by, Reference_transactionID, DeliveryInfoID, VoucherID) "
-                + "VALUES (?, ?, ?, 'ORDER', ?, NULL, ?, 0, ?, ?, NULL, ?, ?)";
+                + "(ID, UserID, Total_price, Type, Status, SupplierID, "
+                + "Method, Updated_by, Reference_transactionID, DeliveryInfoID, VoucherID) "
+                + "VALUES (?, ?, ?, 'ORDER', ?, NULL, ?, ?, NULL, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, id);
             statement.setInt(2, userId);
             statement.setBigDecimal(3, BigDecimal.valueOf(total));
             statement.setString(4, status);
-            statement.setBigDecimal(5, paid ? BigDecimal.valueOf(total) : BigDecimal.ZERO);
-            statement.setString(6, method);
-            statement.setInt(7, userId);
-            statement.setInt(8, deliveryInfoId);
+            statement.setString(5, method);
+            statement.setInt(6, userId);
+            statement.setInt(7, deliveryInfoId);
             if (voucherId != null) {
-                statement.setInt(9, voucherId);
+                statement.setInt(8, voucherId);
             } else {
-                statement.setNull(9, java.sql.Types.INTEGER);
+                statement.setNull(8, java.sql.Types.INTEGER);
             }
             statement.executeUpdate();
         }
@@ -178,7 +177,7 @@ public class CheckoutDAO {
     private boolean markPaid(Connection connection, int transactionId)
             throws SQLException {
         String sql = "UPDATE `Transaction` "
-                + "SET Status = 'PAID', Paid_amount = Total_price, Updated_at = CURRENT_TIMESTAMP "
+                + "SET Status = 'PAID', Updated_at = CURRENT_TIMESTAMP "
                 + "WHERE ID = ? AND Method = 'VNPAY' AND Status = 'PENDING'";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, transactionId);
