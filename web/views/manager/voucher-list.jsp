@@ -147,6 +147,14 @@
                                                     </button>
                                                 </form>
                                             </c:if>
+                                            
+                                            <form action="${pageContext.request.contextPath}/manager/vouchers" method="post" class="d-inline form-delete-voucher">
+                                                <input type="hidden" name="action" value="delete">
+                                                <input type="hidden" name="id" value="${v.id}">
+                                                <button type="button" class="btn danger btn-delete-voucher">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>
@@ -338,6 +346,28 @@
                             confirmButtonColor: actionColor,
                             cancelButtonColor: '#6c757d',
                             confirmButtonText: 'Yes, ' + actionType.toLowerCase() + ' it!'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                form.submit();
+                            }
+                        });
+                    });
+                });
+
+                const deleteButtons = document.querySelectorAll('.btn-delete-voucher');
+                deleteButtons.forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const form = this.closest('.form-delete-voucher');
+                        
+                        Swal.fire({
+                            title: 'Delete Voucher?',
+                            text: "Are you sure you want to permanently delete this voucher? This action cannot be undone.",
+                            icon: 'error',
+                            showCancelButton: true,
+                            confirmButtonColor: '#d33',
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: 'Yes, delete it!'
                         }).then((result) => {
                             if (result.isConfirmed) {
                                 form.submit();

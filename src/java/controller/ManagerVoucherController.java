@@ -75,6 +75,9 @@ public class ManagerVoucherController extends HttpServlet {
                 case "toggleStatus":
                     toggleStatus(request, response);
                     break;
+                case "delete":
+                    deleteVoucher(request, response);
+                    break;
                 default:
                     response.sendRedirect(request.getContextPath() + "/manager/vouchers");
             }
@@ -128,6 +131,16 @@ public class ManagerVoucherController extends HttpServlet {
             request.getSession().setAttribute("message", "Voucher status updated.");
         } else {
             request.getSession().setAttribute("error", "Failed to update status.");
+        }
+        response.sendRedirect(request.getContextPath() + "/manager/vouchers");
+    }
+
+    private void deleteVoucher(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        int id = Integer.parseInt(request.getParameter("id"));
+        if (voucherDAO.delete(id)) {
+            request.getSession().setAttribute("message", "Voucher deleted successfully.");
+        } else {
+            request.getSession().setAttribute("error", "Failed to delete voucher.");
         }
         response.sendRedirect(request.getContextPath() + "/manager/vouchers");
     }

@@ -25,6 +25,11 @@ public class OrderDAO {
     private static final int MAX_SEARCH_LENGTH = 100;
 
     public List<OrderModel> findOrders(String keyword, String status, String type,
+            String sort, boolean excludeImport) throws SQLException {
+        return findOrders(keyword, status, type, sort, excludeImport, 0, Integer.MAX_VALUE);
+    }
+
+    public List<OrderModel> findOrders(String keyword, String status, String type,
             String sort, boolean excludeImport, int offset, int limit)
             throws SQLException {
 
@@ -186,6 +191,10 @@ public class OrderDAO {
             }
         }
         return orders;
+    }
+
+    public List<OrderModel> findDeliveredOrdersByShipper(int shipperId) throws SQLException {
+        return findDeliveredOrdersByShipper(shipperId, 0, Integer.MAX_VALUE);
     }
 
     public List<OrderModel> findDeliveredOrdersByShipper(int shipperId, int offset, int limit) throws SQLException {

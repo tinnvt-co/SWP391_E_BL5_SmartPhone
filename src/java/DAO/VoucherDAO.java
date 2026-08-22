@@ -255,6 +255,25 @@ public class VoucherDAO {
     }
 
     // =========================
+    // DELETE VOUCHER
+    // =========================
+    public boolean delete(int id) {
+        String sql = "DELETE FROM Voucher WHERE ID = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    // =========================
     // SAVE VOUCHER FOR USER
     // =========================
     public boolean saveVoucherForUser(int userId, int voucherId) {

@@ -368,6 +368,10 @@ public class UserDAO {
         }
     }
 
+    public List<UserModel> findAll() throws SQLException {
+        return findAll(0, Integer.MAX_VALUE);
+    }
+
     public List<UserModel> findAll(int offset, int limit) throws SQLException {
         String sql = "SELECT u.ID, u.Username, u.Name, u.Phone, u.Address, u.Image, u.Age, "
                 + "u.Email, u.RoleID, u.Status, r.Name AS RoleName "
