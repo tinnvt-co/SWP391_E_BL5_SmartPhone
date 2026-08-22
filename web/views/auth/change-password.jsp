@@ -71,9 +71,6 @@
                                 <a href="${pageContext.request.contextPath}/wishlist">
                                     <i class="bi bi-heart"></i> Wishlist
                                 </a>
-                                <a href="${pageContext.request.contextPath}/checkout">
-                                    <i class="bi bi-bag-check"></i> Checkout
-                                </a>
                             </c:if>
                             <c:if test="${fn:toLowerCase(currentRole) == 'shipper'}">
                                 <a href="${pageContext.request.contextPath}/shipper/orders">

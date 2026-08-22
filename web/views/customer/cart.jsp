@@ -62,9 +62,6 @@
                             <a class="active" href="${pageContext.request.contextPath}/cart">
                                 <i class="bi bi-bag"></i> Cart
                             </a>
-                            <a href="${pageContext.request.contextPath}/checkout">
-                                <i class="bi bi-bag-check"></i> Checkout
-                            </a>
                             <a href="${pageContext.request.contextPath}/change-password">
                                 <i class="bi bi-shield-lock"></i> Change Password
                             </a>
@@ -108,7 +105,7 @@
                                 </label>
                                 <span class="text-muted" data-selected-count>${cartItems.size()} sản phẩm đã chọn</span>
                             </div>
-                            <form id="cartCheckoutForm" action="${pageContext.request.contextPath}/checkout" method="get"></form>
+                            <form id="cartCheckoutForm" action="${pageContext.request.contextPath}/cart" method="get"></form>
                             <c:forEach items="${cartItems}" var="item">
                                 <div class="cart-item" data-cart-row data-unit-price="${item.finalPrice}" data-original-price="${item.sellingPrice}" data-discount="${item.discount}">
                                     <input class="cart-check cart-item-check" type="checkbox" name="variantId" value="${item.productVariantId}" checked form="cartCheckoutForm" aria-label="Select ${item.productName}">
@@ -163,7 +160,7 @@
                     </c:choose>
 
                     <section class="checkout-inline" id="cartCheckoutDetails" hidden>
-                        <form id="checkoutDeliveryForm" action="${pageContext.request.contextPath}/checkout" method="get">
+                        <form id="checkoutDeliveryForm" action="${pageContext.request.contextPath}/cart" method="get">
                             <input type="hidden" name="checkoutAction" value="placeOrder">
                             <div class="checkout-inline-header">
                                 <div>

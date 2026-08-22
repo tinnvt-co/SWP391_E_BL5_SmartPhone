@@ -75,7 +75,6 @@ public class AuthFilter implements Filter {
             rule("/wishlist", perms("WISHLIST_MANAGE")),
             rule("/cart", perms("CHECKOUT")),
             rule("/feedback", perms("FEEDBACK_SEND", "FEEDBACK_VIEW", "FEEDBACK_REPLY")),
-            rule("/checkout", perms("CHECKOUT")),
             rule("/order-history", perms("ORDER_HISTORY_VIEW")),
             rule("/customer/orders", perms("ORDER_HISTORY_VIEW")),
             rule("/customer/order-detail", perms("ORDER_HISTORY_VIEW")),
@@ -99,7 +98,6 @@ public class AuthFilter implements Filter {
 
     private static final List<String> CUSTOMER_PATHS = List.of(
             "/cart",
-            "/checkout",
             "/wishlist",
             "/order-history",
             "/customer",
