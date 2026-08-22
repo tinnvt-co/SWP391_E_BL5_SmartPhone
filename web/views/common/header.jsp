@@ -76,10 +76,7 @@
                         </a>
                     </c:if>
 
-                    <c:if test="${currentRole ne 'Admin' and currentRole ne 'ADMIN' and currentRole ne 'Shipper' and currentRole ne 'SHIPPER' and currentRole ne 'Staff' and currentRole ne 'STAFF'}">
-                        <button class="swp-layout-icon-btn" type="button" title="Search">
-                            <i class="bi bi-search"></i>
-                        </button>
+                    <c:if test="${currentRole ne 'Admin' and currentRole ne 'ADMIN' and currentRole ne 'Shipper' and currentRole ne 'SHIPPER' and currentRole ne 'Staff' and currentRole ne 'STAFF' and currentRole ne 'Manager' and currentRole ne 'MANAGER'}">
                         <c:if test="${empty currentUser || currentRole == 'Customer'}">
                             <a class="swp-layout-icon-btn ${activePage == 'wishlist' ? 'is-active' : ''}"
                                href="${pageContext.request.contextPath}/wishlist" title="Wishlist">
@@ -129,13 +126,6 @@
                             </a>
                         </c:otherwise>
                     </c:choose>
-
-                    <c:if test="${currentRole ne 'Admin' and currentRole ne 'ADMIN' and currentRole ne 'Shipper' and currentRole ne 'SHIPPER' and currentRole ne 'Staff' and currentRole ne 'STAFF'}">
-                        <a class="swp-layout-action swp-layout-action-primary"
-                           href="${pageContext.request.contextPath}/products">
-                            <i class="bi bi-grid"></i> Shop
-                        </a>
-                    </c:if>
                 </div>
             </div>
         </div>

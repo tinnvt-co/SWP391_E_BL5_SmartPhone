@@ -167,12 +167,12 @@
                     <b>Open order queue <span>→</span></b>
                 </a>
 
-                <a class="manager-module stats-module" href="${pageContext.request.contextPath}/manager/sales-stats">
+                <a class="manager-module stats-module" href="${pageContext.request.contextPath}/manager/business-overview">
                     <span class="module-icon">📊</span>
-                    <span class="module-count">12 month view</span>
-                    <h3>Sales Statistics</h3>
-                    <p>Compare revenue, orders and items sold across 7 days, 30 days, month, 90 days or 12 months.</p>
-                    <b>Open sales stats <span>→</span></b>
+                    <span class="module-count">Overview</span>
+                    <h3>Business Overview</h3>
+                    <p>Complete sales & revenue analysis with brand comparison charts, top products and profit breakdown.</p>
+                    <b>Open business overview <span>→</span></b>
                 </a>
 
                 <a class="manager-module feedback-module" href="${pageContext.request.contextPath}/manager/feedback">
@@ -205,14 +205,6 @@
                     <h3>Refund Requests</h3>
                     <p>Approve or reject customer refund requests for delivered orders and view attached evidence.</p>
                     <b>Open refund queue <span>→</span></b>
-                </a>
-
-                <a class="manager-module revenue-module" href="${pageContext.request.contextPath}/manager/revenue">
-                    <span class="module-icon">💰</span>
-                    <span class="module-count">live today</span>
-                    <h3>Revenue Dashboard</h3>
-                    <p>Track today's revenue, hourly performance, top products, brands and channels in real time.</p>
-                    <b>Open revenue dashboard <span>→</span></b>
                 </a>
             </section>
 
@@ -295,7 +287,7 @@
                             <h3>Top Sellers (30d)</h3>
                             <p>Best 5 variants by quantity sold</p>
                         </div>
-                        <a class="btn subtle" href="${pageContext.request.contextPath}/manager/sales-stats?range=30">View stats →</a>
+                        <a class="btn subtle" href="${pageContext.request.contextPath}/manager/business-overview?range=30d">View stats →</a>
                     </header>
                     <c:choose>
                         <c:when test="${empty topProducts}">
