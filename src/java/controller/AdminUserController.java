@@ -19,6 +19,8 @@ public class AdminUserController extends HttpServlet {
     private final UserDAO userDAO = new UserDAO();
     private final RoleDAO roleDAO = new RoleDAO();
 
+    private static final int PAGE_SIZE = 10;
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -34,8 +36,31 @@ public class AdminUserController extends HttpServlet {
         }
 
         try {
-            List<UserModel> users = userDAO.findAll();
+            int page = 1;
+            String pageParam = request.getParameter("page");
+            if (pageParam != null && !pageParam.isEmpty()) {
+                try {
+                    page = Integer.parseInt(pageParam);
+                    if (page < 1) page = 1;
+                } catch (NumberFormatException e) {
+                    page = 1;
+                }
+            }
+            
+            int totalItems = userDAO.countAll();
+            int totalPages = (int) Math.ceil((double) totalItems / PAGE_SIZE);
+            
+            if (page > totalPages && totalPages > 0) {
+                page = totalPages;
+            }
+            
+            int offset = (page - 1) * PAGE_SIZE;
+            
+            List<UserModel> users = userDAO.findAll(offset, PAGE_SIZE);
+            
             request.setAttribute("users", users);
+            request.setAttribute("currentPage", page);
+            request.setAttribute("totalPages", totalPages);
             request.getRequestDispatcher("/views/admin/user-list.jsp").forward(request, response);
         } catch (SQLException ex) {
             throw new ServletException(ex);

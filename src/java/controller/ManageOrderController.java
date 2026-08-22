@@ -48,9 +48,32 @@ public class ManageOrderController extends HttpServlet {
             request.setAttribute("orders", java.util.Collections.emptyList());
             request.setAttribute("validationError", validationError);
         } else {
+            int page = 1;
+            String pageParam = request.getParameter("page");
+            if (pageParam != null && !pageParam.isEmpty()) {
+                try {
+                    page = Integer.parseInt(pageParam);
+                    if (page < 1) page = 1;
+                } catch (NumberFormatException e) {
+                    page = 1;
+                }
+            }
+            
+            int pageSize = 10;
             boolean excludeImport = "ORDER".equals(type);
+            int totalItems = orderDAO.countOrders(keyword, status, type, excludeImport);
+            int totalPages = (int) Math.ceil((double) totalItems / pageSize);
+            
+            if (page > totalPages && totalPages > 0) {
+                page = totalPages;
+            }
+            
+            int offset = (page - 1) * pageSize;
+            
             request.setAttribute("orders",
-                    orderDAO.findOrders(keyword, status, type, sort, excludeImport));
+                    orderDAO.findOrders(keyword, status, type, sort, excludeImport, offset, pageSize));
+            request.setAttribute("currentPage", page);
+            request.setAttribute("totalPages", totalPages);
         }
 
         request.setAttribute("statuses", orderDAO.findAllStatuses());

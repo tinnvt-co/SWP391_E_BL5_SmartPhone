@@ -162,6 +162,26 @@
                             </c:if>
                         </tbody>
                     </table>
+                    
+                    <c:if test="${totalPages > 1}">
+                        <div class="d-flex justify-content-center mt-4">
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination">
+                                    <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                                        <a class="page-link" href="?page=${currentPage - 1}&search=${param.search != null ? param.search : ''}">Previous</a>
+                                    </li>
+                                    <c:forEach begin="1" end="${totalPages}" var="p">
+                                        <li class="page-item ${currentPage == p ? 'active' : ''}">
+                                            <a class="page-link" href="?page=${p}&search=${param.search != null ? param.search : ''}">${p}</a>
+                                        </li>
+                                    </c:forEach>
+                                    <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                        <a class="page-link" href="?page=${currentPage + 1}&search=${param.search != null ? param.search : ''}">Next</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </c:if>
                 </div>
             </section>
         </main>

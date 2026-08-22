@@ -38,6 +38,26 @@
                                 </tr>
                             </c:forEach>
                         </tbody></table></div>
+                
+                <c:if test="${totalPages > 1}">
+                    <div class="d-flex justify-content-center mt-4 mb-2">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination">
+                                <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                                    <a class="page-link" href="?page=${currentPage - 1}&q=${param.q != null ? param.q : ''}&status=${param.status != null ? param.status : ''}&type=${param.type != null ? param.type : ''}&sort=${param.sort != null ? param.sort : ''}">Previous</a>
+                                </li>
+                                <c:forEach begin="1" end="${totalPages}" var="p">
+                                    <li class="page-item ${currentPage == p ? 'active' : ''}">
+                                        <a class="page-link" href="?page=${p}&q=${param.q != null ? param.q : ''}&status=${param.status != null ? param.status : ''}&type=${param.type != null ? param.type : ''}&sort=${param.sort != null ? param.sort : ''}">${p}</a>
+                                    </li>
+                                </c:forEach>
+                                <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                    <a class="page-link" href="?page=${currentPage + 1}&q=${param.q != null ? param.q : ''}&status=${param.status != null ? param.status : ''}&type=${param.type != null ? param.type : ''}&sort=${param.sort != null ? param.sort : ''}">Next</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </c:if>
                 <c:if test="${empty orders}"><div class="order-empty"><h2>No orders found</h2><p>Try changing your filters or clearing the search keyword.</p></div></c:if>
                 </section>
             </main>

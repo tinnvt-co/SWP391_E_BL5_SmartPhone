@@ -48,7 +48,29 @@ public class ShipperOrderController extends HttpServlet {
 
             List<OrderModel> assignedOrders = orderDAO.findShippingOrdersByShipper(currentUser.getId());
             List<OrderModel> availableOrders = orderDAO.findAvailableShippingOrders();
-            List<OrderModel> deliveredOrders = orderDAO.findDeliveredOrdersByShipper(currentUser.getId());
+
+            int page = 1;
+            String pageParam = request.getParameter("page");
+            if (pageParam != null && !pageParam.isEmpty()) {
+                try {
+                    page = Integer.parseInt(pageParam);
+                    if (page < 1) page = 1;
+                } catch (NumberFormatException e) {
+                    page = 1;
+                }
+            }
+            
+            int pageSize = 10;
+            int totalDelivered = orderDAO.countDeliveredOrdersByShipper(currentUser.getId());
+            int totalPages = (int) Math.ceil((double) totalDelivered / pageSize);
+            
+            if (page > totalPages && totalPages > 0) {
+                page = totalPages;
+            }
+            
+            int offset = (page - 1) * pageSize;
+
+            List<OrderModel> deliveredOrders = orderDAO.findDeliveredOrdersByShipper(currentUser.getId(), offset, pageSize);
             hydrateItems(assignedOrders);
             hydrateItems(availableOrders);
             hydrateItems(deliveredOrders);
@@ -56,6 +78,8 @@ public class ShipperOrderController extends HttpServlet {
             request.setAttribute("orders", assignedOrders);
             request.setAttribute("availableOrders", availableOrders);
             request.setAttribute("deliveredOrders", deliveredOrders);
+            request.setAttribute("currentPage", page);
+            request.setAttribute("totalPages", totalPages);
 
             request.getRequestDispatcher("/views/shipper/delivery-order-list.jsp").forward(request, response);
         } catch (SQLException ex) {

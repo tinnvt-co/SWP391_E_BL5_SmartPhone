@@ -19,12 +19,39 @@ public class ManagerVoucherController extends HttpServlet {
 
     private final VoucherDAO voucherDAO = new VoucherDAO();
 
+    private static final int PAGE_SIZE = 10;
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String keyword = request.getParameter("search");
-        List<VoucherModel> vouchers = voucherDAO.findAll(keyword);
+        
+        int page = 1;
+        String pageParam = request.getParameter("page");
+        if (pageParam != null && !pageParam.isEmpty()) {
+            try {
+                page = Integer.parseInt(pageParam);
+                if (page < 1) page = 1;
+            } catch (NumberFormatException e) {
+                page = 1;
+            }
+        }
+        
+        int offset = (page - 1) * PAGE_SIZE;
+        int totalItems = voucherDAO.countAll(keyword);
+        int totalPages = (int) Math.ceil((double) totalItems / PAGE_SIZE);
+        
+        if (page > totalPages && totalPages > 0) {
+            page = totalPages;
+            offset = (page - 1) * PAGE_SIZE;
+        }
+
+        List<VoucherModel> vouchers = voucherDAO.findAll(keyword, offset, PAGE_SIZE);
+        
         request.setAttribute("vouchers", vouchers);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("keyword", keyword == null ? "" : keyword);
         request.getRequestDispatcher("/views/manager/voucher-list.jsp").forward(request, response);
     }
 

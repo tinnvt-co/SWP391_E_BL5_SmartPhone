@@ -368,20 +368,35 @@ public class UserDAO {
         }
     }
 
-    public List<UserModel> findAll() throws SQLException {
+    public List<UserModel> findAll(int offset, int limit) throws SQLException {
         String sql = "SELECT u.ID, u.Username, u.Name, u.Phone, u.Address, u.Image, u.Age, "
                 + "u.Email, u.RoleID, u.Status, r.Name AS RoleName "
                 + "FROM `User` u "
                 + "JOIN `Role` r ON u.RoleID = r.ID "
-                + "ORDER BY u.ID DESC";
+                + "ORDER BY u.ID DESC "
+                + "LIMIT ? OFFSET ?";
 
         List<UserModel> list = new ArrayList<>();
-        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                list.add(mapUser(rs));
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, limit);
+            ps.setInt(2, offset);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapUser(rs));
+                }
             }
         }
         return list;
+    }
+
+    public int countAll() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM `User`";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        return 0;
     }
 
     public boolean updateStatus(int userId, String status) throws SQLException {

@@ -25,7 +25,7 @@ public class OrderDAO {
     private static final int MAX_SEARCH_LENGTH = 100;
 
     public List<OrderModel> findOrders(String keyword, String status, String type,
-            String sort, boolean excludeImport)
+            String sort, boolean excludeImport, int offset, int limit)
             throws SQLException {
 
         StringBuilder sql = new StringBuilder()
@@ -76,6 +76,10 @@ public class OrderDAO {
             default:
                 sql.append("ORDER BY t.Created_at DESC, t.ID DESC ");
         }
+        
+        sql.append("LIMIT ? OFFSET ? ");
+        params.add(limit);
+        params.add(offset);
 
         List<OrderModel> orders = new ArrayList<>();
         try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql.toString())) {
@@ -89,6 +93,44 @@ public class OrderDAO {
             }
         }
         return orders;
+    }
+
+    public int countOrders(String keyword, String status, String type, boolean excludeImport) throws SQLException {
+        StringBuilder sql = new StringBuilder()
+                .append("SELECT COUNT(*) ")
+                .append("FROM `Transaction` t ")
+                .append("JOIN `User` u   ON t.UserID = u.ID ")
+                .append("WHERE 1 = 1 ");
+
+        List<Object> params = new ArrayList<>();
+        String normalized = normalizeKeyword(keyword);
+        if (!normalized.isEmpty()) {
+            sql.append("AND (u.Name LIKE ? OR u.Username LIKE ? OR CAST(t.ID AS CHAR) LIKE ?) ");
+            String like = "%" + normalized + "%";
+            params.add(like);
+            params.add(like);
+            params.add(like);
+        }
+        if (status != null && !status.isBlank() && VALID_STATUSES.contains(status)) {
+            sql.append("AND t.Status = ? ");
+            params.add(status);
+        }
+        if (type != null && !type.isBlank() && VALID_TYPES.contains(type)) {
+            sql.append("AND t.Type = ? ");
+            params.add(type);
+        } else if (excludeImport) {
+            sql.append("AND t.Type = 'ORDER' ");
+        }
+
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                statement.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = statement.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        }
+        return 0;
     }
 
     public List<OrderModel> findAvailableShippingOrders() throws SQLException {
@@ -146,7 +188,7 @@ public class OrderDAO {
         return orders;
     }
 
-    public List<OrderModel> findDeliveredOrdersByShipper(int shipperId) throws SQLException {
+    public List<OrderModel> findDeliveredOrdersByShipper(int shipperId, int offset, int limit) throws SQLException {
         String sql = "SELECT t.ID, t.UserID, t.Total_price, t.Type, t.Status, "
                 + "       t.Method, "
                 + "       t.Updated_by, t.Updated_at, t.Created_at, t.Note, t.Proof_image, "
@@ -160,11 +202,14 @@ public class OrderDAO {
                 + "LEFT JOIN `User` upd ON t.Updated_by = upd.ID "
                 + "LEFT JOIN DeliveryInfo d ON t.DeliveryInfoID = d.ID "
                 + "WHERE t.Status IN ('DELIVERED', 'COMPLETED') AND t.Type = 'ORDER' AND t.ShipperID = ? "
-                + "ORDER BY t.Updated_at DESC, t.ID DESC";
+                + "ORDER BY t.Updated_at DESC, t.ID DESC "
+                + "LIMIT ? OFFSET ?";
 
         List<OrderModel> orders = new ArrayList<>();
         try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, shipperId);
+            statement.setInt(2, limit);
+            statement.setInt(3, offset);
             try (ResultSet rs = statement.executeQuery()) {
                 while (rs.next()) {
                     orders.add(mapOrderDetail(rs));
@@ -172,6 +217,18 @@ public class OrderDAO {
             }
         }
         return orders;
+    }
+
+    public int countDeliveredOrdersByShipper(int shipperId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM `Transaction` "
+                   + "WHERE Status IN ('DELIVERED', 'COMPLETED') AND Type = 'ORDER' AND ShipperID = ?";
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, shipperId);
+            try (ResultSet rs = statement.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        }
+        return 0;
     }
 
     public OrderModel findOrderDetail(int id) throws SQLException {

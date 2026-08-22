@@ -41,13 +41,15 @@ public class VoucherDAO {
     // =========================
     // GET ALL VOUCHERS
     // =========================
-    public List<VoucherModel> findAll(String keyword) {
+    public List<VoucherModel> findAll(String keyword, int offset, int limit) {
         List<VoucherModel> list = new ArrayList<>();
-        String sql = "SELECT * FROM Voucher WHERE Code LIKE ? ORDER BY Created_at DESC";
+        String sql = "SELECT * FROM Voucher WHERE Code LIKE ? ORDER BY Created_at DESC LIMIT ? OFFSET ?";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, "%" + (keyword == null ? "" : keyword) + "%");
+            ps.setInt(2, limit);
+            ps.setInt(3, offset);
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -62,23 +64,43 @@ public class VoucherDAO {
         return list;
     }
 
+    public int countAll(String keyword) {
+        String sql = "SELECT COUNT(*) FROM Voucher WHERE Code LIKE ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, "%" + (keyword == null ? "" : keyword) + "%");
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
     // =========================
     // GET ACTIVE VOUCHERS
     // =========================
     public List<VoucherModel> findActiveVouchers() {
         List<VoucherModel> list = new ArrayList<>();
         String sql = "SELECT * FROM Voucher WHERE Status = 'ACTIVE' " +
-                     "AND Start_date <= NOW() AND End_date >= NOW() " +
+                     "AND Start_date <= ? AND End_date >= ? " +
                      "AND (Usage_limit IS NULL OR Used_count < Usage_limit) " +
                      "ORDER BY Created_at DESC";
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+             
+            java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
+            ps.setTimestamp(1, now);
+            ps.setTimestamp(2, now);
 
-            while (rs.next()) {
-                list.add(mapVoucher(rs));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapVoucher(rs));
+                }
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
