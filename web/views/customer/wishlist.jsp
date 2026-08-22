@@ -62,9 +62,6 @@
                             <a href="${pageContext.request.contextPath}/cart">
                                 <i class="bi bi-bag"></i> Cart
                             </a>
-                            <a href="${pageContext.request.contextPath}/checkout">
-                                <i class="bi bi-bag-check"></i> Checkout
-                            </a>
                             <a href="${pageContext.request.contextPath}/change-password">
                                 <i class="bi bi-shield-lock"></i> Change Password
                             </a>
