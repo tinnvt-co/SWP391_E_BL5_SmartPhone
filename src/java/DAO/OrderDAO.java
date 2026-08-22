@@ -334,6 +334,19 @@ public class OrderDAO {
         }
     }
 
+    public int countCompletedOrders(Timestamp from, Timestamp to) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM `Transaction` "
+                + "WHERE Type = 'ORDER' AND Status = 'COMPLETED' "
+                + "AND Created_at BETWEEN ? AND ?";
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setTimestamp(1, from);
+            statement.setTimestamp(2, to);
+            try (ResultSet rs = statement.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+        }
+    }
+
     public BigDecimal totalRevenue() throws SQLException {
         String sql = "SELECT COALESCE(SUM(Total_price), 0) FROM `Transaction` "
                 + "WHERE Type = 'ORDER' AND Status IN ('SHIPPING','DELIVERED','COMPLETED')";

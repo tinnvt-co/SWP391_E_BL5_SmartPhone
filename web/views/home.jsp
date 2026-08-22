@@ -221,7 +221,9 @@
                         <c:forEach var="product" items="${featuredProducts}">
                             <a class="product-card home-feature-card" href="${pageContext.request.contextPath}/products?action=detail&id=${product.id}">
                                 <div class="product-visual">
-                                    <span class="product-heart"><i class="bi bi-heart"></i></span>
+                                    <c:if test="${currentRole ne 'Admin' and currentRole ne 'ADMIN' and currentRole ne 'Shipper' and currentRole ne 'SHIPPER' and currentRole ne 'Staff' and currentRole ne 'STAFF' and currentRole ne 'Manager' and currentRole ne 'MANAGER'}">
+                                        <span class="product-heart"><i class="bi bi-heart"></i></span>
+                                    </c:if>
                                     <span class="product-label">H&agrave;ng ch&iacute;nh h&atilde;ng</span>
                                     <c:if test="${product.hasDiscount()}">
                                         <span class="discount-badge">-${product.discountPercent}%</span>
@@ -266,7 +268,9 @@
                                         <div class="price">
                                             <fmt:formatNumber value="${not empty product.variants ? (product.variants[0].sellingPrice - (product.variants[0].sellingPrice * product.discount / 100)) : product.finalPrice}" type="number" maxFractionDigits="0"/> &#273;
                                         </div>
-                                        <span class="home-cart-icon"><i class="bi bi-cart3"></i></span>
+                                        <c:if test="${currentRole ne 'Admin' and currentRole ne 'ADMIN' and currentRole ne 'Shipper' and currentRole ne 'SHIPPER' and currentRole ne 'Staff' and currentRole ne 'STAFF' and currentRole ne 'Manager' and currentRole ne 'MANAGER'}">
+                                            <span class="home-cart-icon"><i class="bi bi-cart3"></i></span>
+                                        </c:if>
                                     </div>
                                     <c:if test="${product.hasDiscount()}">
                                         <div class="old-price-row">

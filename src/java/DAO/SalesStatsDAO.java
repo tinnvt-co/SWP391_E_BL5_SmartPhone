@@ -1,6 +1,7 @@
 package DAO;
 
 import config.DBContext;
+import model.BrandProfitModel;
 import model.ChannelSlice;
 import model.SalesStatsModel;
 import model.TopBrandModel;
@@ -16,6 +17,216 @@ import java.util.List;
 
 public class SalesStatsDAO {
 
+    public List<BrandProfitModel> getBrandProfitByMonth(java.sql.Timestamp from, java.sql.Timestamp to) throws SQLException {
+        // Query: profit by brand by month
+        // Revenue: from COMPLETED orders (Type = 'ORDER')
+        // Capital: from COMPLETED import transactions (Type = 'IMPORT')
+        // Refund: from APPROVED return requests (full refund amount from items)
+        String sql = """
+            SELECT 
+                MonthKey AS Month,
+                BrandID,
+                BrandName,
+                SUM(SoldQty) AS SoldQuantity,
+                SUM(Revenue) AS Revenue,
+                SUM(Capital) AS Capital,
+                SUM(Refund) AS Refund,
+                SUM(Revenue) - SUM(Capital) - SUM(Refund) AS Profit
+            FROM (
+                -- Sales (ORDER transactions)
+                SELECT 
+                    DATE_FORMAT(t.Created_at, '%Y-%m') AS MonthKey,
+                    b.ID AS BrandID,
+                    b.Name AS BrandName,
+                    COALESCE(SUM(tp.Amount), 0) AS SoldQty,
+                    COALESCE(SUM(tp.Total), 0) AS Revenue,
+                    0 AS Capital,
+                    0 AS Refund
+                FROM `Transaction` t
+                JOIN Transaction_ProductVariant tp ON tp.TransactionID = t.ID
+                JOIN ProductVariant pv ON pv.ID = tp.ProductVariantID
+                JOIN Product p ON p.ID = pv.ProductID
+                JOIN Brand b ON b.ID = p.BrandID
+                WHERE t.Type = 'ORDER' 
+                AND t.Status = 'COMPLETED'
+                AND t.Created_at BETWEEN ? AND ?
+                GROUP BY DATE_FORMAT(t.Created_at, '%Y-%m'), b.ID, b.Name
+                
+                UNION ALL
+                
+                -- Capital (IMPORT transactions)
+                SELECT 
+                    DATE_FORMAT(t.Created_at, '%Y-%m') AS MonthKey,
+                    b.ID AS BrandID,
+                    b.Name AS BrandName,
+                    0 AS SoldQty,
+                    0 AS Revenue,
+                    COALESCE(SUM(tp.UnitPrice * tp.Amount), 0) AS Capital,
+                    0 AS Refund
+                FROM `Transaction` t
+                JOIN Transaction_ProductVariant tp ON tp.TransactionID = t.ID
+                JOIN ProductVariant pv ON pv.ID = tp.ProductVariantID
+                JOIN Product p ON p.ID = pv.ProductID
+                JOIN Brand b ON b.ID = p.BrandID
+                WHERE t.Type = 'IMPORT' AND t.Status = 'COMPLETED'
+                AND t.Created_at BETWEEN ? AND ?
+                GROUP BY DATE_FORMAT(t.Created_at, '%Y-%m'), b.ID, b.Name
+                
+                UNION ALL
+                
+                -- Refund (APPROVED return requests - full refund amount from Transaction_ProductVariant)
+                SELECT 
+                    DATE_FORMAT(t.Created_at, '%Y-%m') AS MonthKey,
+                    b.ID AS BrandID,
+                    b.Name AS BrandName,
+                    0 AS SoldQty,
+                    0 AS Revenue,
+                    0 AS Capital,
+                    COALESCE(SUM(tp.Total), 0) AS Refund
+                FROM `ReturnRequest` r
+                JOIN `Transaction` t ON t.ID = r.TransactionID
+                JOIN Transaction_ProductVariant tp ON tp.TransactionID = r.TransactionID 
+                    AND tp.ProductVariantID IN (SELECT ProductVariantID FROM ReturnRequest_ProductVariant WHERE ReturnRequestID = r.ID)
+                JOIN ProductVariant pv ON pv.ID = tp.ProductVariantID
+                JOIN Product p ON p.ID = pv.ProductID
+                JOIN Brand b ON b.ID = p.BrandID
+                WHERE r.Status = 'APPROVED'
+                AND t.Created_at BETWEEN ? AND ?
+                GROUP BY DATE_FORMAT(t.Created_at, '%Y-%m'), b.ID, b.Name
+            ) AS combined
+            GROUP BY MonthKey, BrandID, BrandName
+            ORDER BY MonthKey DESC, Profit DESC
+            """;
+
+        List<BrandProfitModel> list = new ArrayList<>();
+        try (Connection connection = DBContext.getConnection(); 
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setTimestamp(1, from);
+            statement.setTimestamp(2, to);
+            statement.setTimestamp(3, from);
+            statement.setTimestamp(4, to);
+            statement.setTimestamp(5, from);
+            statement.setTimestamp(6, to);
+            
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    BrandProfitModel m = new BrandProfitModel();
+                    m.setMonth(rs.getString("Month"));
+                    m.setBrandId(rs.getInt("BrandID"));
+                    m.setBrandName(rs.getString("BrandName"));
+                    m.setSoldQuantity(rs.getInt("SoldQuantity"));
+                    m.setRevenue(rs.getBigDecimal("Revenue"));
+                    m.setCapital(rs.getBigDecimal("Capital"));
+                    m.setRefund(rs.getBigDecimal("Refund"));
+                    m.setProfit(rs.getBigDecimal("Profit"));
+                    list.add(m);
+                }
+            }
+        }
+        return list;
+    }
+
+    public List<BrandProfitModel> getBrandProfitSummary(java.sql.Timestamp from, java.sql.Timestamp to) throws SQLException {
+        String sql = """
+            SELECT 
+                BrandID,
+                BrandName,
+                SUM(SoldQty) AS SoldQuantity,
+                SUM(Revenue) AS Revenue,
+                SUM(Capital) AS Capital,
+                SUM(Refund) AS Refund,
+                SUM(Revenue) - SUM(Capital) - SUM(Refund) AS Profit
+            FROM (
+                -- Sales (ORDER transactions)
+                SELECT 
+                    b.ID AS BrandID,
+                    b.Name AS BrandName,
+                    COALESCE(SUM(tp.Amount), 0) AS SoldQty,
+                    COALESCE(SUM(tp.Total), 0) AS Revenue,
+                    0 AS Capital,
+                    0 AS Refund
+                FROM `Transaction` t
+                JOIN Transaction_ProductVariant tp ON tp.TransactionID = t.ID
+                JOIN ProductVariant pv ON pv.ID = tp.ProductVariantID
+                JOIN Product p ON p.ID = pv.ProductID
+                JOIN Brand b ON b.ID = p.BrandID
+                WHERE t.Type = 'ORDER' 
+                AND t.Status = 'COMPLETED'
+                AND t.Created_at BETWEEN ? AND ?
+                GROUP BY b.ID, b.Name
+                
+                UNION ALL
+                
+                -- Capital (IMPORT transactions)
+                SELECT 
+                    b.ID AS BrandID,
+                    b.Name AS BrandName,
+                    0 AS SoldQty,
+                    0 AS Revenue,
+                    COALESCE(SUM(tp.UnitPrice * tp.Amount), 0) AS Capital,
+                    0 AS Refund
+                FROM `Transaction` t
+                JOIN Transaction_ProductVariant tp ON tp.TransactionID = t.ID
+                JOIN ProductVariant pv ON pv.ID = tp.ProductVariantID
+                JOIN Product p ON p.ID = pv.ProductID
+                JOIN Brand b ON b.ID = p.BrandID
+                WHERE t.Type = 'IMPORT' 
+                AND t.Status = 'COMPLETED'
+                AND t.Created_at BETWEEN ? AND ?
+                GROUP BY b.ID, b.Name
+                
+                UNION ALL
+                
+                -- Refund (APPROVED return requests - full refund amount)
+                SELECT 
+                    b.ID AS BrandID,
+                    b.Name AS BrandName,
+                    0 AS SoldQty,
+                    0 AS Revenue,
+                    0 AS Capital,
+                    COALESCE(SUM(tp.Total), 0) AS Refund
+                FROM `ReturnRequest` r
+                JOIN `Transaction` t ON t.ID = r.TransactionID
+                JOIN Transaction_ProductVariant tp ON tp.TransactionID = r.TransactionID 
+                    AND tp.ProductVariantID IN (SELECT ProductVariantID FROM ReturnRequest_ProductVariant WHERE ReturnRequestID = r.ID)
+                JOIN ProductVariant pv ON pv.ID = tp.ProductVariantID
+                JOIN Product p ON p.ID = pv.ProductID
+                JOIN Brand b ON b.ID = p.BrandID
+                WHERE r.Status = 'APPROVED'
+                AND t.Created_at BETWEEN ? AND ?
+                GROUP BY b.ID, b.Name
+            ) AS combined
+            GROUP BY BrandID, BrandName
+            ORDER BY Revenue DESC
+            """;
+
+        List<BrandProfitModel> list = new ArrayList<>();
+        try (Connection connection = DBContext.getConnection(); 
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setTimestamp(1, from);
+            statement.setTimestamp(2, to);
+            statement.setTimestamp(3, from);
+            statement.setTimestamp(4, to);
+            statement.setTimestamp(5, from);
+            statement.setTimestamp(6, to);
+            
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    BrandProfitModel m = new BrandProfitModel();
+                    m.setBrandId(rs.getInt("BrandID"));
+                    m.setBrandName(rs.getString("BrandName"));
+                    m.setSoldQuantity(rs.getInt("SoldQuantity"));
+                    m.setRevenue(rs.getBigDecimal("Revenue"));
+                    m.setCapital(rs.getBigDecimal("Capital"));
+                    m.setRefund(rs.getBigDecimal("Refund"));
+                    m.setProfit(rs.getBigDecimal("Profit"));
+                    list.add(m);
+                }
+            }
+        }
+        return list;
+    }
+
     public SalesStatsModel getOverview(java.sql.Timestamp from, java.sql.Timestamp to) throws SQLException {
         String sql = "SELECT "
                 + "  COALESCE(SUM(t.Total_price), 0) AS Revenue, "
@@ -25,7 +236,7 @@ public class SalesStatsDAO {
                 + "LEFT JOIN (SELECT TransactionID, SUM(Amount) AS SoldQty FROM Transaction_ProductVariant GROUP BY TransactionID) tp "
                 + "  ON tp.TransactionID = t.ID "
                 + "WHERE t.Type = 'ORDER' "
-                + "  AND t.Status NOT IN ('PENDING','CANCELLED','CANCEL_REQUESTED') "
+                + "  AND t.Status = 'COMPLETED' "
                 + "  AND t.Created_at BETWEEN ? AND ?";
 
         try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -53,7 +264,7 @@ public class SalesStatsDAO {
                 + "LEFT JOIN (SELECT TransactionID, SUM(Amount) AS SoldQty FROM Transaction_ProductVariant GROUP BY TransactionID) tp "
                 + "  ON tp.TransactionID = t.ID "
                 + "WHERE t.Type = 'ORDER' "
-                + "  AND t.Status NOT IN ('PENDING','CANCELLED','CANCEL_REQUESTED') "
+                + "  AND t.Status = 'COMPLETED' "
                 + "  AND t.Created_at BETWEEN ? AND ? "
                 + "GROUP BY DATE(t.Created_at) ORDER BY Day ASC";
 
@@ -85,7 +296,7 @@ public class SalesStatsDAO {
                 + "LEFT JOIN (SELECT TransactionID, SUM(Amount) AS SoldQty FROM Transaction_ProductVariant GROUP BY TransactionID) tp "
                 + "  ON tp.TransactionID = t.ID "
                 + "WHERE t.Type = 'ORDER' "
-                + "  AND t.Status NOT IN ('PENDING','CANCELLED','CANCEL_REQUESTED') "
+                + "  AND t.Status = 'COMPLETED' "
                 + "  AND t.Created_at BETWEEN ? AND ? "
                 + "GROUP BY DATE_FORMAT(t.Created_at, '%Y-%m') ORDER BY Month ASC";
 
@@ -119,7 +330,7 @@ public class SalesStatsDAO {
                 + "JOIN Product p ON p.ID = pv.ProductID "
                 + "LEFT JOIN Brand b ON b.ID = p.BrandID "
                 + "WHERE t.Type = 'ORDER' "
-                + "  AND t.Status NOT IN ('PENDING','CANCELLED','CANCEL_REQUESTED') "
+                + "  AND t.Status = 'COMPLETED' "
                 + "  AND t.Created_at BETWEEN ? AND ? "
                 + "GROUP BY p.ID, pv.ID, p.Name, pv.RAM_GB, pv.Storage_GB, pv.ColorName, b.Name "
                 + "ORDER BY SoldQty DESC, Revenue DESC "
@@ -156,7 +367,7 @@ public class SalesStatsDAO {
                 + "LEFT JOIN (SELECT TransactionID, SUM(Amount) AS SoldQty FROM Transaction_ProductVariant GROUP BY TransactionID) tp "
                 + "  ON tp.TransactionID = t.ID "
                 + "WHERE t.Type = 'ORDER' "
-                + "  AND t.Status NOT IN ('PENDING','CANCELLED','CANCEL_REQUESTED') "
+                + "  AND t.Status = 'COMPLETED' "
                 + "  AND t.Created_at BETWEEN ? AND ? "
                 + "GROUP BY HOUR(t.Created_at) ORDER BY Hour ASC";
 
@@ -184,7 +395,7 @@ public class SalesStatsDAO {
                 + "  COUNT(t.ID) AS OrderCount "
                 + "FROM `Transaction` t "
                 + "WHERE t.Type = 'ORDER' "
-                + "  AND t.Status NOT IN ('PENDING','CANCELLED','CANCEL_REQUESTED') "
+                + "  AND t.Status = 'COMPLETED' "
                 + "  AND t.Created_at BETWEEN ? AND ? "
                 + "GROUP BY t.Type "
                 + "ORDER BY Revenue DESC";
@@ -224,7 +435,7 @@ public class SalesStatsDAO {
                 + "JOIN Product p ON p.ID = pv.ProductID "
                 + "JOIN Brand b ON b.ID = p.BrandID "
                 + "WHERE t.Type = 'ORDER' "
-                + "  AND t.Status NOT IN ('PENDING','CANCELLED','CANCEL_REQUESTED') "
+                + "  AND t.Status = 'COMPLETED' "
                 + "  AND t.Created_at BETWEEN ? AND ? "
                 + "GROUP BY b.ID, b.Name "
                 + "ORDER BY Revenue DESC, SoldQty DESC "
