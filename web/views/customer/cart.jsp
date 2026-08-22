@@ -160,7 +160,7 @@
                     </c:choose>
 
                     <section class="checkout-inline" id="cartCheckoutDetails" hidden>
-                        <form id="checkoutDeliveryForm" action="${pageContext.request.contextPath}/cart" method="get">
+                        <form id="checkoutDeliveryForm" action="${pageContext.request.contextPath}/cart" method="post">
                             <input type="hidden" name="checkoutAction" value="placeOrder">
                             <div class="checkout-inline-header">
                                 <div>

@@ -131,6 +131,15 @@ public class CartController extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         UserModel currentUser = currentUser(request);
+        if ("placeOrder".equals(request.getParameter("checkoutAction"))) {
+            try {
+                placeOrder(request, response, currentUser);
+            } catch (SQLException exception) {
+                throw new ServletException("Cannot place order.", exception);
+            }
+            return;
+        }
+
         String action = value(request.getParameter("action"), "add");
         int variantId = integer(request.getParameter("variantId"), 0);
         int amount = integer(request.getParameter("amount"), 1);
