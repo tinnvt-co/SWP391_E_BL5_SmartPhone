@@ -31,6 +31,7 @@ public class OrderModel implements Serializable {
     private int itemCount;
     private String note;
     private List<OrderItemModel> items = new ArrayList<>();
+    private BigDecimal paidAmount;
     private Boolean hasOpenRefund;
     private Boolean hasBlockingRefund;
     private Boolean hasCancelPending;
@@ -256,6 +257,14 @@ public class OrderModel implements Serializable {
 
     public void setItems(List<OrderItemModel> items) {
         this.items = items;
+    }
+
+    public BigDecimal getPaidAmount() {
+        return paidAmount;
+    }
+
+    public void setPaidAmount(BigDecimal paidAmount) {
+        this.paidAmount = paidAmount;
     }
 
     public BigDecimal getShippingFee() {

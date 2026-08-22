@@ -206,8 +206,6 @@ CREATE TABLE `Transaction` (
   `Type` VARCHAR(255) NOT NULL,
   `Status` VARCHAR(50) NOT NULL DEFAULT 'PENDING',
   `SupplierID` INT NULL,
-  `Paid_amount` DECIMAL(12,2) NOT NULL DEFAULT 0,
-  `Change_amount` DECIMAL(12,2) NOT NULL DEFAULT 0,
   `Method` VARCHAR(255) NOT NULL,
   `Note` VARCHAR(1000) NULL,
   `Proof_image` VARCHAR(1000) NULL,
@@ -218,8 +216,7 @@ CREATE TABLE `Transaction` (
   `DeliveryInfoID` INT,
   `ShipperID` INT NULL,
   `VoucherID` INT NULL,
-  PRIMARY KEY (`ID`),
-  FOREIGN KEY (`VoucherID`) REFERENCES `Voucher`(`ID`) ON DELETE SET NULL
+  PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
  
 CREATE TABLE `Transaction_ProductVariant` (
@@ -435,6 +432,8 @@ ALTER TABLE `Transaction` ADD CONSTRAINT `fk_Transaction_SupplierID` FOREIGN KEY
 ALTER TABLE `Transaction` ADD CONSTRAINT `fk_Transaction_Updated_by` FOREIGN KEY (`Updated_by`) REFERENCES `User` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `Transaction` ADD CONSTRAINT `fk_Transaction_ Reference_transactionID` FOREIGN KEY (`Reference_transactionID`) REFERENCES `Transaction` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `Transaction` ADD CONSTRAINT `fk_Transaction_DeliveryInfoID` FOREIGN KEY (`DeliveryInfoID`) REFERENCES `DeliveryInfo` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Transaction` ADD CONSTRAINT `fk_Transaction_ShipperID` FOREIGN KEY (`ShipperID`) REFERENCES `User` (`ID`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `Transaction` ADD CONSTRAINT `fk_Transaction_VoucherID` FOREIGN KEY (`VoucherID`) REFERENCES `Voucher` (`ID`) ON DELETE SET NULL ON UPDATE CASCADE;
 ALTER TABLE `Transaction_ProductVariant` ADD CONSTRAINT `fk_Transaction_ProductVariant_TransactionID` FOREIGN KEY (`TransactionID`) REFERENCES `Transaction` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `Transaction_ProductVariant` ADD CONSTRAINT `fk_Transaction_ProductVariant_ProductVariantID` FOREIGN KEY (`ProductVariantID`) REFERENCES `ProductVariant` (`ID`) ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE `Feedback` ADD CONSTRAINT `fk_Feedback_UserID` FOREIGN KEY (`UserID`) REFERENCES `User` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -2987,13 +2986,13 @@ INSERT INTO DeliveryInfo (ID, UserID, Recipient_name, Recipient_phone, Delivery_
 (3, 4, 'Hanoi Customer 1', '0911111111', 'Cau Giay, Ha Noi', 'ACTIVE'),
 (4, 6, 'Hanoi Customer 2', '0922222222', 'Dong Da, Hà Nội', 'ACTIVE');
 
-INSERT INTO Transaction (ID, UserID, Total_price, Type, Status, SupplierID, Paid_amount, Change_amount, Method, Updated_by, Reference_transactionID, DeliveryInfoID) VALUES
-(1, 4, 66380000, 'ORDER', 'SHIPPING', NULL, 66380000, 0, 'BANK_TRANSFER', 3, NULL, 1),
-(2, 6, 34990000, 'ORDER', 'SHIPPING', NULL, 34990000, 0, 'VNPAY', 3, NULL, 2),
-(3, 2, 206340000, 'IMPORT', 'COMPLETED', 1, 206340000, 0, 'BANK_TRANSFER', 2, NULL, NULL),
-(4, 6, 34990000, 'REFUND', 'PENDING', NULL, 0, 0, 'ORIGINAL_PAYMENT', 2, 2, NULL),
-(5, 4, 30000000, 'ORDER', 'SHIPPING', NULL, 30000000, 0, 'COD', 3, NULL, 3),
-(6, 6, 15000000, 'ORDER', 'SHIPPING', NULL, 15000000, 0, 'VNPAY', 3, NULL, 4);
+INSERT INTO Transaction (ID, UserID, Total_price, Type, Status, SupplierID, Method, Updated_by, Reference_transactionID, DeliveryInfoID) VALUES
+(1, 4, 66380000, 'ORDER', 'SHIPPING', NULL, 'BANK_TRANSFER', 3, NULL, 1),
+(2, 6, 34990000, 'ORDER', 'SHIPPING', NULL,'VNPAY', 3, NULL, 2),
+(3, 2, 206340000, 'IMPORT', 'COMPLETED', 1, 'BANK_TRANSFER', 2, NULL, NULL),
+(4, 6, 34990000, 'REFUND', 'PENDING', NULL, 'ORIGINAL_PAYMENT', 2, 2, NULL),
+(5, 4, 30000000, 'ORDER', 'SHIPPING', NULL, 'COD', 3, NULL, 3),
+(6, 6, 15000000, 'ORDER', 'SHIPPING', NULL, 'VNPAY', 3, NULL, 4);
 
 INSERT INTO Transaction_ProductVariant (TransactionID, ProductVariantID, Amount, UnitPrice, Discount_rate, Discount_amount, Total) VALUES
 (1, 1, 1, 34990000, 10, 3499000, 31491000),

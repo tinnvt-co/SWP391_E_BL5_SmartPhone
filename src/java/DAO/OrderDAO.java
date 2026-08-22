@@ -423,6 +423,12 @@ public class OrderDAO {
         order.setType(rs.getString("Type"));
         order.setStatus(rs.getString("Status"));
         order.setMethod(rs.getString("Method"));
+        
+        if ("COD".equalsIgnoreCase(order.getMethod())) {
+            order.setPaidAmount(BigDecimal.ZERO);
+        } else {
+            order.setPaidAmount(order.getTotalPrice());
+        }
 
         // Chưa có trong SELECT hiện tại — cần join/subquery riêng nếu muốn dùng thật
         order.setSupplierId(null);
