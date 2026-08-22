@@ -210,7 +210,7 @@ public class OrderDAO {
                 + "JOIN `User` u   ON t.UserID = u.ID "
                 + "LEFT JOIN `User` upd ON t.Updated_by = upd.ID "
                 + "LEFT JOIN DeliveryInfo d ON t.DeliveryInfoID = d.ID "
-                + "WHERE t.Status IN ('DELIVERED', 'COMPLETED') AND t.Type = 'ORDER' AND t.ShipperID = ? "
+                + "WHERE t.Status IN ('DELIVERED', 'COMPLETED', 'DELIVERY_FAILED') AND t.Type = 'ORDER' AND t.ShipperID = ? "
                 + "ORDER BY t.Updated_at DESC, t.ID DESC "
                 + "LIMIT ? OFFSET ?";
 
@@ -230,7 +230,7 @@ public class OrderDAO {
 
     public int countDeliveredOrdersByShipper(int shipperId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM `Transaction` "
-                   + "WHERE Status IN ('DELIVERED', 'COMPLETED') AND Type = 'ORDER' AND ShipperID = ?";
+                   + "WHERE Status IN ('DELIVERED', 'COMPLETED', 'DELIVERY_FAILED') AND Type = 'ORDER' AND ShipperID = ?";
         try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, shipperId);
             try (ResultSet rs = statement.executeQuery()) {
