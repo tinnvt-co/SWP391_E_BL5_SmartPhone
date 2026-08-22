@@ -479,7 +479,7 @@
                                                                     <li><hr class="dropdown-divider"></li>
                                                                     <li>
                                                                         <button type="button" class="dropdown-item text-danger" onclick="openCancelModal(${order.id})">
-                                                                            <i class="bi bi-x-circle me-2"></i> Cancel Order
+                                                                            <i class="bi bi-x-circle me-2"></i> Delivery Failed
                                                                         </button>
                                                                     </li>
                                                                 </ul>
@@ -672,19 +672,19 @@
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content border-0 shadow">
                     <div class="modal-header bg-danger text-white">
-                        <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i> Cancel Delivery</h5>
+                        <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i> Delivery Failed</h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <form action="${pageContext.request.contextPath}/shipper/orders" method="post">
                         <div class="modal-body">
                             <input type="hidden" name="action" value="updateStatus">
                             <input type="hidden" name="orderId" id="cancelOrderId" value="">
-                            <input type="hidden" name="status" value="CANCELLED">
-                            <p class="mb-0">Are you sure you want to cancel the delivery for Order <strong>#<span id="cancelOrderDisplayId"></span></strong>?<br><span class="text-muted small">This action cannot be undone.</span></p>
+                            <input type="hidden" name="status" value="DELIVERY_FAILED">
+                            <p class="mb-0">Are you sure you want to mark the delivery for Order <strong>#<span id="cancelOrderDisplayId"></span></strong> as failed?<br><span class="text-muted small">This action cannot be undone.</span></p>
                         </div>
                         <div class="modal-footer bg-light border-top-0">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-danger">Confirm Cancellation</button>
+                            <button type="submit" class="btn btn-danger">Confirm Failure</button>
                         </div>
                     </form>
                 </div>
