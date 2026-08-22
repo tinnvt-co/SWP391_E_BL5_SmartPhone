@@ -49,6 +49,9 @@
             <a class="${pageName == 'Manage Orders' || pageName == 'Order Detail' ? 'active' : ''}" href="${pageContext.request.contextPath}/manager/orders">
                 <span class="nav-icon"></span>Manage Orders
             </a>
+            <a class="${pageName == 'Shipper Deliveries' ? 'active' : ''}" href="${pageContext.request.contextPath}/manager/shipper-deliveries">
+                <span class="nav-icon"></span>Shipper Deliveries
+            </a>
             <a href="${pageContext.request.contextPath}/staff/orders"><span class="nav-icon"></span>Staff Orders</a>
 
             <p class="manager-nav-label">PROMOTIONS</p>

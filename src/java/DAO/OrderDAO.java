@@ -416,6 +416,7 @@ public class OrderDAO {
         order.setId(rs.getInt("ID"));
         order.setUserId(rs.getInt("UserID"));
         order.setUserName(rs.getString("UserName"));
+        order.setUsername(rs.getString("Username"));
         order.setUserPhone(rs.getString("Phone"));
         order.setUserEmail(rs.getString("Email"));
 

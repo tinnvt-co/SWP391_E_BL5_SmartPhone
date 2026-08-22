@@ -11,6 +11,7 @@ public class OrderModel implements Serializable {
     private int id;
     private int userId;
     private String userName;
+    private String username;
     private String userPhone;
     private String userEmail;
     private BigDecimal totalPrice;
@@ -65,6 +66,14 @@ public class OrderModel implements Serializable {
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getUserPhone() {
