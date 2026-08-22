@@ -10,7 +10,7 @@
                 display:flex;
                 flex-direction:column;
                 gap:18px;
-                color:#fff
+                color:var(--text)
             }
             .order-detail *{
                 color:inherit
@@ -30,7 +30,7 @@
                 color:var(--text)
             }
             .order-detail .hero{
-                background:linear-gradient(135deg,#1a2030,#131927);
+                background:var(--surface);
                 border:1px solid var(--line);
                 border-radius:16px;
                 padding:22px 26px;
@@ -42,7 +42,6 @@
             }
             .order-detail .hero h1{
                 margin:0;
-                font-family:'Roboto Slab',serif;
                 font-size:28px;
                 font-weight:700;
                 letter-spacing:-.5px
@@ -72,14 +71,14 @@
                 border:1px solid transparent
             }
             .order-detail .pill-status{
-                border-color:#2b3c73;
-                background:#11162a;
-                color:#cbd2e5
+                border-color:#dee2e6;
+                background:#f8f9fa;
+                color:var(--text)
             }
             .order-detail .pill-type{
-                border-color:#3d2b73;
-                background:#1a1230;
-                color:#d0bfff
+                border-color:#d2c4eb;
+                background:#f3e8ff;
+                color:#5b21b6
             }
             .order-detail .pill-paid{
                 background:rgba(67,227,173,.12);
@@ -112,7 +111,6 @@
                 text-transform:uppercase
             }
             .order-detail .summary .value{
-                font-family:'Roboto Slab',serif;
                 font-size:24px;
                 font-weight:700;
                 color:var(--text)
@@ -131,11 +129,11 @@
             }
             .order-detail .card h3{
                 margin:0 0 14px;
-                font-family:'Roboto Slab',serif;
                 font-size:15px;
-                color:#aab2cb;
+                color:var(--muted);
                 letter-spacing:.5px;
-                text-transform:uppercase
+                text-transform:uppercase;
+                font-weight:600
             }
             .order-detail .person{
                 display:flex;
@@ -171,7 +169,7 @@
                 font-size:14px;
                 color:var(--muted)
             }
-            .order-detail .contact .row{
+            .order-detail .contact .contact-item{
                 display:flex;
                 gap:10px;
                 align-items:center
@@ -180,7 +178,7 @@
                 width:28px;
                 height:28px;
                 border-radius:7px;
-                background:#1a2030;
+                background:#f0f2f5;
                 display:flex;
                 align-items:center;
                 justify-content:center;
@@ -243,7 +241,7 @@
             }
             .order-detail .items-table td{
                 padding:12px 10px;
-                border-bottom:1px solid #1a2030;
+                border-bottom:1px solid var(--line);
                 vertical-align:top
             }
             .order-detail .items-table tr:last-child td{
@@ -259,7 +257,7 @@
                 width:40px;
                 height:40px;
                 border-radius:8px;
-                background:#1a2030;
+                background:#f8f9fa;
                 display:flex;
                 align-items:center;
                 justify-content:center;
@@ -367,16 +365,16 @@
             .order-detail .totals .grand .val{
                 font-size:22px;
                 font-weight:700;
-                color:var(--green);
-                font-family:'Roboto Slab',serif
+                color:var(--green)
             }
             .order-detail .address-box{
-                background:#1a2030;
+                background:#f8f9fa;
                 border-radius:10px;
                 padding:14px 16px;
                 font-size:14px;
                 line-height:1.6;
-                color:#cbd2e5
+                color:var(--text);
+                border: 1px solid var(--line)
             }
             @media(max-width:680px){
                 .order-detail .grid2{
@@ -430,8 +428,8 @@
                             <div class="info"><b><c:out value='${order.userName}'/></b><small>@<c:out value='${order.username}'/></small></div>
                         </div>
                         <div class="contact">
-                            <div class="row"><span class="icon">✉</span><span><c:out value='${order.userEmail}'/></span></div>
-                            <div class="row"><span class="icon">☎</span><span><c:out value='${order.userPhone}'/></span></div>
+                            <div class="contact-item"><span class="icon"><i class="bi bi-envelope-fill"></i></span><span><c:out value='${order.userEmail}'/></span></div>
+                            <div class="contact-item"><span class="icon"><i class="bi bi-telephone-fill"></i></span><span><c:out value='${order.userPhone}'/></span></div>
                         </div>
                     </div>
 
@@ -447,37 +445,37 @@
                             </div>
                         </div>
 
-                <c:if test="${not empty order.recipientName}">
-                    <div class="card">
-                        <h3>Shipping Address</h3>
-                        <div class="address-box">
-                            <strong><c:out value='${order.recipientName}'/></strong> · <c:out value='${order.recipientPhone}'/><br>
-                            <c:out value='${order.deliveryAddress}'/>
+                <div class="grid2">
+                    <c:if test="${not empty order.recipientName}">
+                        <div class="card">
+                            <h3>Shipping Address</h3>
+                            <div class="address-box">
+                                <strong><c:out value='${order.recipientName}'/></strong> · <c:out value='${order.recipientPhone}'/><br>
+                                <c:out value='${order.deliveryAddress}'/>
+                            </div>
                         </div>
-                    </div>
-                </c:if>
+                    </c:if>
 
-                <c:if test="${not empty order.proofImage or not empty order.note}">
-                    <div class="card">
-                        <h3>Delivery Proof & Notes</h3>
-                        <div class="address-box" style="display:flex; gap: 20px; align-items:flex-start;">
-                            <div style="flex: 1;">
+                    <c:if test="${not empty order.proofImage or not empty order.note}">
+                        <div class="card">
+                            <h3>Delivery Proof & Notes</h3>
+                            <div class="address-box" style="display:flex; flex-direction:column; gap: 10px;">
                                 <c:if test="${not empty order.note}">
-                                    <div style="margin-bottom: 15px;"><strong>Note:</strong><br><c:out value="${order.note}"/></div>
+                                    <div><strong>Note:</strong><br><c:out value="${order.note}"/></div>
                                 </c:if>
                                 <c:if test="${empty order.note}">
-                                    <div style="margin-bottom: 15px; color: var(--muted);">No note provided.</div>
+                                    <div style="color: var(--muted);">No note provided.</div>
+                                </c:if>
+                                <c:if test="${not empty order.proofImage}">
+                                    <div>
+                                        <strong>Proof of Delivery:</strong><br>
+                                        <img src="${pageContext.request.contextPath}/assets/images/${order.proofImage}" alt="Proof of Delivery" style="max-height: 200px; max-width: 100%; border-radius: 8px; margin-top: 5px; object-fit: contain;">
+                                    </div>
                                 </c:if>
                             </div>
-                            <c:if test="${not empty order.proofImage}">
-                                <div style="flex: 1;">
-                                    <strong>Proof of Delivery:</strong><br>
-                                    <img src="${pageContext.request.contextPath}/assets/images/${order.proofImage}" alt="Proof of Delivery" style="max-width: 100%; border-radius: 8px; margin-top: 5px;">
-                                </div>
-                            </c:if>
                         </div>
-                    </div>
-                </c:if>
+                    </c:if>
+                </div>
 
                 <div class="card">
                     <h3>Items Ordered (${order.itemCount})</h3>

@@ -190,9 +190,9 @@
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-4">
-                                <label class="form-label">Min Order Value</label>
+                                <label class="form-label">Min Order Value <span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <input type="number" class="form-control" name="minOrderValue" step="1000" min="0" placeholder="e.g. 1000000">
+                                    <input type="number" class="form-control" name="minOrderValue" step="1000" min="0" required placeholder="e.g. 1000000">
                                     <span class="input-group-text">đ</span>
                                 </div>
                             </div>
@@ -251,9 +251,9 @@
                             </div>
                             <div class="row mb-3">
                                 <div class="col-md-4">
-                                    <label class="form-label">Min Order Value</label>
+                                    <label class="form-label">Min Order Value <span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <input type="number" class="form-control" name="minOrderValue" step="1000" min="0" value="${fn:substringBefore(v.minOrderValue, '.')}">
+                                        <input type="number" class="form-control" name="minOrderValue" step="1000" min="0" value="${fn:substringBefore(v.minOrderValue, '.')}" required>
                                         <span class="input-group-text">đ</span>
                                     </div>
                                 </div>
@@ -324,6 +324,57 @@
                             }
                         });
                     });
+                });
+
+                // Date restrictions
+                const now = new Date();
+                const tzOffset = now.getTimezoneOffset() * 60000;
+                const localISOTime = (new Date(now.getTime() - tzOffset)).toISOString().slice(0, 16);
+
+                document.querySelectorAll('input[type="datetime-local"]').forEach(input => {
+                    if (!input.value || input.value >= localISOTime) {
+                        input.min = localISOTime;
+                    } else {
+                        input.min = input.value; 
+                    }
+                });
+
+                document.querySelectorAll('input[name="startDate"]').forEach(startInput => {
+                    startInput.addEventListener('change', function() {
+                        const form = this.closest('form');
+                        const endInput = form.querySelector('input[name="endDate"]');
+                        if (this.value) {
+                            endInput.min = this.value;
+                            if (endInput.value && endInput.value < this.value) {
+                                endInput.value = this.value;
+                            }
+                        }
+                    });
+                });
+
+                // Value vs Min Order Value validation
+                document.querySelectorAll('form').forEach(form => {
+                    const actionInput = form.querySelector('input[name="action"]');
+                    if (actionInput && (actionInput.value === 'create' || actionInput.value === 'update')) {
+                        form.addEventListener('submit', function(e) {
+                            const valueInput = form.querySelector('input[name="value"]');
+                            const minOrderInput = form.querySelector('input[name="minOrderValue"]');
+                            
+                            if (valueInput && minOrderInput) {
+                                const val = parseFloat(valueInput.value);
+                                const minOrder = parseFloat(minOrderInput.value);
+                                
+                                if (!isNaN(val) && !isNaN(minOrder) && val >= minOrder) {
+                                    e.preventDefault();
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Invalid Values',
+                                        text: 'Voucher Value must be strictly less than the Min Order Value.'
+                                    });
+                                }
+                            }
+                        });
+                    }
                 });
             });
         </script>
