@@ -71,7 +71,7 @@
                                 <th>Code</th>
                                 <th>Discount Details</th>
                                 <th>Conditions</th>
-                                <th>Usage</th>
+                                <th>Used / Quantity</th>
                                 <th>Validity Period</th>
                                 <th>Status</th>
                                 <th class="text-end">Actions</th>
@@ -106,6 +106,10 @@
                                         ${v.usedCount} 
                                         <c:if test="${not empty v.usageLimit}">
                                             / ${v.usageLimit}
+                                            <br><small class="text-muted">(${v.usageLimit - v.usedCount} left)</small>
+                                        </c:if>
+                                        <c:if test="${empty v.usageLimit}">
+                                            <br><small class="text-muted">(Unlimited)</small>
                                         </c:if>
                                     </td>
                                     <td>
@@ -176,31 +180,29 @@
                             <label class="form-label">Voucher Code <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="code" required style="text-transform: uppercase;" placeholder="e.g. SUMMER2026">
                         </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Discount Type <span class="text-danger">*</span></label>
-                                <select class="form-select" name="discountType" required onchange="toggleMaxDiscount(this, 'createMaxDiscount')">
-                                    <option value="FIXED_AMOUNT">Fixed Amount (đ)</option>
-                                    <option value="PERCENTAGE">Percentage (%)</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Value <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" name="value" step="0.01" min="0" required placeholder="10000 or 10">
+                        <input type="hidden" name="discountType" value="FIXED_AMOUNT">
+                        <div class="mb-3">
+                            <label class="form-label">Value <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" name="value" step="1000" min="0" required placeholder="e.g. 100000">
+                                <span class="input-group-text">đ</span>
                             </div>
                         </div>
-                        <div class="mb-3" id="createMaxDiscount" style="display: none;">
-                            <label class="form-label">Max Discount Amount (Optional)</label>
-                            <input type="number" class="form-control" name="maxDiscount" step="0.01" min="0" placeholder="Limit for percentage discount">
-                        </div>
                         <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Min Order Value (Optional)</label>
-                                <input type="number" class="form-control" name="minOrderValue" step="0.01" min="0" placeholder="e.g. 1000000">
+                            <div class="col-md-4">
+                                <label class="form-label">Min Order Value</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" name="minOrderValue" step="1000" min="0" placeholder="e.g. 1000000">
+                                    <span class="input-group-text">đ</span>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Usage Limit (Optional)</label>
-                                <input type="number" class="form-control" name="usageLimit" min="1" placeholder="Total available">
+                            <div class="col-md-4">
+                                <label class="form-label">Total Quantity</label>
+                                <input type="number" class="form-control" name="usageLimit" min="1" placeholder="Leave empty for unlimited">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Max Uses / User</label>
+                                <input type="number" class="form-control" name="maxUsesPerUser" min="1" value="1" required>
                             </div>
                         </div>
                         <div class="row mb-3">
@@ -239,31 +241,29 @@
                                 <label class="form-label">Voucher Code <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" name="code" value="${v.code}" required style="text-transform: uppercase;">
                             </div>
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">Discount Type <span class="text-danger">*</span></label>
-                                    <select class="form-select" name="discountType" required onchange="toggleMaxDiscount(this, 'editMaxDiscount${v.id}')">
-                                        <option value="FIXED_AMOUNT" ${v.discountType == 'FIXED_AMOUNT' ? 'selected' : ''}>Fixed Amount (đ)</option>
-                                        <option value="PERCENTAGE" ${v.discountType == 'PERCENTAGE' ? 'selected' : ''}>Percentage (%)</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Value <span class="text-danger">*</span></label>
-                                    <input type="number" class="form-control" name="value" step="0.01" min="0" value="${v.value}" required>
+                            <input type="hidden" name="discountType" value="FIXED_AMOUNT">
+                            <div class="mb-3">
+                                <label class="form-label">Value <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" name="value" step="1000" min="0" value="${fn:substringBefore(v.value, '.')}" required>
+                                    <span class="input-group-text">đ</span>
                                 </div>
                             </div>
-                            <div class="mb-3" id="editMaxDiscount${v.id}" style="display: ${v.discountType == 'PERCENTAGE' ? 'block' : 'none'};">
-                                <label class="form-label">Max Discount Amount (Optional)</label>
-                                <input type="number" class="form-control" name="maxDiscount" step="0.01" min="0" value="${v.maxDiscount}">
-                            </div>
                             <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">Min Order Value (Optional)</label>
-                                    <input type="number" class="form-control" name="minOrderValue" step="0.01" min="0" value="${v.minOrderValue}">
+                                <div class="col-md-4">
+                                    <label class="form-label">Min Order Value</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" name="minOrderValue" step="1000" min="0" value="${fn:substringBefore(v.minOrderValue, '.')}">
+                                        <span class="input-group-text">đ</span>
+                                    </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Usage Limit (Optional)</label>
+                                <div class="col-md-4">
+                                    <label class="form-label">Total Quantity</label>
                                     <input type="number" class="form-control" name="usageLimit" min="1" value="${v.usageLimit}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Max Uses / User</label>
+                                    <input type="number" class="form-control" name="maxUsesPerUser" min="1" value="${v.maxUsesPerUser}" required>
                                 </div>
                             </div>
                             <div class="row mb-3">

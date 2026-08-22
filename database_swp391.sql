@@ -1,4 +1,4 @@
-CREATE DATABASE IF NOT EXISTS `database_swp391`
+﻿CREATE DATABASE IF NOT EXISTS `database_swp391`
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
  -- DROP DATABASE `database_swp391`
@@ -289,6 +289,7 @@ CREATE TABLE `Voucher` (
   `Value` DECIMAL(12,2) NOT NULL,
   `Max_discount` DECIMAL(12,2) NULL,
   `Min_order_value` DECIMAL(12,2) NULL,
+  `Max_uses_per_user` INT NOT NULL DEFAULT 1,
   `Usage_limit` INT NULL,
   `Used_count` INT NOT NULL DEFAULT 0,
   `Start_date` TIMESTAMP NOT NULL,
@@ -302,7 +303,7 @@ CREATE TABLE `Voucher` (
 CREATE TABLE `User_Voucher` (
   `UserID` INT NOT NULL,
   `VoucherID` INT NOT NULL,
-  `Is_used` BOOLEAN NOT NULL DEFAULT FALSE,
+  `Used_count` INT NOT NULL DEFAULT 0,
   `Saved_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `Used_at` TIMESTAMP NULL DEFAULT NULL,
   PRIMARY KEY (`UserID`, `VoucherID`),
@@ -543,7 +544,7 @@ INSERT INTO `User` (`ID`, `Username`, `Password`, `Name`, `Phone`, `Address`, `I
 (3, 'staff', 'pbkdf2_sha256$210000$Mcv/MEdiUePiCf2/+sxhwA==$hd5x62aRP0qlcr5KwA6m7A7bTx0OMVdiLLqLEFk45n8=', 'Order Staff', '0900000003', 'Da Nang', NULL, 25, 'staff@swp.com', 3, 'ACTIVE'),
 (4, 'customer', 'pbkdf2_sha256$210000$7N5NkWPcJSpmfGUJ7tMWVA==$zXtCW1jufKKvPgLpLmchAlHepwaJ2grRMkJdgeg55tw=', 'Demo Customer', '0900000004', 'Thu Duc, Ho Chi Minh City', NULL, 22, 'customer@swp.com', 4, 'ACTIVE'),
 (5, 'shipper', 'pbkdf2_sha256$210000$0dMTL2FPDjyy6pPtFy/pSA==$fQNkvbMHCcdmhG6JH/xEb7G/qNZCrv7RFsYo6QnTOb4=', 'Demo Shipper', '0900000005', 'Binh Thanh, Ho Chi Minh City', NULL, 28, 'shipper@swp.com', 5, 'ACTIVE'),
-(6, 'kimtuyen', 'pbkdf2_sha256$210000$GeN4G6aQFxQjr/L4DLXDrQ==$VrslVm1ctMarWdCiuIL5KIQS5gXv8Lv3weWlWuj0bLk=', 'Chị Kim Tuyến', '0900000303', 'Quan 7, Ho Chi Minh City', NULL, 29, 'kimtuyen@example.com', 4, 'ACTIVE'),
+(6, 'kimtuyen', 'pbkdf2_sha256$210000$GeN4G6aQFxQjr/L4DLXDrQ==$VrslVm1ctMarWdCiuIL5KIQS5gXv8Lv3weWlWuj0bLk=', 'Chá»‹ Kim Tuyáº¿n', '0900000303', 'Quan 7, Ho Chi Minh City', NULL, 29, 'kimtuyen@example.com', 4, 'ACTIVE'),
 (7, 'shipper2', 'pbkdf2_sha256$210000$/SKyVqLRvTyA8M1mAQqhiQ==$NdJgXQr6ugt9wejbPk5gIR99TtlVERP/IYfOI19Rrxg=', 'Shipper Hanoi', '0900000007', 'Cau Giay, Ha Noi', NULL, 25, 'shipper2@swp.com', 5, 'ACTIVE');
 
 INSERT INTO `Product` (`ID`, `Name`, `Description`, `Release_Year`, `Rating`, `warranty_months`, `BrandID`, `Status`) VALUES
@@ -2984,7 +2985,7 @@ INSERT INTO DeliveryInfo (ID, UserID, Recipient_name, Recipient_phone, Delivery_
 (1, 4, 'Demo Customer', '0900000004', 'Thu Duc, Ho Chi Minh City', 'ACTIVE'),
 (2, 6, 'Chi Kim Tuyen', '0900000303', 'Quan 7, Ho Chi Minh City', 'ACTIVE'),
 (3, 4, 'Hanoi Customer 1', '0911111111', 'Cau Giay, Ha Noi', 'ACTIVE'),
-(4, 6, 'Hanoi Customer 2', '0922222222', 'Dong Da, Hà Nội', 'ACTIVE');
+(4, 6, 'Hanoi Customer 2', '0922222222', 'Dong Da, HÃ  Ná»™i', 'ACTIVE');
 
 INSERT INTO Transaction (ID, UserID, Total_price, Type, Status, SupplierID, Method, Updated_by, Reference_transactionID, DeliveryInfoID) VALUES
 (1, 4, 66380000, 'ORDER', 'SHIPPING', NULL, 'BANK_TRANSFER', 3, NULL, 1),
@@ -3019,12 +3020,13 @@ INSERT INTO ReturnRequest (ID, Status, Description, Image, UserID, TransactionID
 INSERT INTO ReturnRequest_ProductVariant (ReturnRequestID, ProductVariantID) VALUES
 (1, 601);
 
-INSERT INTO Voucher (ID, Code, Discount_type, Value, Max_discount, Min_order_value, Usage_limit, Used_count, Start_date, End_date, Status) VALUES
-(1, 'SUMMER2026', 'PERCENTAGE', 10.00, 500000.00, 1000000.00, 100, 0, '2026-06-01 00:00:00', '2026-12-31 23:59:59', 'ACTIVE'),
-(2, 'WELCOME50K', 'FIXED_AMOUNT', 50000.00, NULL, 500000.00, 50, 0, '2026-01-01 00:00:00', '2026-12-31 23:59:59', 'ACTIVE'),
-(3, 'VIPDISCOUNT', 'PERCENTAGE', 15.00, 1000000.00, 5000000.00, 20, 0, '2026-08-01 00:00:00', '2026-10-31 23:59:59', 'ACTIVE');
+INSERT INTO Voucher (ID, Code, Discount_type, Value, Max_discount, Min_order_value, Usage_limit, Max_uses_per_user, Used_count, Start_date, End_date, Status) VALUES
+(1, 'SUMMER2026', 'PERCENTAGE', 10.00, 500000.00, 1000000.00, 100, 1, 0, '2026-06-01 00:00:00', '2026-12-31 23:59:59', 'ACTIVE'),
+(2, 'WELCOME50K', 'FIXED_AMOUNT', 50000.00, NULL, 500000.00, 50, 1, 0, '2026-01-01 00:00:00', '2026-12-31 23:59:59', 'ACTIVE'),
+(3, 'VIPDISCOUNT', 'PERCENTAGE', 15.00, 1000000.00, 5000000.00, 20, 1, 0, '2026-08-01 00:00:00', '2026-10-31 23:59:59', 'ACTIVE');
 
-INSERT INTO User_Voucher (UserID, VoucherID, Is_used, Saved_at) VALUES
-(4, 1, 0, '2026-08-10 10:00:00'),
-(4, 2, 0, '2026-08-11 11:30:00'),
+INSERT INTO User_Voucher (UserID, VoucherID, Used_count, Saved_at) VALUES
+(4, 1, 0, '2026-07-28 10:00:00'),
+(4, 2, 0, '2026-07-29 11:30:00'),
 (6, 1, 0, '2026-08-12 09:15:00');
+

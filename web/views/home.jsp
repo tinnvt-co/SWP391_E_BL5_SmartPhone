@@ -94,11 +94,19 @@
                                             </div>
                                             <p class="card-text text-muted small mb-3">
                                                 <c:if test="${not empty v.minOrderValue}">
-                                                    For orders from <fmt:formatNumber value="${v.minOrderValue}" pattern="#,##0"/>đ.
+                                                    For orders from <fmt:formatNumber value="${v.minOrderValue}" pattern="#,##0"/>đ.<br>
                                                 </c:if>
                                                 <c:if test="${not empty v.maxDiscount}">
-                                                    Max discount <fmt:formatNumber value="${v.maxDiscount}" pattern="#,##0"/>đ.
+                                                    Max discount <fmt:formatNumber value="${v.maxDiscount}" pattern="#,##0"/>đ.<br>
                                                 </c:if>
+                                                <c:choose>
+                                                    <c:when test="${empty v.usageLimit}">
+                                                        <span class="text-success"><i class="bi bi-infinity"></i> Unlimited</span>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="text-warning fw-bold"><i class="bi bi-hourglass-split"></i> ${v.usageLimit - v.usedCount} left</span>
+                                                    </c:otherwise>
+                                                </c:choose>
                                             </p>
                                             <div class="d-flex justify-content-between align-items-end mt-auto">
                                                 <small class="text-muted">

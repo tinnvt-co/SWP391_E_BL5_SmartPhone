@@ -143,7 +143,7 @@ public class CheckoutDAO {
     }
 
     private void markVoucherUsed(Connection connection, int userId, int voucherId) throws SQLException {
-        String sql1 = "UPDATE User_Voucher SET Is_used = TRUE, Used_at = CURRENT_TIMESTAMP WHERE UserID = ? AND VoucherID = ?";
+        String sql1 = "UPDATE User_Voucher SET Used_count = Used_count + 1, Used_at = CURRENT_TIMESTAMP WHERE UserID = ? AND VoucherID = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql1)) {
             stmt.setInt(1, userId);
             stmt.setInt(2, voucherId);

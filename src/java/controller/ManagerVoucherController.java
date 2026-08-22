@@ -131,6 +131,13 @@ public class ManagerVoucherController extends HttpServlet {
             v.setUsageLimit(null);
         }
 
+        String maxUsesStr = request.getParameter("maxUsesPerUser");
+        if (maxUsesStr != null && !maxUsesStr.isBlank()) {
+            v.setMaxUsesPerUser(Integer.parseInt(maxUsesStr));
+        } else {
+            v.setMaxUsesPerUser(1); // default
+        }
+
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
         LocalDateTime start = LocalDateTime.parse(request.getParameter("startDate"), formatter);
         LocalDateTime end = LocalDateTime.parse(request.getParameter("endDate"), formatter);

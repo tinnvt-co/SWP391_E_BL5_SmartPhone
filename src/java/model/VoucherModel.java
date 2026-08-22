@@ -11,6 +11,7 @@ public class VoucherModel {
     private BigDecimal value;
     private BigDecimal maxDiscount;
     private BigDecimal minOrderValue;
+    private int maxUsesPerUser = 1;
     private Integer usageLimit;
     private int usedCount;
     private Timestamp startDate;
@@ -68,6 +69,14 @@ public class VoucherModel {
 
     public void setMinOrderValue(BigDecimal minOrderValue) {
         this.minOrderValue = minOrderValue;
+    }
+
+    public int getMaxUsesPerUser() {
+        return maxUsesPerUser;
+    }
+
+    public void setMaxUsesPerUser(int maxUsesPerUser) {
+        this.maxUsesPerUser = maxUsesPerUser;
     }
 
     public Integer getUsageLimit() {

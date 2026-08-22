@@ -6,7 +6,7 @@ public class UserVoucherModel {
 
     private int userId;
     private int voucherId;
-    private boolean isUsed;
+    private int usedCount;
     private Timestamp savedAt;
     private Timestamp usedAt;
     
@@ -32,12 +32,12 @@ public class UserVoucherModel {
         this.voucherId = voucherId;
     }
 
-    public boolean isUsed() {
-        return isUsed;
+    public int getUsedCount() {
+        return usedCount;
     }
 
-    public void setUsed(boolean used) {
-        isUsed = used;
+    public void setUsedCount(int usedCount) {
+        this.usedCount = usedCount;
     }
 
     public Timestamp getSavedAt() {
