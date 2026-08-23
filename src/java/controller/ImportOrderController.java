@@ -16,8 +16,10 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import model.OrderItemModel;
 import model.OrderModel;
@@ -100,7 +102,7 @@ public class ImportOrderController extends HttpServlet {
             redirect(
                     request,
                     response,
-                    "Database error: "
+                    "Error: "
                     + exception.getMessage(),
                     false);
         }
@@ -185,6 +187,38 @@ public class ImportOrderController extends HttpServlet {
                         false);
 
         // ================================
+        // VARIANT -> SUPPLIER MAP
+        //
+        // Built from the FULL, unfiltered
+        // supplier list (before the two
+        // filter blocks below narrow things
+        // down for the initial page render).
+        //
+        // The client-side JS uses this map
+        // to re-filter the product list live
+        // whenever the user changes the
+        // supplier dropdown, without a page
+        // reload — see import-detail.jsp.
+        // ================================
+        Map<Integer, List<Integer>> variantSupplierMap
+                = new HashMap<>();
+
+        for (SupplierModel supplier : suppliers) {
+
+            List<Integer> suppliedVariantIdsForMap
+                    = supplierDAO.findProductVariantIds(
+                            supplier.getId());
+
+            for (Integer vId : suppliedVariantIdsForMap) {
+                variantSupplierMap
+                        .computeIfAbsent(
+                                vId,
+                                k -> new ArrayList<>())
+                        .add(supplier.getId());
+            }
+        }
+
+        // ================================
         // FILTER BY SUPPLIER
         // Supplier -> Product Variants
         // ================================
@@ -224,6 +258,10 @@ public class ImportOrderController extends HttpServlet {
         request.setAttribute(
                 "products",
                 products);
+
+        request.setAttribute(
+                "variantSupplierMap",
+                variantSupplierMap);
 
         request.setAttribute(
                 "selectedSupplierId",
@@ -278,9 +316,9 @@ public class ImportOrderController extends HttpServlet {
         request.setAttribute(
                 "order",
                 order);
-        
+
         request.setAttribute("mode", "detail");
-        
+
         request.getRequestDispatcher(
                 "/views/manager/import-detail.jsp")
                 .forward(request, response);
@@ -519,8 +557,6 @@ public class ImportOrderController extends HttpServlet {
                         currentUser.getId(),
                         supplierId,
                         totalPrice,
-                        totalPrice,
-                        BigDecimal.ZERO,
                         method,
                         note,
                         items);

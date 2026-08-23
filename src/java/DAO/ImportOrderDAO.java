@@ -18,11 +18,9 @@ import model.StatusHistory;
 
 public class ImportOrderDAO {
 
-    private static final String TYPE = "IMPORT";
-
     private static final Set<String> VALID_STATUSES = Set.of(
             "ORDER",
-            "COMPLETE"
+            "COMPLETED"
     );
 
     /**
@@ -129,7 +127,7 @@ public class ImportOrderDAO {
             throws SQLException {
 
         String sql = "SELECT t.ID, t.UserID, t.Total_price, t.Type, t.Status, "
-                + "       t.Change_amount, t.Method, "
+                + "       t.Method, "
                 + "       t.Updated_by, t.Updated_at, t.Created_at, t.Note, "
                 + "       t.Reference_transactionID, t.DeliveryInfoID, t.ShipperID, "
                 + "       t.SupplierID, "
@@ -239,8 +237,6 @@ public class ImportOrderDAO {
      * @param userId
      * @param supplierId
      * @param totalPrice
-     * @param paidAmount
-     * @param changeAmount
      * @param method
      * @param note
      * @param items
@@ -251,8 +247,6 @@ public class ImportOrderDAO {
             int userId,
             int supplierId,
             BigDecimal totalPrice,
-            BigDecimal paidAmount,
-            BigDecimal changeAmount,
             String method,
             String note,
             List<OrderItemModel> items) throws SQLException {
@@ -383,7 +377,7 @@ public class ImportOrderDAO {
     /**
      * Change import status.Only:
      *
-     * ORDER -> COMPLETE
+     * ORDER -> COMPLETED
      *
      * When COMPLETE: 1. Insert status history 2. Increase Inventory
      *
@@ -415,7 +409,7 @@ public class ImportOrderDAO {
                             + transactionId);
                 }
 
-                if ("COMPLETE".equals(currentStatus)) {
+                if ("COMPLETED".equals(currentStatus)) {
                     throw new SQLException(
                             "Import order is already completed");
                 }
@@ -438,14 +432,14 @@ public class ImportOrderDAO {
                 updateTransactionStatus(
                         connection,
                         transactionId,
-                        "COMPLETE",
+                        "COMPLETED",
                         updatedBy);
 
                 insertStatusHistory(
                         connection,
                         transactionId,
                         updatedBy,
-                        "COMPLETE");
+                        "COMPLETED");
 
                 for (OrderItemModel item : items) {
 

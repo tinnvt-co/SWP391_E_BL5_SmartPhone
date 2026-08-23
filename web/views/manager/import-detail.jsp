@@ -23,6 +23,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="jakarta.tags.core"%>
 <%@taglib prefix="fmt" uri="jakarta.tags.fmt"%>
+<%@taglib prefix="fn" uri="jakarta.tags.functions"%>
 
 <!DOCTYPE html>
 <html>
@@ -107,6 +108,33 @@
                 margin-bottom: 22px;
                 color: #64748b;
                 font-size: 14px;
+            }
+
+            /* ===== SEARCH BOX (supplier name / product name filters) ===== */
+            .search-box {
+                position: relative;
+                margin-bottom: 14px;
+            }
+            .search-box i {
+                position: absolute;
+                left: 13px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #94a3b8;
+                font-size: 13px;
+            }
+            .search-box input {
+                padding-left: 34px;
+            }
+            .filter-empty-hint {
+                display: none;
+                color: #94a3b8;
+                font-size: 13px;
+                margin-top: -6px;
+                margin-bottom: 14px;
+            }
+            .filter-empty-hint.visible {
+                display: block;
             }
 
             /* ===== INFORMATION ===== */
@@ -441,12 +469,21 @@
                             <h2>Supplier</h2>
                             <p class="detail-card-subtitle">Select the supplier for this import order.</p>
 
+                            <!-- Filters the options inside the supplier <select> below by name.
+                                 Does not touch the product/variant filtering. -->
+                            <div class="search-box">
+                                <i class="bi bi-search"></i>
+                                <input type="text" id="supplierSearchInput" class="form-control-custom"
+                                       placeholder="Search supplier by name...">
+                            </div>
+
                             <div class="form-group">
                                 <label class="form-label">Supplier <span class="required">*</span></label>
-                                <select name="supplierId" class="form-control-custom" required>
+                                <select name="supplierId" id="supplierSelect" class="form-control-custom" required>
                                     <option value="">-- Select supplier --</option>
                                     <c:forEach var="supplier" items="${suppliers}">
                                         <option value="${supplier.id}"
+                                                data-name="${fn:toLowerCase(supplier.name)}"
                                                 ${selectedSupplierId == supplier.id ? 'selected' : ''}>
                                             <c:out value="${supplier.name}"/>
                                         </option>
@@ -483,6 +520,18 @@
                             <h2>Import Products</h2>
                             <p class="detail-card-subtitle">Add products, quantities and import prices.</p>
 
+                            <!-- Filters the options inside every "Product Variant" <select> by product
+                                 name. Combined (AND) with the currently selected supplier, so picking a
+                                 supplier and typing a product name never override each other. -->
+                            <div class="search-box">
+                                <i class="bi bi-search"></i>
+                                <input type="text" id="productSearchInput" class="form-control-custom"
+                                       placeholder="Search product by name...">
+                            </div>
+                            <span class="filter-empty-hint" id="variantFilterEmptyHint">
+                                No product matches the current supplier / search filter.
+                            </span>
+
                             <div id="itemsContainer">
                                 <div class="import-item-row">
 
@@ -493,7 +542,9 @@
                                             <option value="">-- Select product --</option>
                                             <c:forEach var="product" items="${products}">
                                                 <c:forEach var="variant" items="${product.variants}">
-                                                    <option value="${variant.id}">
+                                                    <option value="${variant.id}"
+                                                            data-name="${fn:toLowerCase(product.name)}"
+                                                            data-supplier-ids="<c:forEach var="sid" items="${variantSupplierMap[variant.id]}" varStatus="st">${sid}${!st.last ? ',' : ''}</c:forEach>">
                                                         <c:out value="${product.name}"/> -
                                                         ${variant.ramGb}GB / ${variant.storageGb}GB /
                                                         <c:out value="${variant.colorName}"/>
@@ -666,7 +717,7 @@
                                               class="complete-form">
                                             <input type="hidden" name="action" value="complete">
                                             <input type="hidden" name="id" value="${order.id}">
-                                            <button type="submit" class="btn primary-action"
+                                            <button type="submit" class="btn primary"
                                                     onclick="return confirm('Complete this import order? Inventory will be increased.');">
                                                 <i class="bi bi-check-circle"></i>
                                                 Complete Import Order
@@ -782,6 +833,98 @@
         <!-- CREATE MODE JAVASCRIPT (only loaded when order is empty) -->
         <c:if test="${empty order}">
             <script>
+                /* =========================================================
+                 SHARED FILTER STATE
+                 ---------------------------------------------------------
+                 Every filter (supplier dropdown, product-name search,
+                 supplier-name search) writes into this single object.
+                 applyVariantFilter()/applySupplierFilter() are the only
+                 places that touch `option.hidden`, and each one always
+                 ANDs together every active criterion. Never let two
+                 separate functions independently set `hidden` on the
+                 same option set — that's what causes one filter to
+                 silently undo another.
+                 ========================================================= */
+                const filterState = {
+                    supplierId: '',
+                    productSearch: '',
+                    supplierSearch: ''
+                };
+
+                function applyVariantFilter() {
+                    const selects = document.querySelectorAll('select[name="variantId"]');
+                    let anyVisibleAnywhere = false;
+
+                    selects.forEach(function (select) {
+                        Array.from(select.options).forEach(function (opt) {
+                            if (!opt.value) {
+                                // keep the "-- Select product --" placeholder always visible
+                                opt.hidden = false;
+                                return;
+                            }
+
+                            const supplierIds = (opt.dataset.supplierIds || '')
+                                    .split(',')
+                                    .filter(Boolean);
+
+                            const matchSupplier = !filterState.supplierId
+                                    || supplierIds.includes(filterState.supplierId);
+
+                            const name = opt.dataset.name || '';
+                            const matchSearch = !filterState.productSearch
+                                    || name.includes(filterState.productSearch);
+
+                            const visible = matchSupplier && matchSearch;
+                            opt.hidden = !visible;
+
+                            if (visible) {
+                                anyVisibleAnywhere = true;
+                            }
+
+                            // If the currently selected option got filtered out,
+                            // clear the selection so the form can't silently
+                            // submit a product that no longer matches.
+                            if (!visible && opt.selected) {
+                                select.value = '';
+                            }
+                        });
+                    });
+
+                    const hint = document.getElementById('variantFilterEmptyHint');
+                    if (hint) {
+                        hint.classList.toggle('visible', !anyVisibleAnywhere);
+                    }
+                }
+
+                function applySupplierFilter() {
+                    const select = document.getElementById('supplierSelect');
+                    if (!select) {
+                        return;
+                    }
+
+                    Array.from(select.options).forEach(function (opt) {
+                        if (!opt.value) {
+                            opt.hidden = false;
+                            return;
+                        }
+
+                        const name = opt.dataset.name || '';
+                        const visible = !filterState.supplierSearch
+                                || name.includes(filterState.supplierSearch);
+
+                        opt.hidden = !visible;
+
+                        if (!visible && opt.selected) {
+                            select.value = '';
+                            // supplier selection was cleared -> re-run the
+                            // product filter so it no longer restricts by
+                            // a supplier that's no longer selected
+                            filterState.supplierId = '';
+                            applyVariantFilter();
+                        }
+                    });
+                }
+
                 function addItem() {
                     const container = document.getElementById('itemsContainer');
                     const firstRow = container.querySelector('.import-item-row');
@@ -801,6 +944,10 @@
                     });
 
                     container.appendChild(newRow);
+
+                    // the new row's <select> must respect whatever
+                    // supplier / search filter is currently active
+                    applyVariantFilter();
                 }
 
                 function removeItem(button) {
@@ -814,6 +961,40 @@
 
                     button.closest('.import-item-row').remove();
                 }
+
+                document.addEventListener('DOMContentLoaded', function () {
+                    const supplierSelect = document.getElementById('supplierSelect');
+                    const productSearchInput = document.getElementById('productSearchInput');
+                    const supplierSearchInput = document.getElementById('supplierSearchInput');
+
+                    // pick up a supplierId that was pre-selected server-side
+                    // (e.g. navigated here from a supplier's page)
+                    filterState.supplierId = supplierSelect ? supplierSelect.value : '';
+
+                    if (supplierSelect) {
+                        supplierSelect.addEventListener('change', function () {
+                            filterState.supplierId = this.value;
+                            applyVariantFilter();
+                        });
+                    }
+
+                    if (productSearchInput) {
+                        productSearchInput.addEventListener('input', function () {
+                            filterState.productSearch = this.value.trim().toLowerCase();
+                            applyVariantFilter();
+                        });
+                    }
+
+                    if (supplierSearchInput) {
+                        supplierSearchInput.addEventListener('input', function () {
+                            filterState.supplierSearch = this.value.trim().toLowerCase();
+                            applySupplierFilter();
+                        });
+                    }
+
+                    applyVariantFilter();
+                    applySupplierFilter();
+                });
             </script>
         </c:if>
 
