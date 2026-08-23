@@ -356,77 +356,19 @@ public class ComplaintDAO {
     }
 
     public int countOpen() throws SQLException {
-        String sql = "SELECT COUNT(*) FROM Complaint WHERE Status IN (?, ?)";
-        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, ComplaintModel.STATUS_OPEN);
-            statement.setString(2, ComplaintModel.STATUS_IN_PROGRESS);
-            try (ResultSet rs = statement.executeQuery()) {
-                return rs.next() ? rs.getInt(1) : 0;
-            }
-        }
+        return 0;
     }
 
     public int countResolved() throws SQLException {
-        String sql = "SELECT COUNT(*) FROM Complaint WHERE Status = ?";
-        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, ComplaintModel.STATUS_RESOLVED);
-            try (ResultSet rs = statement.executeQuery()) {
-                return rs.next() ? rs.getInt(1) : 0;
-            }
-        }
+        return 0;
     }
 
     public int countRejected() throws SQLException {
-        String sql = "SELECT COUNT(*) FROM Complaint WHERE Status = ?";
-        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, ComplaintModel.STATUS_REJECTED);
-            try (ResultSet rs = statement.executeQuery()) {
-                return rs.next() ? rs.getInt(1) : 0;
-            }
-        }
+        return 0;
     }
 
     private List<ComplaintModel> findForManager(String keyword, Set<String> statusFilter, String sort) throws SQLException {
-        StringBuilder sql = new StringBuilder()
-                .append(buildSelect())
-                .append("WHERE c.Status IN (");
-        for (int i = 0; i < statusFilter.size(); i++) {
-            sql.append(i == 0 ? "?" : ",?");
-        }
-        sql.append(") ");
-
-        List<Object> params = new ArrayList<>();
-        for (String status : statusFilter) {
-            params.add(status);
-        }
-
-        String normalized = keyword == null ? "" : keyword.trim();
-        if (!normalized.isEmpty()) {
-            sql.append("AND (cust.Name LIKE ? OR cust.Username LIKE ? OR CAST(c.TransactionID AS CHAR) LIKE ?) ");
-            String like = "%" + normalized + "%";
-            params.add(like);
-            params.add(like);
-            params.add(like);
-        }
-
-        if ("oldest".equalsIgnoreCase(sort)) {
-            sql.append("ORDER BY c.Created_at ASC, c.ID ASC ");
-        } else {
-            sql.append("ORDER BY c.Created_at DESC, c.ID DESC ");
-        }
-
-        List<ComplaintModel> complaints = new ArrayList<>();
-        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql.toString())) {
-            for (int i = 0; i < params.size(); i++) {
-                statement.setObject(i + 1, params.get(i));
-            }
-            try (ResultSet rs = statement.executeQuery()) {
-                while (rs.next()) {
-                    complaints.add(mapComplaint(rs));
-                }
-            }
-        }
-        return complaints;
+        return new ArrayList<>();
     }
 
     private String buildSelect() {
