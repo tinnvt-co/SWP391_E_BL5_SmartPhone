@@ -146,6 +146,13 @@ public class DiscountController extends HttpServlet {
         if (d.getEnd().before(d.getStart())) {
             return "End date must be after start date.";
         }
+        java.util.Date now = new java.util.Date();
+        if (d.getStart().before(now)) {
+            return "Start date cannot be in the past.";
+        }
+        if (d.getEnd().before(now)) {
+            return "End date cannot be in the past.";
+        }
         return null;
     }
 }
