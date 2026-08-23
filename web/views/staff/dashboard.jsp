@@ -65,46 +65,6 @@
                     <p>Search, review and process customer orders. Update statuses from PENDING through DELIVERED.</p>
                     <b>Open order queue <span>→</span></b>
                 </a>
-
-                <a class="manager-module order-module" href="${pageContext.request.contextPath}/staff/orders?status=PENDING">
-                    <span class="module-icon">&#9201;</span>
-                    <span class="module-count">PENDING</span>
-                    <h3>Pending Orders</h3>
-                    <p>Jump straight to the orders waiting for confirmation and start the fulfillment flow.</p>
-                    <b>Review pending <span>→</span></b>
-                </a>
-
-                <a class="manager-module order-module" href="${pageContext.request.contextPath}/staff/orders?status=PROCESSING">
-                    <span class="module-icon">&#9881;</span>
-                    <span class="module-count">PROCESSING</span>
-                    <h3>Processing Orders</h3>
-                    <p>Track orders currently being packed and prepared for shipment.</p>
-                    <b>Continue processing <span>→</span></b>
-                </a>
-
-                <a class="manager-module order-module" href="${pageContext.request.contextPath}/staff/orders?status=SHIPPING">
-                    <span class="module-icon">&#128666;</span>
-                    <span class="module-count">SHIPPING</span>
-                    <h3>Shipping Orders</h3>
-                    <p>Monitor orders handed off to shippers and confirm delivery with customers.</p>
-                    <b>Check shipping <span>→</span></b>
-                </a>
-
-                <a class="manager-module profile-module" href="${pageContext.request.contextPath}/profile">
-                    <span class="module-icon">&#128100;</span>
-                    <span class="module-count">account</span>
-                    <h3>My Profile</h3>
-                    <p>View and update your personal information, contact details and delivery address.</p>
-                    <b>Open profile <span>→</span></b>
-                </a>
-
-                <a class="manager-module profile-module" href="${pageContext.request.contextPath}/change-password">
-                    <span class="module-icon">&#128274;</span>
-                    <span class="module-count">security</span>
-                    <h3>Change Password</h3>
-                    <p>Keep your account secure by rotating your password regularly.</p>
-                    <b>Update password <span>→</span></b>
-                </a>
             </section>
 
             <!-- Operational snapshots -->

@@ -545,19 +545,6 @@
                     </div>
                 </c:if>
 
-                <c:if test="${not empty statuses}">
-                    <div class="card">
-                        <h3>Update Status</h3>
-                        <form method="post" action="${pageContext.request.contextPath}/staff/orders" class="status-actions">
-                            <input type="hidden" name="action" value="update-status">
-                            <input type="hidden" name="id" value="${order.id}">
-                            <select name="status">
-                                <c:forEach items="${statuses}" var="s"><option value="${s}" ${order.status==s?'selected':''}><c:out value="${s}"/></option></c:forEach>
-                                </select>
-                                <button class="btn-primary" type="submit">Save Changes</button>
-                            </form>
-                        </div>
-                </c:if>
                 <div class="card">
                     <h3>Items Ordered (${order.itemCount})</h3>
                     <table class="items-table">
