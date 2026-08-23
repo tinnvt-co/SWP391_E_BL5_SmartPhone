@@ -22,7 +22,10 @@ public class VoucherDAO {
         voucher.setValue(rs.getBigDecimal("Value"));
         voucher.setMaxDiscount(rs.getBigDecimal("Max_discount"));
         voucher.setMinOrderValue(rs.getBigDecimal("Min_order_value"));
-        voucher.setMaxUsesPerUser(rs.getInt("Max_uses_per_user"));
+        
+        if (rs.getObject("Max_uses_per_user") != null) {
+            voucher.setMaxUsesPerUser(rs.getInt("Max_uses_per_user"));
+        }
 
         if (rs.getObject("Usage_limit") != null) {
             voucher.setUsageLimit(rs.getInt("Usage_limit"));
@@ -160,7 +163,7 @@ public class VoucherDAO {
     // CREATE VOUCHER
     // =========================
     public boolean create(VoucherModel voucher) {
-        String sql = "INSERT INTO Voucher (Code, Discount_type, Value, Max_discount, Min_order_value, Usage_limit, Max_uses_per_user, Start_date, End_date) " +
+        String sql = "INSERT INTO Voucher (Code, Discount_type, Value, Max_discount, Min_order_value, Max_uses_per_user, Usage_limit, Start_date, End_date) " +
                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -170,13 +173,18 @@ public class VoucherDAO {
             ps.setBigDecimal(4, voucher.getMaxDiscount());
             ps.setBigDecimal(5, voucher.getMinOrderValue());
 
-            if (voucher.getUsageLimit() != null) {
-                ps.setInt(6, voucher.getUsageLimit());
+            if (voucher.getMaxUsesPerUser() > 0) {
+                ps.setInt(6, voucher.getMaxUsesPerUser());
             } else {
                 ps.setNull(6, java.sql.Types.INTEGER);
             }
             
-            ps.setInt(7, voucher.getMaxUsesPerUser());
+            if (voucher.getUsageLimit() != null) {
+                ps.setInt(7, voucher.getUsageLimit());
+            } else {
+                ps.setNull(7, java.sql.Types.INTEGER);
+            }
+            
             ps.setTimestamp(8, voucher.getStartDate());
             ps.setTimestamp(9, voucher.getEndDate());
 
@@ -204,7 +212,7 @@ public class VoucherDAO {
     // UPDATE VOUCHER
     // =========================
     public boolean update(VoucherModel voucher) {
-        String sql = "UPDATE Voucher SET Code = ?, Discount_type = ?, Value = ?, Max_discount = ?, Min_order_value = ?, Usage_limit = ?, Max_uses_per_user = ?, Start_date = ?, End_date = ? WHERE ID = ?";
+        String sql = "UPDATE Voucher SET Code = ?, Discount_type = ?, Value = ?, Max_discount = ?, Min_order_value = ?, Max_uses_per_user = ?, Usage_limit = ?, Start_date = ?, End_date = ? WHERE ID = ?";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -214,13 +222,18 @@ public class VoucherDAO {
             ps.setBigDecimal(4, voucher.getMaxDiscount());
             ps.setBigDecimal(5, voucher.getMinOrderValue());
 
-            if (voucher.getUsageLimit() != null) {
-                ps.setInt(6, voucher.getUsageLimit());
+            if (voucher.getMaxUsesPerUser() > 0) {
+                ps.setInt(6, voucher.getMaxUsesPerUser());
             } else {
                 ps.setNull(6, java.sql.Types.INTEGER);
             }
             
-            ps.setInt(7, voucher.getMaxUsesPerUser());
+            if (voucher.getUsageLimit() != null) {
+                ps.setInt(7, voucher.getUsageLimit());
+            } else {
+                ps.setNull(7, java.sql.Types.INTEGER);
+            }
+            
             ps.setTimestamp(8, voucher.getStartDate());
             ps.setTimestamp(9, voucher.getEndDate());
             ps.setInt(10, voucher.getId());
@@ -299,10 +312,10 @@ public class VoucherDAO {
     public List<UserVoucherModel> findSavedVouchersByUser(int userId) {
 
         List<UserVoucherModel> list = new ArrayList<>();
-        String sql = "SELECT uv.*, v.Code, v.Discount_type, v.Value, v.Max_discount, v.Min_order_value, v.Usage_limit, v.Max_uses_per_user, v.Used_count, v.Start_date, v.End_date, v.Status " +
+        String sql = "SELECT uv.*, v.Code, v.Discount_type, v.Value, v.Max_discount, v.Min_order_value, v.Max_uses_per_user, v.Usage_limit, v.Used_count, v.Start_date, v.End_date, v.Status " +
                      "FROM User_Voucher uv " +
                      "JOIN Voucher v ON uv.VoucherID = v.ID " +
-                     "WHERE uv.UserID = ? AND uv.Used_count < v.Max_uses_per_user " +
+                     "WHERE uv.UserID = ? AND (v.Max_uses_per_user IS NULL OR uv.Used_count < v.Max_uses_per_user) " +
                      "ORDER BY uv.Saved_at DESC";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -328,7 +341,10 @@ public class VoucherDAO {
                     v.setValue(rs.getBigDecimal("Value"));
                     v.setMaxDiscount(rs.getBigDecimal("Max_discount"));
                     v.setMinOrderValue(rs.getBigDecimal("Min_order_value"));
-                    v.setMaxUsesPerUser(rs.getInt("Max_uses_per_user"));
+                    
+                    if (rs.getObject("Max_uses_per_user") != null) {
+                        v.setMaxUsesPerUser(rs.getInt("Max_uses_per_user"));
+                    }
 
                     if (rs.getObject("Usage_limit") != null) {
                         v.setUsageLimit(rs.getInt("Usage_limit"));

@@ -278,8 +278,11 @@
                                                         <c:if test="${uv.voucher.minOrderValue != null}">
                                                             (Min: <fmt:formatNumber value="${uv.voucher.minOrderValue}" pattern="#,##0"/>đ)
                                                         </c:if>
-                                                        <c:if test="${uv.voucher.maxUsesPerUser > 1}">
-                                                            - ${uv.voucher.maxUsesPerUser - uv.usedCount} uses left
+                                                        <c:if test="${not empty uv.voucher.usageLimit}">
+                                                            - Còn ${uv.voucher.usageLimit - uv.voucher.usedCount} lượt chung
+                                                        </c:if>
+                                                        <c:if test="${not empty uv.voucher.maxUsesPerUser && uv.voucher.maxUsesPerUser > 1}">
+                                                            (Bạn còn ${uv.voucher.maxUsesPerUser - uv.usedCount} lượt)
                                                         </c:if>
                                                     </option>
                                                 </c:forEach>
