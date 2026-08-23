@@ -545,7 +545,7 @@
                     </div>
                 </c:if>
 
-                <c:if test="${not empty statuses && order.type != 'IMPORT'}">
+                <c:if test="${not empty statuses}">
                     <div class="card">
                         <h3>Update Status</h3>
                         <form method="post" action="${pageContext.request.contextPath}/staff/orders" class="status-actions">

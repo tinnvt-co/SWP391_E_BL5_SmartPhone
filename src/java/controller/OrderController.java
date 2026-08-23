@@ -55,18 +55,26 @@ public class OrderController extends HttpServlet {
                 int orderId = integer(request.getParameter("id"), 0);
                 String status = request.getParameter("status");
                 Integer updatedBy = integerOrNull(request.getParameter("updatedBy"));
-                if (orderId <= 0 || status == null
-                        || !VALID_STATUSES.contains(status)
-                        || !STAFF_UPDATABLE_STATUSES.contains(status)) {
-                    redirectBack(request, response,
-                            status != null && "DELIVERED".equals(status)
-                                    ? "Staff cannot mark orders as DELIVERED"
-                                    : "Invalid request");
+                if (orderId <= 0 || status == null || !VALID_STATUSES.contains(status)) {
+                    redirectBack(request, response, "Invalid request");
                     return;
                 }
                 OrderModel existing = orderDAO.findOrderDetail(orderId);
-                if (existing == null || "IMPORT".equalsIgnoreCase(existing.getType())) {
-                    redirectBack(request, response, "Cannot update import orders");
+                if (existing == null) {
+                    redirectBack(request, response, "Order not found");
+                    return;
+                }
+                boolean isImport = "IMPORT".equalsIgnoreCase(existing.getType());
+                if (isImport && !"COMPLETED".equals(status)) {
+                    redirectBack(request, response, "Import orders can only be updated to COMPLETED");
+                    return;
+                }
+                if (!isImport && "DELIVERED".equals(status)) {
+                    redirectBack(request, response, "Staff cannot mark orders as DELIVERED");
+                    return;
+                }
+                if (!isImport && !STAFF_UPDATABLE_STATUSES.contains(status)) {
+                    redirectBack(request, response, "Invalid status for this order");
                     return;
                 }
                 boolean ok = orderDAO.updateStatus(orderId, status, updatedBy);
@@ -117,7 +125,8 @@ public class OrderController extends HttpServlet {
             return;
         }
         request.setAttribute("order", order);
-        request.setAttribute("statuses", STAFF_UPDATABLE_STATUSES);
+        boolean isImportOrder = "IMPORT".equalsIgnoreCase(order.getType());
+        request.setAttribute("statuses", isImportOrder ? Set.of("COMPLETED") : STAFF_UPDATABLE_STATUSES);
         request.getRequestDispatcher("/views/staff/order-detail.jsp").forward(request, response);
     }
 
