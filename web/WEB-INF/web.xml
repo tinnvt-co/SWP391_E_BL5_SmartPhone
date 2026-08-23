@@ -174,10 +174,6 @@
         <servlet-name>StoreInfoController</servlet-name>
         <servlet-class>controller.StoreInfoController</servlet-class>
     </servlet>
-    <servlet>
-        <servlet-name>StoreInformationController</servlet-name>
-        <servlet-class>controller.StoreInformationController</servlet-class>
-    </servlet>
     <servlet-mapping>
         <servlet-name>HomeController</servlet-name>
         <url-pattern>/home</url-pattern>
@@ -352,11 +348,7 @@
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>StoreInfoController</servlet-name>
-        <url-pattern>/manager/storeinfor</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>StoreInformationController</servlet-name>
-        <url-pattern>/manager/storeinformation</url-pattern>
+        <url-pattern>/manager/storeinfo</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>30</session-timeout>

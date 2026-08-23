@@ -53,7 +53,7 @@
                                 <i class="bi bi-person"></i> My Profile
                             </a>
                             <c:if test="${fn:toLowerCase(profile.roleName) == 'manager'}">
-                                <a href="${pageContext.request.contextPath}/manager/storeinfor">
+                                <a href="${pageContext.request.contextPath}/manager/storeinfo">
                                     <i class="bi bi-house-door"></i> Store Information
                                 </a>
                             </c:if>
