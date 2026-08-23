@@ -133,6 +133,8 @@ document.addEventListener('click', function (event) {
     var STEP_DESCS = ['Confirmed', 'Processing', 'Shipping', 'Delivered'];
     var STATUS_CODES = ['CONFIRMED', 'PROCESSING', 'SHIPPING', 'DELIVERED'];
     var STATUS_DESCS = {CONFIRMED: 'Confirmed by staff', PROCESSING: 'Preparing your order', SHIPPING: 'In transit to customer', DELIVERED: 'Delivered successfully (manager only)'};
+    var IMPORT_STATUS_CODES = ['COMPLETED'];
+    var IMPORT_STATUS_DESCS = {COMPLETED: 'Import order received and completed'};
     var STAFF_LOCKED_STATUSES = ['DELIVERED'];
     var modal = document.getElementById('orderUpdateModal');
     if (!modal)
@@ -148,24 +150,36 @@ document.addEventListener('click', function (event) {
         custEl.textContent = (data.customer || '--') + (data.total ? ' Â· ' + data.total + 'â‚«' : '');
         idEl.value = data.id || '';
         var current = (data.status || '').toUpperCase();
-        var stepIndex = STEP_LABELS.indexOf(current);
-        stepperEl.innerHTML = '';
-        STEP_LABELS.forEach(function (label, i) {
-            var item = document.createElement('div');
-            var state = i < stepIndex ? 'done' : (i === stepIndex ? 'current' : 'future');
-            item.className = 'order-stepper-item ' + state;
-            item.innerHTML = '<div class="order-stepper-dot">' + (i + 1) + '</div><div class="order-stepper-label">' + STEP_DESCS[i] + '</div>';
-            stepperEl.appendChild(item);
-        });
+        var isImport = (data.type || '').toUpperCase() === 'IMPORT';
+        var codes = isImport ? IMPORT_STATUS_CODES : STATUS_CODES;
+        var descs = isImport ? IMPORT_STATUS_DESCS : STATUS_DESCS;
+        if (isImport) {
+            stepperEl.innerHTML = '';
+            var note = document.createElement('div');
+            note.className = 'order-stepper-item current';
+            note.style.gridColumn = '1 / -1';
+            note.innerHTML = '<div class="order-stepper-dot">📦</div><div class="order-stepper-label">Import order - mark as completed when goods are received</div>';
+            stepperEl.appendChild(note);
+        } else {
+            var stepIndex = STEP_LABELS.indexOf(current);
+            stepperEl.innerHTML = '';
+            STEP_LABELS.forEach(function (label, i) {
+                var item = document.createElement('div');
+                var state = i < stepIndex ? 'done' : (i === stepIndex ? 'current' : 'future');
+                item.className = 'order-stepper-item ' + state;
+                item.innerHTML = '<div class="order-stepper-dot">' + (i + 1) + '</div><div class="order-stepper-label">' + STEP_DESCS[i] + '</div>';
+                stepperEl.appendChild(item);
+            });
+        }
         gridEl.innerHTML = '';
-        STATUS_CODES.forEach(function (code) {
-            var locked = STAFF_LOCKED_STATUSES.indexOf(code) !== -1;
+        codes.forEach(function (code) {
+            var locked = !isImport && STAFF_LOCKED_STATUSES.indexOf(code) !== -1;
             var option = document.createElement('label');
             option.className = 'order-status-option' + (code === current ? ' is-selected' : '') + (locked ? ' is-locked' : '');
-            option.innerHTML = '<input type="radio" name="status" value="' + code + '"' + (code === current ? ' checked' : '') + (locked ? ' disabled' : '') + '><span class="order-status-option-dot"></span><div class="order-status-option-info"><span class="order-status-option-code">' + code.replace(/_/g, ' ') + (locked ? ' <i class="bi bi-lock-fill"></i>' : '') + '</span><span class="order-status-option-desc">' + STATUS_DESCS[code] + '</span></div>';
+            option.innerHTML = '<input type="radio" name="status" value="' + code + '"' + (code === current ? ' checked' : '') + (locked ? ' disabled' : '') + '><span class="order-status-option-dot"></span><div class="order-status-option-info"><span class="order-status-option-code">' + code.replace(/_/g, ' ') + (locked ? ' <i class="bi bi-lock-fill"></i>' : '') + '</span><span class="order-status-option-desc">' + descs[code] + '</span></div>';
             gridEl.appendChild(option);
         });
-        submitBtn.disabled = current === '' || current === null;
+        submitBtn.disabled = current === '' || current === null || current === 'COMPLETED';
         submitBtn.textContent = 'Confirm Update';
         gridEl.querySelectorAll('input[type=radio]').forEach(function (radio) {
             radio.addEventListener('change', function () {

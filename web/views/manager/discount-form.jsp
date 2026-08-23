@@ -37,6 +37,7 @@
                             <input type="datetime-local" name="end" id="endInput" value="${endValue}" required>
                         </label>
                     </div>
+                    <p class="form-hint" id="dateHint" style="display:none;color:#dc2626;margin-top:.5rem;">⚠ Start and end dates must be in the future.</p>
                 </section>
 
                 <section class="form-section">
@@ -89,6 +90,29 @@
                 var list = document.getElementById('productList');
                 var selectAll = document.getElementById('selectAll');
                 var clearAll = document.getElementById('clearAll');
+                var dateHint = document.getElementById('dateHint');
+                var form = document.getElementById('discount-form');
+
+                function pad(n) { return n < 10 ? '0' + n : '' + n; }
+                function nowLocalISO() {
+                    var d = new Date();
+                    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
+                            + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+                }
+
+                function validateDates() {
+                    if (!startEl || !endEl) return true;
+                    var now = new Date();
+                    var s = startEl.value ? new Date(startEl.value) : null;
+                    var e = endEl.value ? new Date(endEl.value) : null;
+                    var pastStart = s && s.getTime() < now.getTime();
+                    var pastEnd = e && e.getTime() < now.getTime();
+                    var invalid = pastStart || pastEnd;
+                    if (dateHint) dateHint.style.display = invalid ? '' : 'none';
+                    if (startEl) startEl.min = nowLocalISO();
+                    if (endEl) endEl.min = startEl && startEl.value ? startEl.value : nowLocalISO();
+                    return !invalid;
+                }
 
                 function refreshPicked() {
                     if (!picked)
@@ -145,10 +169,27 @@
                         });
                         refreshPicked();
                     });
-                if (startEl)
-                    startEl.addEventListener('change', recomputeStatus);
-                if (endEl)
-                    endEl.addEventListener('change', recomputeStatus);
+                if (startEl) {
+                    startEl.addEventListener('change', function () {
+                        validateDates();
+                        recomputeStatus();
+                    });
+                }
+                if (endEl) {
+                    endEl.addEventListener('change', function () {
+                        validateDates();
+                        recomputeStatus();
+                    });
+                }
+                if (form) {
+                    form.addEventListener('submit', function (ev) {
+                        if (!validateDates()) {
+                            ev.preventDefault();
+                            alert('Start and end dates must be in the future.');
+                        }
+                    });
+                }
+                validateDates();
                 recomputeStatus();
             })();
         </script>
