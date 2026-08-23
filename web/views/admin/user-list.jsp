@@ -351,22 +351,24 @@
                                                 </span>
                                             </td>
                                             <td class="text-end">
-                                                <c:choose>
-                                                    <c:when test="${u.active}">
-                                                        <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="showConfirmModal(${u.id}, 'deactivate', 'Lock')" title="Lock">
-                                                            <i class="bi bi-lock-fill"></i>
-                                                        </button>
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <button type="button" class="btn btn-sm btn-outline-success border-0" onclick="showConfirmModal(${u.id}, 'activate', 'Unlock')" title="Unlock">
-                                                            <i class="bi bi-unlock-fill"></i>
-                                                        </button>
-                                                    </c:otherwise>
-                                                </c:choose>
+                                                <c:if test="${u.id != currentUser.id}">
+                                                    <c:choose>
+                                                        <c:when test="${u.active}">
+                                                            <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="showConfirmModal(${u.id}, 'deactivate', 'Lock')" title="Lock">
+                                                                <i class="bi bi-lock-fill"></i>
+                                                            </button>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <button type="button" class="btn btn-sm btn-outline-success border-0" onclick="showConfirmModal(${u.id}, 'activate', 'Unlock')" title="Unlock">
+                                                                <i class="bi bi-unlock-fill"></i>
+                                                            </button>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </c:if>
                                                 <a href="${pageContext.request.contextPath}/admin/users?action=edit&id=${u.id}" class="btn btn-sm btn-outline-primary border-0 ms-1" title="Edit">
                                                     <i class="bi bi-pencil"></i>
                                                 </a>
-                                                <c:if test="${fn:toLowerCase(u.roleName) != 'admin'}">
+                                                <c:if test="${fn:toLowerCase(u.roleName) != 'admin' && u.id != currentUser.id}">
                                                     <button type="button" class="btn btn-sm btn-outline-danger border-0 ms-1" onclick="showConfirmModal(${u.id}, 'delete', 'Delete')" title="Delete">
                                                         <i class="bi bi-trash"></i>
                                                     </button>

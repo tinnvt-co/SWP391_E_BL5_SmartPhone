@@ -106,17 +106,22 @@ public class AdminUserController extends HttpServlet {
         if (action != null && idStr != null) {
             try {
                 int id = Integer.parseInt(idStr);
-                if ("activate".equals(action)) {
-                    userDAO.updateStatus(id, "ACTIVE");
-                } else if ("deactivate".equals(action)) {
-                    userDAO.updateStatus(id, "INACTIVE");
-                } else if ("delete".equals(action)) {
-                    UserModel userToDelete = userDAO.findById(id);
-                    if (userToDelete != null && !"ADMIN".equalsIgnoreCase(userToDelete.getRoleName())) {
-                        userDAO.delete(id);
-                        request.getSession().setAttribute("message", "User deleted successfully.");
-                    } else {
-                        request.getSession().setAttribute("error", "Cannot delete Admin accounts.");
+                UserModel currentUser = (UserModel) request.getSession().getAttribute("currentUser");
+                if (currentUser != null && currentUser.getId() == id) {
+                    request.getSession().setAttribute("error", "You cannot lock, unlock, or delete your own account.");
+                } else {
+                    if ("activate".equals(action)) {
+                        userDAO.updateStatus(id, "ACTIVE");
+                    } else if ("deactivate".equals(action)) {
+                        userDAO.updateStatus(id, "INACTIVE");
+                    } else if ("delete".equals(action)) {
+                        UserModel userToDelete = userDAO.findById(id);
+                        if (userToDelete != null && !"ADMIN".equalsIgnoreCase(userToDelete.getRoleName())) {
+                            userDAO.delete(id);
+                            request.getSession().setAttribute("message", "User deleted successfully.");
+                        } else {
+                            request.getSession().setAttribute("error", "Cannot delete Admin accounts.");
+                        }
                     }
                 }
             } catch (Exception ex) {
