@@ -56,16 +56,16 @@ public class StoreInformationDAO {
                 SET address = ?,
                     phone = ?,
                     email = ?,
-                    facebook_url = ?,
+                    facebook_url = ?
                 """;
 
         try (
                 Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setString(2, store.getAddress());
-            ps.setString(3, store.getPhone());
-            ps.setString(4, store.getEmail());
-            ps.setString(6, store.getFacebookUrl());
+            ps.setString(1, store.getAddress());
+            ps.setString(2, store.getPhone());
+            ps.setString(3, store.getEmail());
+            ps.setString(4, store.getFacebookUrl());
 
             return ps.executeUpdate() > 0;
 
