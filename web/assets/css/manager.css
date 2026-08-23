@@ -1286,6 +1286,40 @@ body.category-product-modal-open {
     box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
 }
 
+.variant-field-error {
+    display: block;
+    min-height: 18px;
+    margin-top: 6px;
+    color: #dc2626;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.product-validation-summary {
+    margin-bottom: 24px;
+}
+
+.product-validation-summary strong {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.product-validation-summary ul {
+    margin: 0;
+    padding-left: 22px;
+}
+
+.product-validation-summary li + li {
+    margin-top: 4px;
+}
+
+.product-form .client-invalid {
+    border-color: #dc2626;
+    background: #fff7f7;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
 .product-form textarea {
     resize: vertical;
 }

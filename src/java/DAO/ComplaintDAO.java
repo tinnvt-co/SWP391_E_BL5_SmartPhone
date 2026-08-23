@@ -356,19 +356,86 @@ public class ComplaintDAO {
     }
 
     public int countOpen() throws SQLException {
-        return 0;
+        return countByStatuses(OPEN_STATUSES);
     }
 
     public int countResolved() throws SQLException {
-        return 0;
+        return countByStatuses(Set.of(ComplaintModel.STATUS_RESOLVED, ComplaintModel.STATUS_CLOSED));
     }
 
     public int countRejected() throws SQLException {
-        return 0;
+        return countByStatuses(Set.of(ComplaintModel.STATUS_REJECTED));
     }
 
     private List<ComplaintModel> findForManager(String keyword, Set<String> statusFilter, String sort) throws SQLException {
-        return new ArrayList<>();
+        String normalizedKeyword = keyword == null ? "" : keyword.trim();
+        StringBuilder sql = new StringBuilder(buildSelect());
+        sql.append("WHERE c.Status IN (");
+        appendPlaceholders(sql, statusFilter.size());
+        sql.append(") ");
+
+        if (!normalizedKeyword.isEmpty()) {
+            sql.append("AND (CAST(c.ID AS CHAR) LIKE ? ")
+                    .append("OR CAST(c.TransactionID AS CHAR) LIKE ? ")
+                    .append("OR cust.Name LIKE ? ")
+                    .append("OR cust.Username LIKE ? ")
+                    .append("OR c.Category LIKE ? ")
+                    .append("OR c.CustomReason LIKE ? ")
+                    .append("OR c.Description LIKE ?) ");
+        }
+
+        if ("oldest".equalsIgnoreCase(sort)) {
+            sql.append("ORDER BY c.Created_at ASC, c.ID ASC");
+        } else {
+            sql.append("ORDER BY c.Created_at DESC, c.ID DESC");
+        }
+
+        List<ComplaintModel> complaints = new ArrayList<>();
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql.toString())) {
+            int parameterIndex = 1;
+            for (String status : statusFilter) {
+                statement.setString(parameterIndex++, status);
+            }
+            if (!normalizedKeyword.isEmpty()) {
+                String pattern = "%" + normalizedKeyword + "%";
+                for (int i = 0; i < 7; i++) {
+                    statement.setString(parameterIndex++, pattern);
+                }
+            }
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    complaints.add(mapComplaint(rs));
+                }
+            }
+        }
+        return complaints;
+    }
+
+    private int countByStatuses(Set<String> statuses) throws SQLException {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Complaint WHERE Status IN (");
+        appendPlaceholders(sql, statuses.size());
+        sql.append(")");
+
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql.toString())) {
+            int parameterIndex = 1;
+            for (String status : statuses) {
+                statement.setString(parameterIndex++, status);
+            }
+            try (ResultSet rs = statement.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+        }
+    }
+
+    private void appendPlaceholders(StringBuilder sql, int count) {
+        for (int i = 0; i < count; i++) {
+            if (i > 0) {
+                sql.append(", ");
+            }
+            sql.append('?');
+        }
     }
 
     private String buildSelect() {

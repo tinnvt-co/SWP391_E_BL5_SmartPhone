@@ -18,13 +18,13 @@ public class CategoryController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        try {
-            String action = request.getParameter("action");
+        String action = ProductController.value(
+                request.getParameter("action"), "list");
 
-            if ("form".equals(action)) {
-                showForm(request, response);
-            } else {
-                showList(request, response);
+        try {
+            switch (action) {
+                case "form" -> showForm(request, response);
+                default -> showList(request, response);
             }
         } catch (SQLException exception) {
             throw new ServletException("Cannot load categories", exception);
@@ -35,51 +35,16 @@ public class CategoryController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
+        String action = ProductController.value(
+                request.getParameter("action"), "");
 
         try {
-            String action = request.getParameter("action");
-
-            if ("deactivate".equals(action) || "set-status".equals(action)) {
-                int categoryId = ProductController.integer(
-                        request.getParameter("id"), 0);
-                if (categoryId <= 0 || categoryDAO.findById(categoryId) == null) {
-                    response.sendError(HttpServletResponse.SC_NOT_FOUND);
-                    return;
-                }
-                String requestedStatus = "deactivate".equals(action)
-                        ? "INACTIVE" : request.getParameter("status");
-                if (!"ACTIVE".equals(requestedStatus)
-                        && !"INACTIVE".equals(requestedStatus)) {
-                    response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-                    return;
-                }
-                boolean activate = "ACTIVE".equals(requestedStatus);
-                categoryDAO.setActive(categoryId, activate);
-            } else {
-                if (!"save".equals(action)) {
-                    response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-                    return;
-                }
-                CategoryModel category = readCategory(request);
-                String error = validateCategory(category,
-                        request.getParameter("status"));
-
-                if (error != null) {
-                    showFormError(request, response, category, error);
-                    return;
-                }
-
-                if (categoryDAO.existsName(category.getName(), category.getId())) {
-                    showFormError(request, response, category,
-                            "Category name already exists. Reactivate the existing category if it is inactive.");
-                    return;
-                }
-
-                categoryDAO.save(category);
+            switch (action) {
+                case "deactivate", "set-status" ->
+                    handleSetStatus(request, response, action);
+                case "save" -> handleSave(request, response);
+                default -> response.sendError(HttpServletResponse.SC_BAD_REQUEST);
             }
-
-            response.sendRedirect(request.getContextPath()
-                    + "/manager/categories?message=Saved");
         } catch (SQLException exception) {
             CategoryModel category = readCategory(request);
             String error = exception.getErrorCode() == 1062
@@ -87,6 +52,57 @@ public class CategoryController extends HttpServlet {
                     : exception.getMessage();
             showFormError(request, response, category, error);
         }
+    }
+
+    private void handleSetStatus(HttpServletRequest request,
+            HttpServletResponse response, String action)
+            throws SQLException, IOException {
+        int categoryId = ProductController.integer(
+                request.getParameter("id"), 0);
+        if (categoryId <= 0 || categoryDAO.findById(categoryId) == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        String requestedStatus = "deactivate".equals(action)
+                ? "INACTIVE" : request.getParameter("status");
+        if (!"ACTIVE".equals(requestedStatus)
+                && !"INACTIVE".equals(requestedStatus)) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+
+        boolean activate = "ACTIVE".equals(requestedStatus);
+        categoryDAO.setActive(categoryId, activate);
+        redirectToList(request, response);
+    }
+
+    private void handleSave(HttpServletRequest request,
+            HttpServletResponse response)
+            throws SQLException, ServletException, IOException {
+        CategoryModel category = readCategory(request);
+        String error = validateCategory(category,
+                request.getParameter("status"));
+
+        if (error != null) {
+            showFormError(request, response, category, error);
+            return;
+        }
+
+        if (categoryDAO.existsName(category.getName(), category.getId())) {
+            showFormError(request, response, category,
+                    "Category name already exists. Reactivate the existing category if it is inactive.");
+            return;
+        }
+
+        categoryDAO.save(category);
+        redirectToList(request, response);
+    }
+
+    private void redirectToList(HttpServletRequest request,
+            HttpServletResponse response) throws IOException {
+        response.sendRedirect(request.getContextPath()
+                + "/manager/categories?message=Saved");
     }
 
     private void showList(HttpServletRequest request, HttpServletResponse response)
