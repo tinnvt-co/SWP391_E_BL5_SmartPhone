@@ -51,7 +51,6 @@ public class OrderCompletionScheduler implements ServletContextListener {
     public void contextInitialized(ServletContextEvent sce) {
         // Run the migration first so Delivered_at exists before the scheduler
         // touches it. ReviewMigrationRunner is invoked by its own listener.
-        OrderCompletionMigrationRunner.run();
 
         executor = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "order-completion-scheduler");

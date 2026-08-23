@@ -52,10 +52,13 @@
                                href="${pageContext.request.contextPath}/manager/brands?action=form&id=${brand.id}">
                                 Edit
                             </a>
-                            <form method="post" onsubmit="return confirmDeactivate('brand')">
-                                <input type="hidden" name="action" value="deactivate">
+                            <form method="post" onsubmit="return confirmStatusChange('brand', ${!brand.active})">
+                                <input type="hidden" name="action" value="set-status">
                                 <input type="hidden" name="id" value="${brand.id}">
-                                <button class="btn danger">Delete</button>
+                                <input type="hidden" name="status" value="${brand.active ? 'INACTIVE' : 'ACTIVE'}">
+                                <button class="btn ${brand.active ? 'danger' : 'primary'}">
+                                    ${brand.active ? 'Deactivate' : 'Activate'}
+                                </button>
                             </form>
                         </div>
                     </article>

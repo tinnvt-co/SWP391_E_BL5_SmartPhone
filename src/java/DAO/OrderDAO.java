@@ -205,12 +205,13 @@ public class OrderDAO {
                 + "       u.Username, u.Name AS UserName, u.Phone, u.Email, "
                 + "       upd.Name AS UpdatedByName, "
                 + "       d.Recipient_name, d.Recipient_phone, d.Delivery_address, "
+                + "       (SELECT MAX(Updated_at) FROM TransactionStatusHistory tsh WHERE tsh.TransactionID = t.ID AND tsh.Status = 'DELIVERED') AS Delivered_at, "
                 + "       (SELECT COALESCE(SUM(tp.Amount),0) FROM Transaction_ProductVariant tp WHERE tp.TransactionID = t.ID) AS ItemCount "
                 + "FROM `Transaction` t "
                 + "JOIN `User` u   ON t.UserID = u.ID "
                 + "LEFT JOIN `User` upd ON t.Updated_by = upd.ID "
                 + "LEFT JOIN DeliveryInfo d ON t.DeliveryInfoID = d.ID "
-                + "WHERE t.Status IN ('DELIVERED', 'COMPLETED') AND t.Type = 'ORDER' AND t.ShipperID = ? "
+                + "WHERE t.Status IN ('DELIVERED', 'COMPLETED', 'DELIVERY_FAILED') AND t.Type = 'ORDER' AND t.ShipperID = ? "
                 + "ORDER BY t.Updated_at DESC, t.ID DESC "
                 + "LIMIT ? OFFSET ?";
 
@@ -221,7 +222,9 @@ public class OrderDAO {
             statement.setInt(3, offset);
             try (ResultSet rs = statement.executeQuery()) {
                 while (rs.next()) {
-                    orders.add(mapOrderDetail(rs));
+                    OrderModel order = mapOrderDetail(rs);
+                    order.setDeliveredAt(rs.getTimestamp("Delivered_at"));
+                    orders.add(order);
                 }
             }
         }
@@ -230,7 +233,7 @@ public class OrderDAO {
 
     public int countDeliveredOrdersByShipper(int shipperId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM `Transaction` "
-                   + "WHERE Status IN ('DELIVERED', 'COMPLETED') AND Type = 'ORDER' AND ShipperID = ?";
+                   + "WHERE Status IN ('DELIVERED', 'COMPLETED', 'DELIVERY_FAILED') AND Type = 'ORDER' AND ShipperID = ?";
         try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, shipperId);
             try (ResultSet rs = statement.executeQuery()) {
@@ -372,16 +375,8 @@ public class OrderDAO {
         if (updatedBy == null) {
             updatedBy = resolveFallbackUpdater();
         }
-        // Stamp Delivered_at the first time an order transitions to DELIVERED.
-        // We never overwrite an existing value so subsequent edits (note, proof)
-        // can't shift the 15-day auto-completion deadline.
-        StringBuilder sql = new StringBuilder(
-                "UPDATE `Transaction` SET Status = ?, Updated_by = ?, Updated_at = CURRENT_TIMESTAMP");
-        if ("DELIVERED".equals(status)) {
-            sql.append(", Delivered_at = COALESCE(Delivered_at, CURRENT_TIMESTAMP)");
-        }
-        sql.append(" WHERE ID = ?");
-        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql.toString())) {
+        String sql = "UPDATE `Transaction` SET Status = ?, Updated_by = ?, Updated_at = CURRENT_TIMESTAMP WHERE ID = ?";
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, status);
             statement.setInt(2, updatedBy);
             statement.setInt(3, orderId);
@@ -445,13 +440,8 @@ public class OrderDAO {
         if (!VALID_STATUSES.contains(status)) {
             throw new SQLException("Invalid status: " + status);
         }
-        StringBuilder sql = new StringBuilder(
-                "UPDATE `Transaction` SET Status = ?, Note = ?, Updated_by = ?, Updated_at = CURRENT_TIMESTAMP");
-        if ("DELIVERED".equals(status)) {
-            sql.append(", Delivered_at = COALESCE(Delivered_at, CURRENT_TIMESTAMP)");
-        }
-        sql.append(" WHERE ID = ?");
-        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql.toString())) {
+        String sql = "UPDATE `Transaction` SET Status = ?, Note = ?, Updated_by = ?, Updated_at = CURRENT_TIMESTAMP WHERE ID = ?";
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, status);
             statement.setString(2, note);
             if (updatedBy == null) {
@@ -469,13 +459,8 @@ public class OrderDAO {
         if (!VALID_STATUSES.contains(status)) {
             throw new SQLException("Invalid status: " + status);
         }
-        StringBuilder sql = new StringBuilder(
-                "UPDATE `Transaction` SET Status = ?, Note = ?, Proof_image = ?, Updated_by = ?, Updated_at = CURRENT_TIMESTAMP");
-        if ("DELIVERED".equals(status)) {
-            sql.append(", Delivered_at = COALESCE(Delivered_at, CURRENT_TIMESTAMP)");
-        }
-        sql.append(" WHERE ID = ?");
-        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql.toString())) {
+        String sql = "UPDATE `Transaction` SET Status = ?, Note = ?, Proof_image = ?, Updated_by = ?, Updated_at = CURRENT_TIMESTAMP WHERE ID = ?";
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, status);
             statement.setString(2, note);
             statement.setString(3, proofImage);

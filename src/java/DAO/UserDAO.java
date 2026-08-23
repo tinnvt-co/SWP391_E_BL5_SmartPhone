@@ -82,6 +82,24 @@ public class UserDAO {
         return null;
     }
 
+    public UserModel findById(int id) throws SQLException {
+        String sql = "SELECT u.ID, u.Username, u.Name, u.Phone, u.Address, u.Image, u.Age, "
+                + "u.Email, u.RoleID, u.Status, r.Name AS RoleName "
+                + "FROM `User` u "
+                + "JOIN `Role` r ON u.RoleID = r.ID "
+                + "WHERE u.ID = ?";
+
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapUser(rs);
+                }
+            }
+        }
+        return null;
+    }
+
     public List<UserModel> findActiveShippers() throws SQLException {
         String sql = "SELECT u.ID, u.Username, u.Name, u.Phone, u.Address, u.Image, u.Age, "
                 + "u.Email, u.RoleID, u.Status, r.Name AS RoleName "
@@ -408,6 +426,14 @@ public class UserDAO {
         try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, status);
             ps.setInt(2, userId);
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    public boolean delete(int userId) throws SQLException {
+        String sql = "DELETE FROM `User` WHERE ID = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
             return ps.executeUpdate() > 0;
         }
     }

@@ -38,7 +38,6 @@ public class ManagerProductController extends HttpServlet {
     private static final String IMAGE_FOLDER = "/assets/images/products";
     private static final int PAGE_SIZE = 10;
     private static final int MAX_PRICE = 500_000_000;
-    private static final int MAX_STOCK = 1_000_000;
     private static final List<Integer> RAM_OPTIONS = List.of(
             2, 3, 4, 6, 8, 12, 16, 18, 24);
     private static final List<Integer> STORAGE_OPTIONS = List.of(
@@ -388,10 +387,7 @@ public class ManagerProductController extends HttpServlet {
             variant.setStorageGb(integerAt(request, "variantStorage", index));
             variant.setColorName(normalizeText(
                     valueAt(request, "variantColorName", index)));
-            variant.setSku(trim(valueAt(request, "variantSku", index)));
             variant.setSellingPrice(integerAt(request, "variantSellingPrice", index));
-            variant.setLatestCost(integerAt(request, "variantLatestCost", index));
-            variant.setStock(integerAt(request, "variantStock", index));
             variant.setImage(uploadedNameAt(request, "variantImageFile",
                     "existingVariantImage", index));
             variant.setBackImage(uploadedNameAt(request, "variantBackImageFile",
@@ -478,7 +474,6 @@ public class ManagerProductController extends HttpServlet {
         }
 
         Set<String> options = new HashSet<>();
-        Set<String> skus = new HashSet<>();
         Set<String> frontImages = new HashSet<>();
 
         for (int index = 0; index < product.getVariants().size(); index++) {
@@ -502,37 +497,12 @@ public class ManagerProductController extends HttpServlet {
                     "^[\\p{L}]+(?:[ -][\\p{L}]+)*$")) {
                 return row + "color name may contain letters, spaces and hyphens only.";
             }
-            if (variant.getSku() == null || variant.getSku().isBlank()) {
-                return row + "SKU is required.";
-            }
-            if (variant.getSku().length() > 50) {
-                return row + "SKU cannot exceed 50 characters.";
-            }
-            if (!variant.getSku().matches("^[A-Za-z0-9][A-Za-z0-9._-]*$")) {
-                return row + "SKU may contain letters, numbers, dots, underscores and hyphens only.";
-            }
             if (variant.getSellingPrice() <= 0) {
                 return row + "selling price must be greater than 0.";
             }
             if (variant.getSellingPrice() > MAX_PRICE) {
                 return row + "selling price cannot exceed 500,000,000 VND.";
             }
-            if (variant.getLatestCost() < 0) {
-                return row + "latest cost cannot be negative.";
-            }
-            if (variant.getLatestCost() > MAX_PRICE) {
-                return row + "latest cost cannot exceed 500,000,000 VND.";
-            }
-            if (variant.getSellingPrice() < variant.getLatestCost()) {
-                return row + "selling price cannot be lower than latest cost.";
-            }
-            if (variant.getStock() < 0) {
-                return row + "stock cannot be negative.";
-            }
-            if (variant.getStock() > MAX_STOCK) {
-                return row + "stock cannot exceed 1,000,000 units.";
-            }
-
             String imageError = validateImage(row, variant.getImage(), "front");
             if (imageError != null) {
                 return imageError;
@@ -550,9 +520,6 @@ public class ManagerProductController extends HttpServlet {
                     + "|" + variant.getColorName().trim().toLowerCase();
             if (!options.add(optionKey)) {
                 return row + "RAM, storage and color duplicate another variant.";
-            }
-            if (!skus.add(variant.getSku().trim().toLowerCase())) {
-                return row + "SKU duplicates another variant.";
             }
             if (!frontImages.add(variant.getImage().trim().toLowerCase())) {
                 return row + "front image name duplicates another variant.";
@@ -587,9 +554,6 @@ public class ManagerProductController extends HttpServlet {
             ProductVariantModel variant = product.getVariants().get(index);
             String row = "Variant " + (index + 1) + ": ";
 
-            if (productDAO.existsVariantSku(variant.getSku(), variant.getId())) {
-                return row + "SKU already belongs to another product variant.";
-            }
             if (productDAO.existsFrontImage(variant.getImage(), variant.getId())) {
                 return row + "front image name already belongs to another product variant.";
             }

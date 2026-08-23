@@ -58,10 +58,6 @@
         <servlet-class>controller.WishlistController</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>CheckoutController</servlet-name>
-        <servlet-class>controller.CheckoutController</servlet-class>
-    </servlet>
-    <servlet>
         <servlet-name>VnpayReturnController</servlet-name>
         <servlet-class>controller.VnpayReturnController</servlet-class>
     </servlet>
@@ -237,10 +233,6 @@
     <servlet-mapping>
         <servlet-name>WishlistController</servlet-name>
         <url-pattern>/wishlist</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>CheckoutController</servlet-name>
-        <url-pattern>/checkout</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>VnpayReturnController</servlet-name>

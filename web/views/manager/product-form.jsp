@@ -118,8 +118,7 @@
                             <thead>
                                 <tr>
                                     <th>Memory and color</th>
-                                    <th>Identification</th>
-                                    <th>Price and stock</th>
+                                    <th>Price</th>
                                     <th>Images</th>
                                     <th></th>
                                 </tr>
@@ -150,12 +149,7 @@
                                             <label>Color name *<input name="variantColorName" maxlength="50" value="<c:out value='${variant.colorName}'/>" placeholder="Black Titanium" pattern="[A-Za-zÀ-ỹ]+(?:[ -][A-Za-zÀ-ỹ]+)*" title="Use letters, spaces and hyphens only." required></label>
                                         </td>
                                         <td>
-                                            <label>SKU *<input name="variantSku" maxlength="50" pattern="[A-Za-z0-9][A-Za-z0-9._-]*" title="Use letters, numbers, dots, underscores and hyphens only." value="<c:out value='${variant.sku}'/>" required></label>
-                                        </td>
-                                        <td>
                                             <label>Selling price *<input type="number" name="variantSellingPrice" min="1" max="500000000" value="${variant.sellingPrice}" required></label>
-                                            <label>Latest cost *<input type="number" name="variantLatestCost" min="0" max="500000000" value="${variant.latestCost}" required></label>
-                                            <label>Stock *<input type="number" name="variantStock" min="0" max="1000000" value="${variant.stock}" required></label>
                                         </td>
                                         <td>
                                             <input type="hidden" name="existingVariantImage" value="<c:out value='${variant.image}'/>">
@@ -208,12 +202,7 @@
                     <label>Color name *<input name="variantColorName" maxlength="50" placeholder="Black Titanium" pattern="[A-Za-zÀ-ỹ]+(?:[ -][A-Za-zÀ-ỹ]+)*" title="Use letters, spaces and hyphens only." required></label>
                 </td>
                 <td>
-                    <label>SKU *<input name="variantSku" maxlength="50" pattern="[A-Za-z0-9][A-Za-z0-9._-]*" title="Use letters, numbers, dots, underscores and hyphens only." required></label>
-                </td>
-                <td>
                     <label>Selling price *<input type="number" name="variantSellingPrice" min="1" max="500000000" required></label>
-                    <label>Latest cost *<input type="number" name="variantLatestCost" min="0" max="500000000" required></label>
-                    <label>Stock *<input type="number" name="variantStock" min="0" max="1000000" required></label>
                 </td>
                 <td>
                     <input type="hidden" name="existingVariantImage" value="">

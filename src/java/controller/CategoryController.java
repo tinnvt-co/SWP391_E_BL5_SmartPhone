@@ -39,14 +39,22 @@ public class CategoryController extends HttpServlet {
         try {
             String action = request.getParameter("action");
 
-            if ("deactivate".equals(action)) {
+            if ("deactivate".equals(action) || "set-status".equals(action)) {
                 int categoryId = ProductController.integer(
                         request.getParameter("id"), 0);
                 if (categoryId <= 0 || categoryDAO.findById(categoryId) == null) {
                     response.sendError(HttpServletResponse.SC_NOT_FOUND);
                     return;
                 }
-                categoryDAO.deactivate(categoryId);
+                String requestedStatus = "deactivate".equals(action)
+                        ? "INACTIVE" : request.getParameter("status");
+                if (!"ACTIVE".equals(requestedStatus)
+                        && !"INACTIVE".equals(requestedStatus)) {
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                    return;
+                }
+                boolean activate = "ACTIVE".equals(requestedStatus);
+                categoryDAO.setActive(categoryId, activate);
             } else {
                 if (!"save".equals(action)) {
                     response.sendError(HttpServletResponse.SC_BAD_REQUEST);
@@ -63,7 +71,7 @@ public class CategoryController extends HttpServlet {
 
                 if (categoryDAO.existsName(category.getName(), category.getId())) {
                     showFormError(request, response, category,
-                            "Category name already exists.");
+                            "Category name already exists. Reactivate the existing category if it is inactive.");
                     return;
                 }
 
@@ -75,7 +83,7 @@ public class CategoryController extends HttpServlet {
         } catch (SQLException exception) {
             CategoryModel category = readCategory(request);
             String error = exception.getErrorCode() == 1062
-                    ? "Category name already exists."
+                    ? "Category name already exists. Reactivate the existing category if it is inactive."
                     : exception.getMessage();
             showFormError(request, response, category, error);
         }

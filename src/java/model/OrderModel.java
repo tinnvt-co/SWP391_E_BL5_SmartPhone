@@ -24,6 +24,7 @@ public class OrderModel implements Serializable {
     private String updatedByName;
     private Timestamp updatedAt;
     private Timestamp createdAt;
+    private Timestamp deliveredAt;
     private Integer referenceTransactionId;
     private Integer deliveryInfoId;
     private String recipientName;
@@ -162,6 +163,14 @@ public class OrderModel implements Serializable {
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Timestamp getDeliveredAt() {
+        return deliveredAt;
+    }
+
+    public void setDeliveredAt(Timestamp deliveredAt) {
+        this.deliveredAt = deliveredAt;
     }
 
     public Integer getReferenceTransactionId() {

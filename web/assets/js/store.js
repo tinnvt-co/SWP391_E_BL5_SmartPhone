@@ -78,6 +78,13 @@ function confirmDeactivate(type) {
     return window.confirm('Deactivate this ' + type + '? It will no longer appear on public screens.');
 }
 
+function confirmStatusChange(type, activate) {
+    if (activate) {
+        return window.confirm('Activate this ' + type + '? It will appear on public screens again.');
+    }
+    return confirmDeactivate(type);
+}
+
 var catalogForm = document.getElementById('catalogForm');
 if (catalogForm) {
     var searchInput = document.getElementById('productSearch');
