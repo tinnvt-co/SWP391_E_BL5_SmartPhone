@@ -231,40 +231,50 @@
                                     <input type="radio" name="reason" value="CHANGED_MIND" required>
                                     <span class="cancel-reason-body">
                                         <i class="bi bi-emoji-frown"></i>
-                                        <strong>Changed my mind</strong>
-                                        <small>I no longer want this product.</small>
+                                        <span class="cancel-reason-text">
+                                            <strong>Changed my mind</strong>
+                                            <small>I no longer want this product.</small>
+                                        </span>
                                     </span>
                                 </label>
                                 <label class="cancel-reason-option">
                                     <input type="radio" name="reason" value="WRONG_PRODUCT">
                                     <span class="cancel-reason-body">
                                         <i class="bi bi-bag-x"></i>
-                                        <strong>Ordered wrong product</strong>
-                                        <small>I picked the wrong variant / model.</small>
+                                        <span class="cancel-reason-text">
+                                            <strong>Ordered wrong product</strong>
+                                            <small>I picked the wrong variant / model.</small>
+                                        </span>
                                     </span>
                                 </label>
                                 <label class="cancel-reason-option">
                                     <input type="radio" name="reason" value="FOUND_CHEAPER">
                                     <span class="cancel-reason-body">
                                         <i class="bi bi-tag"></i>
-                                        <strong>Found a cheaper price</strong>
-                                        <small>I found the same item cheaper elsewhere.</small>
+                                        <span class="cancel-reason-text">
+                                            <strong>Found a cheaper price</strong>
+                                            <small>I found the same item cheaper elsewhere.</small>
+                                        </span>
                                     </span>
                                 </label>
                                 <label class="cancel-reason-option">
                                     <input type="radio" name="reason" value="LONG_DELIVERY">
                                     <span class="cancel-reason-body">
                                         <i class="bi bi-truck"></i>
-                                        <strong>Delivery takes too long</strong>
-                                        <small>Estimated delivery is too slow.</small>
+                                        <span class="cancel-reason-text">
+                                            <strong>Delivery takes too long</strong>
+                                            <small>Estimated delivery is too slow.</small>
+                                        </span>
                                     </span>
                                 </label>
                                 <label class="cancel-reason-option">
                                     <input type="radio" name="reason" value="OTHER">
                                     <span class="cancel-reason-body">
                                         <i class="bi bi-three-dots"></i>
-                                        <strong>Other reason</strong>
-                                        <small>Tell us more below.</small>
+                                        <span class="cancel-reason-text">
+                                            <strong>Other reason</strong>
+                                            <small>Tell us more below.</small>
+                                        </span>
                                     </span>
                                 </label>
                             </div>

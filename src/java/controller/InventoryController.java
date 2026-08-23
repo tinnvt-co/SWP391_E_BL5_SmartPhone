@@ -52,21 +52,7 @@ public class InventoryController extends HttpServlet {
         HttpSession session = request.getSession();
         Integer userId = (Integer) session.getAttribute("userId");
 
-        if ("stockIn".equals(action)) {
-            try {
-                int variantId = Integer.parseInt(request.getParameter("variantId"));
-                int qty = Integer.parseInt(request.getParameter("quantity"));
-                String note = request.getParameter("note");
-                if (qty <= 0) {
-                    session.setAttribute("msgErr", "Quantity phải > 0");
-                } else {
-                    boolean ok = dao.stockIn(variantId, qty, note, userId);
-                    session.setAttribute(ok ? "msgOk" : "msgErr", ok ? "Stock In thành công" : "Lỗi khi stock in");
-                }
-            } catch (Exception e) {
-                session.setAttribute("msgErr", "Dữ liệu không hợp lệ");
-            }
-        } else if ("adjust".equals(action)) {
+        if ("adjust".equals(action)) {
             try {
                 int variantId = Integer.parseInt(request.getParameter("variantId"));
                 int newStock = Integer.parseInt(request.getParameter("newStock"));

@@ -1131,6 +1131,12 @@
     font-size: 12.5px;
 }
 
+.cancel-reason-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
 .cancel-reason-option.selected .cancel-reason-body small {
     color: var(--cust-red);
 }

@@ -21,11 +21,6 @@
                     <h1><i class="bi bi-box-seam"></i> Inventory Management</h1>
                     <p>${stocks.size()} variants tracked · status calculated from Min / Max thresholds</p>
                 </div>
-                <div class="d-flex gap-2 flex-wrap">
-                    <a class="btn primary-action" href="javascript:void(0)" onclick="openStockIn()">
-                        <i class="bi bi-plus-circle"></i> Stock In
-                    </a>
-                </div>
             </div>
 
             <c:if test="${not empty message}">
@@ -151,31 +146,6 @@
             </section>
         </main>
 
-        <!-- Stock In Modal -->
-        <div id="stockInModal" class="modal-backdrop" style="display:none">
-            <form method="post" action="${pageContext.request.contextPath}/manager/inventory" class="modal-card entity-form">
-                <h3><i class="bi bi-box-arrow-in-down"></i> Stock In</h3>
-                <input type="hidden" name="action" value="stockIn">
-                <input type="hidden" name="variantId" id="siVariantId">
-                <div class="modal-field">
-                    <label>Product</label>
-                    <div id="siProduct" class="modal-readout"></div>
-                </div>
-                <div class="modal-field">
-                    <label for="siQuantity">Quantity</label>
-                    <input type="number" id="siQuantity" name="quantity" min="1" required>
-                </div>
-                <div class="modal-field">
-                    <label for="siNote">Note</label>
-                    <input type="text" id="siNote" name="note" placeholder="e.g. Supplier XYZ import">
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn subtle" onclick="closeModals()">Cancel</button>
-                    <button type="submit" class="btn primary-action">Confirm Stock In</button>
-                </div>
-            </form>
-        </div>
-
         <!-- Adjust Threshold Modal (Min / Max) -->
         <div id="thresholdModal" class="modal-backdrop" style="display:none">
             <form method="post" action="${pageContext.request.contextPath}/manager/inventory" class="modal-card entity-form">
@@ -230,13 +200,6 @@
         </div>
 
         <script>
-            function openStockIn(variantId, name) {
-                if (variantId) {
-                    document.getElementById('siVariantId').value = variantId;
-                    document.getElementById('siProduct').textContent = name;
-                }
-                document.getElementById('stockInModal').style.display = 'flex';
-            }
             function openThreshold(variantId, minAmount, maxAmount, name) {
                 document.getElementById('thrVariantId').value = variantId;
                 document.getElementById('thrProduct').textContent = name;
@@ -245,11 +208,10 @@
                 document.getElementById('thresholdModal').style.display = 'flex';
             }
             function closeModals() {
-                document.getElementById('stockInModal').style.display = 'none';
                 document.getElementById('thresholdModal').style.display = 'none';
             }
             window.onclick = function (e) {
-                if (e.target.id === 'stockInModal' || e.target.id === 'thresholdModal') {
+                if (e.target.id === 'thresholdModal') {
                     closeModals();
                 }
             };
