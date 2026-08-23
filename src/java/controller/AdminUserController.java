@@ -34,6 +34,26 @@ public class AdminUserController extends HttpServlet {
                 throw new ServletException(ex);
             }
         }
+        
+        if ("edit".equals(action)) {
+            String idStr = request.getParameter("id");
+            if (idStr != null) {
+                try {
+                    int id = Integer.parseInt(idStr);
+                    UserModel user = userDAO.findById(id);
+                    if (user != null) {
+                        request.setAttribute("user", user);
+                        request.setAttribute("roles", roleDAO.findAll());
+                        request.getRequestDispatcher("/views/admin/user-edit.jsp").forward(request, response);
+                        return;
+                    }
+                } catch (Exception ex) {
+                    // silently fallback to list
+                }
+            }
+            response.sendRedirect(request.getContextPath() + "/admin/users");
+            return;
+        }
 
         try {
             int page = 1;
@@ -74,6 +94,11 @@ public class AdminUserController extends HttpServlet {
 
         if ("create".equals(action)) {
             handleCreateUser(request, response);
+            return;
+        }
+        
+        if ("update".equals(action)) {
+            handleUpdateUser(request, response);
             return;
         }
 
@@ -181,6 +206,100 @@ public class AdminUserController extends HttpServlet {
 
             response.sendRedirect(request.getContextPath() + "/admin/users");
         } catch (SQLException ex) {
+            throw new ServletException(ex);
+        }
+    }
+
+    private void handleUpdateUser(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        List<String> errors = new ArrayList<>();
+        String idStr = request.getParameter("id");
+        String name = request.getParameter("name");
+        String email = request.getParameter("email");
+        String phone = request.getParameter("phone");
+        String ageStr = request.getParameter("age");
+        String roleIdStr = request.getParameter("roleId");
+        String address = request.getParameter("address");
+
+        try {
+            int id = Integer.parseInt(idStr);
+            UserModel existingUser = userDAO.findById(id);
+            if (existingUser == null) {
+                response.sendRedirect(request.getContextPath() + "/admin/users");
+                return;
+            }
+
+            if (name == null || name.trim().isEmpty() || name.length() > 50) {
+                errors.add("Name is required and must not exceed 50 characters.");
+            }
+
+            if (email == null || !email.matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
+                errors.add("Invalid email format.");
+            } else if (userDAO.existsByEmailForOtherUser(email, id)) {
+                errors.add("Email already exists for another user.");
+            }
+
+            if (phone == null || !phone.matches("^0\\d{9}$")) {
+                errors.add("Phone must start with 0 and have exactly 10 digits.");
+            } else if (userDAO.existsByPhoneForOtherUser(phone, id)) {
+                errors.add("Phone number already exists for another user.");
+            }
+
+            Integer age = null;
+            if (ageStr != null && !ageStr.isBlank()) {
+                try {
+                    age = Integer.parseInt(ageStr);
+                    if (age < 10 || age > 100) {
+                        errors.add("Age must be between 10 and 100.");
+                    }
+                } catch (NumberFormatException e) {
+                    errors.add("Invalid age format.");
+                }
+            }
+
+            int roleId = -1;
+            if (roleIdStr == null || roleIdStr.isBlank()) {
+                errors.add("Role is required.");
+            } else {
+                try {
+                    roleId = Integer.parseInt(roleIdStr);
+                } catch (NumberFormatException e) {
+                    errors.add("Invalid role format.");
+                }
+            }
+
+            if (!errors.isEmpty()) {
+                // To redisplay form with current inputs but original username
+                UserModel tempUser = new UserModel();
+                tempUser.setId(id);
+                tempUser.setUsername(existingUser.getUsername());
+                tempUser.setName(name);
+                tempUser.setEmail(email);
+                tempUser.setPhone(phone);
+                tempUser.setAge(age);
+                tempUser.setAddress(address);
+                tempUser.setRoleId(roleId);
+
+                request.setAttribute("user", tempUser);
+                request.setAttribute("roles", roleDAO.findAll());
+                request.setAttribute("errors", errors);
+                request.getRequestDispatcher("/views/admin/user-edit.jsp").forward(request, response);
+                return;
+            }
+
+            existingUser.setName(name);
+            existingUser.setEmail(email);
+            existingUser.setPhone(phone);
+            existingUser.setAge(age);
+            existingUser.setAddress(address);
+            existingUser.setRoleId(roleId);
+
+            if (userDAO.updateUserAdmin(existingUser)) {
+                request.getSession().setAttribute("message", "User updated successfully.");
+            } else {
+                request.getSession().setAttribute("error", "Failed to update user.");
+            }
+            response.sendRedirect(request.getContextPath() + "/admin/users");
+        } catch (Exception ex) {
             throw new ServletException(ex);
         }
     }

@@ -363,6 +363,9 @@
                                                         </button>
                                                     </c:otherwise>
                                                 </c:choose>
+                                                <a href="${pageContext.request.contextPath}/admin/users?action=edit&id=${u.id}" class="btn btn-sm btn-outline-primary border-0 ms-1" title="Edit">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
                                                 <c:if test="${fn:toLowerCase(u.roleName) != 'admin'}">
                                                     <button type="button" class="btn btn-sm btn-outline-danger border-0 ms-1" onclick="showConfirmModal(${u.id}, 'delete', 'Delete')" title="Delete">
                                                         <i class="bi bi-trash"></i>

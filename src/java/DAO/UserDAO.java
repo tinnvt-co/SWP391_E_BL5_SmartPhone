@@ -140,6 +140,17 @@ public class UserDAO {
         }
     }
 
+    public boolean existsByEmailForOtherUser(String email, int userId) throws SQLException {
+        String sql = "SELECT 1 FROM `User` WHERE Email = ? AND ID <> ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            ps.setInt(2, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
     public UserModel createCustomer(UserModel user, String password) throws SQLException {
         String passwordHash = PasswordHasher.hash(password);
         String nextIdSql = "SELECT COALESCE(MAX(ID), 0) + 1 FROM `User`";
@@ -296,6 +307,27 @@ public class UserDAO {
             ps.executeUpdate();
         }
         return findActiveById(user.getId());
+    }
+
+    public boolean updateUserAdmin(UserModel user) throws SQLException {
+        String sql = "UPDATE `User` "
+                + "SET Name = ?, Email = ?, Phone = ?, Age = ?, Address = ?, RoleID = ? "
+                + "WHERE ID = ?";
+
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, user.getName());
+            ps.setString(2, user.getEmail());
+            ps.setString(3, user.getPhone());
+            if (user.getAge() != null) {
+                ps.setInt(4, user.getAge());
+            } else {
+                ps.setNull(4, java.sql.Types.INTEGER);
+            }
+            ps.setString(5, user.getAddress());
+            ps.setInt(6, user.getRoleId());
+            ps.setInt(7, user.getId());
+            return ps.executeUpdate() > 0;
+        }
     }
 
     public boolean isCurrentPassword(int userId, String password) throws SQLException {
