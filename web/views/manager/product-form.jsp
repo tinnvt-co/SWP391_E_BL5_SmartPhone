@@ -33,7 +33,12 @@
             </c:if>
 
             <form class="entity-form product-form" method="post" enctype="multipart/form-data"
-                  action="${pageContext.request.contextPath}/manager/products">
+                  action="${pageContext.request.contextPath}/manager/products" novalidate>
+                <div class="alert error product-validation-summary"
+                     data-product-validation-summary tabindex="-1" hidden>
+                    <strong>Product cannot be saved. Please fix the following:</strong>
+                    <ul data-product-validation-errors></ul>
+                </div>
                 <input type="hidden" name="action" value="save">
                 <input type="hidden" name="id" value="${product.id}">
                 <input type="hidden" name="confirmBrandMismatch"
@@ -149,7 +154,10 @@
                                             <label>Color name *<input name="variantColorName" maxlength="50" value="<c:out value='${variant.colorName}'/>" placeholder="Black Titanium" pattern="[A-Za-zÀ-ỹ]+(?:[ -][A-Za-zÀ-ỹ]+)*" title="Use letters, spaces and hyphens only." required></label>
                                         </td>
                                         <td>
-                                            <label>Selling price *<input type="number" name="variantSellingPrice" min="1" max="500000000" value="${variant.sellingPrice}" required></label>
+                                            <label>Selling price *
+                                                <input type="number" name="variantSellingPrice" min="1" max="500000000" value="${variant.sellingPrice}" required>
+                                                <small class="variant-field-error" data-variant-price-error aria-live="polite"></small>
+                                            </label>
                                         </td>
                                         <td>
                                             <input type="hidden" name="existingVariantImage" value="<c:out value='${variant.image}'/>">
@@ -202,7 +210,10 @@
                     <label>Color name *<input name="variantColorName" maxlength="50" placeholder="Black Titanium" pattern="[A-Za-zÀ-ỹ]+(?:[ -][A-Za-zÀ-ỹ]+)*" title="Use letters, spaces and hyphens only." required></label>
                 </td>
                 <td>
-                    <label>Selling price *<input type="number" name="variantSellingPrice" min="1" max="500000000" required></label>
+                    <label>Selling price *
+                        <input type="number" name="variantSellingPrice" min="1" max="500000000" required>
+                        <small class="variant-field-error" data-variant-price-error aria-live="polite"></small>
+                    </label>
                 </td>
                 <td>
                     <input type="hidden" name="existingVariantImage" value="">
@@ -214,7 +225,7 @@
                 <td><button class="variant-remove" type="button" data-remove-variant aria-label="Remove variant">Remove</button></td>
             </tr>
         </template>
-        <script src="${pageContext.request.contextPath}/assets/js/manager-product-form.js?v=20260820-brand-warning"></script>
+        <script src="${pageContext.request.contextPath}/assets/js/manager-product-form.js?v=20260823-complete-validation"></script>
         <%@ include file="/views/common/footer.jsp" %>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     </body>

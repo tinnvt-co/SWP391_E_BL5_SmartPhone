@@ -50,80 +50,15 @@ public class ManagerProductController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        String action = ProductController.value(
+                request.getParameter("action"), "list");
+
         try {
-            String action = ProductController.value(request.getParameter("action"), "list");
-            if ("form".equals(action)) {
-                Integer categoryId = ProductController.integerOrNull(
-                        request.getParameter("category"));
-                int productId = ProductController.integer(
-                        request.getParameter("id"), 0);
-                if (categoryId != null && productId == 0) {
-                    showCategoryPicker(request, response);
-                    return;
-                }
-                showForm(request, response);
-                return;
+            switch (action) {
+                case "form" -> handleForm(request, response);
+                case "category-picker" -> showCategoryPicker(request, response);
+                default -> handleList(request, response);
             }
-            if ("category-picker".equals(action)) {
-                showCategoryPicker(request, response);
-                return;
-            }
-
-            Integer brandId = ProductController.integerOrNull(request.getParameter("brand"));
-            Integer categoryId = ProductController.integerOrNull(request.getParameter("category"));
-            boolean fromCategory = categoryId != null
-                    && "category".equals(request.getParameter("from"));
-            String keyword = request.getParameter("q");
-            String sort = request.getParameter("sort");
-            String priceRange = ProductController.normalizePriceRange(
-                    request.getParameter("priceRange"));
-
-            int filteredTotal = productDAO.countAll(
-                    keyword, brandId, categoryId, priceRange, false);
-            int totalPages = Math.max(1,
-                    (int) Math.ceil((double) filteredTotal / PAGE_SIZE));
-            int currentPage = ProductController.integer(
-                    request.getParameter("page"), 1);
-            currentPage = Math.max(1, Math.min(currentPage, totalPages));
-
-            var products = productDAO.findAll(
-                    keyword, brandId, categoryId, priceRange, sort, false,
-                    PAGE_SIZE, (currentPage - 1) * PAGE_SIZE);
-
-            request.setAttribute("products", products);
-            request.setAttribute("filteredTotal", filteredTotal);
-            request.setAttribute("currentPage", currentPage);
-            request.setAttribute("totalPages", totalPages);
-            request.setAttribute("pageStart", filteredTotal == 0 ? 0
-                    : (currentPage - 1) * PAGE_SIZE + 1);
-            request.setAttribute("pageEnd", Math.min(
-                    currentPage * PAGE_SIZE, filteredTotal));
-            request.setAttribute("keyword", keyword);
-            request.setAttribute("selectedSort", sort);
-            request.setAttribute("selectedPriceRange", priceRange);
-            request.setAttribute("brands", brandDAO.findAll(true));
-            var categories = categoryDAO.findAll(true);
-            request.setAttribute("categories", categories);
-            request.setAttribute("selectedBrand", brandId);
-            request.setAttribute("selectedCategory", categoryId);
-            request.setAttribute("fromCategory", fromCategory);
-            if (categoryId != null) {
-                CategoryModel selectedCategoryModel
-                        = categoryDAO.findById(categoryId);
-                if (selectedCategoryModel != null) {
-                    request.setAttribute("selectedCategoryName",
-                            selectedCategoryModel.getName());
-                }
-                if (fromCategory) {
-                    Set<Integer> assignedIds
-                            = categoryDAO.findProductIds(categoryId);
-                    request.setAttribute("availableCategoryProducts",
-                            productDAO.findAll(null, null, null, "newest",
-                                    false, assignedIds));
-                }
-            }
-            request.getRequestDispatcher("/views/manager/product-list.jsp")
-                    .forward(request, response);
         } catch (SQLException exception) {
             throw new ServletException("Cannot load product management", exception);
         }
@@ -133,26 +68,126 @@ public class ManagerProductController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
-        String action = ProductController.value(request.getParameter("action"), "save");
+        String action = ProductController.value(
+                request.getParameter("action"), "save");
+
+        try {
+            switch (action) {
+                case "add-category-products" ->
+                    addProductsToCategory(request, response);
+                case "remove-category-product" ->
+                    removeProductFromCategory(request, response);
+                case "deactivate" -> handleDeactivate(request, response);
+                case "save" -> handleSave(request, response);
+                default -> handleSave(request, response);
+            }
+        } catch (SQLException exception) {
+            throw new ServletException("Cannot process product management",
+                    exception);
+        }
+    }
+
+    private void handleForm(HttpServletRequest request,
+            HttpServletResponse response)
+            throws SQLException, ServletException, IOException {
+        Integer categoryId = ProductController.integerOrNull(
+                request.getParameter("category"));
+        int productId = ProductController.integer(
+                request.getParameter("id"), 0);
+
+        if (categoryId != null && productId == 0) {
+            showCategoryPicker(request, response);
+            return;
+        }
+
+        showForm(request, response);
+    }
+
+    private void handleList(HttpServletRequest request,
+            HttpServletResponse response)
+            throws SQLException, ServletException, IOException {
+        Integer brandId = ProductController.integerOrNull(
+                request.getParameter("brand"));
+        Integer categoryId = ProductController.integerOrNull(
+                request.getParameter("category"));
+        boolean fromCategory = categoryId != null
+                && "category".equals(request.getParameter("from"));
+        String keyword = request.getParameter("q");
+        String sort = request.getParameter("sort");
+        String priceRange = ProductController.normalizePriceRange(
+                request.getParameter("priceRange"));
+
+        int filteredTotal = productDAO.countAll(
+                keyword, brandId, categoryId, priceRange, false);
+        int totalPages = Math.max(1,
+                (int) Math.ceil((double) filteredTotal / PAGE_SIZE));
+        int currentPage = ProductController.integer(
+                request.getParameter("page"), 1);
+        currentPage = Math.max(1, Math.min(currentPage, totalPages));
+
+        List<ProductModel> products = productDAO.findAll(
+                keyword, brandId, categoryId, priceRange, sort, false,
+                PAGE_SIZE, (currentPage - 1) * PAGE_SIZE);
+        List<CategoryModel> categories = categoryDAO.findAll(true);
+
+        request.setAttribute("products", products);
+        request.setAttribute("filteredTotal", filteredTotal);
+        request.setAttribute("currentPage", currentPage);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("pageStart", filteredTotal == 0 ? 0
+                : (currentPage - 1) * PAGE_SIZE + 1);
+        request.setAttribute("pageEnd", Math.min(
+                currentPage * PAGE_SIZE, filteredTotal));
+        request.setAttribute("keyword", keyword);
+        request.setAttribute("selectedSort", sort);
+        request.setAttribute("selectedPriceRange", priceRange);
+        request.setAttribute("brands", brandDAO.findAll(true));
+        request.setAttribute("categories", categories);
+        request.setAttribute("selectedBrand", brandId);
+        request.setAttribute("selectedCategory", categoryId);
+        request.setAttribute("fromCategory", fromCategory);
+
+        loadSelectedCategory(request, categoryId, fromCategory);
+
+        request.getRequestDispatcher("/views/manager/product-list.jsp")
+                .forward(request, response);
+    }
+
+    private void loadSelectedCategory(HttpServletRequest request,
+            Integer categoryId, boolean fromCategory) throws SQLException {
+        if (categoryId == null) {
+            return;
+        }
+
+        CategoryModel selectedCategory = categoryDAO.findById(categoryId);
+        if (selectedCategory != null) {
+            request.setAttribute("selectedCategoryName",
+                    selectedCategory.getName());
+        }
+
+        if (fromCategory) {
+            Set<Integer> assignedIds = categoryDAO.findProductIds(categoryId);
+            List<ProductModel> availableProducts = productDAO.findAll(
+                    null, null, null, "newest", false, assignedIds);
+            request.setAttribute("availableCategoryProducts",
+                    availableProducts);
+        }
+    }
+
+    private void handleDeactivate(HttpServletRequest request,
+            HttpServletResponse response) throws SQLException, IOException {
+        int productId = ProductController.integer(
+                request.getParameter("id"), 0);
+        productDAO.deactivate(productId);
+        redirect(response, request, "Product deactivated");
+    }
+
+    private void handleSave(HttpServletRequest request,
+            HttpServletResponse response) throws ServletException, IOException {
         List<Path> uploadedFiles = new ArrayList<>();
         ProductModel product = null;
 
         try {
-            if ("add-category-products".equals(action)) {
-                addProductsToCategory(request, response);
-                return;
-            }
-            if ("remove-category-product".equals(action)) {
-                removeProductFromCategory(request, response);
-                return;
-            }
-            if ("deactivate".equals(action)) {
-                int productId = ProductController.integer(request.getParameter("id"), 0);
-                productDAO.deactivate(productId);
-                redirect(response, request, "Product deactivated");
-                return;
-            }
-
             product = read(request);
             String validationError = validate(product);
             if (validationError != null) {

@@ -26,15 +26,14 @@ public class BrandController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        try {
-            String action = request.getParameter("action");
+        String action = ProductController.value(
+                request.getParameter("action"), "list");
 
-            if ("form".equals(action)) {
-                showForm(request, response);
-            } else if ("products".equals(action)) {
-                showProducts(request, response);
-            } else {
-                showList(request, response);
+        try {
+            switch (action) {
+                case "form" -> showForm(request, response);
+                case "products" -> showProducts(request, response);
+                default -> showList(request, response);
             }
         } catch (SQLException exception) {
             throw new ServletException("Cannot load brands", exception);
@@ -45,52 +44,17 @@ public class BrandController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
-        String action = request.getParameter("action");
+        String action = ProductController.value(
+                request.getParameter("action"), "");
 
         try {
-            if ("deactivate".equals(action) || "set-status".equals(action)) {
-                int brandId = ProductController.integer(request.getParameter("id"), 0);
-                if (brandId <= 0 || brandDAO.findById(brandId) == null) {
-                    response.sendError(HttpServletResponse.SC_NOT_FOUND);
-                    return;
-                }
-                String requestedStatus = "deactivate".equals(action)
-                        ? "INACTIVE" : request.getParameter("status");
-                if (!"ACTIVE".equals(requestedStatus)
-                        && !"INACTIVE".equals(requestedStatus)) {
-                    response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-                    return;
-                }
-                boolean activate = "ACTIVE".equals(requestedStatus);
-                brandDAO.setActive(brandId, activate);
-            } else if ("move-products".equals(action)) {
-                moveProducts(request, response);
-                return;
-            } else {
-                if (!"save".equals(action)) {
-                    response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-                    return;
-                }
-                BrandModel brand = readBrand(request);
-                String error = validateBrand(brand,
-                        request.getParameter("status"));
-
-                if (error != null) {
-                    showFormError(request, response, brand, error);
-                    return;
-                }
-
-                if (brandDAO.existsName(brand.getName(), brand.getId())) {
-                    showFormError(request, response, brand,
-                            "Brand name already exists. Reactivate the existing brand if it is inactive.");
-                    return;
-                }
-
-                brandDAO.save(brand);
+            switch (action) {
+                case "deactivate", "set-status" ->
+                    handleSetStatus(request, response, action);
+                case "move-products" -> moveProducts(request, response);
+                case "save" -> handleSave(request, response);
+                default -> response.sendError(HttpServletResponse.SC_BAD_REQUEST);
             }
-
-            response.sendRedirect(request.getContextPath()
-                    + "/manager/brands?message=Saved");
         } catch (SQLException exception) {
             if ("move-products".equals(action)) {
                 throw new ServletException("Cannot move products to brand",
@@ -102,6 +66,56 @@ public class BrandController extends HttpServlet {
                     : exception.getMessage();
             showFormError(request, response, brand, error);
         }
+    }
+
+    private void handleSetStatus(HttpServletRequest request,
+            HttpServletResponse response, String action)
+            throws SQLException, IOException {
+        int brandId = ProductController.integer(
+                request.getParameter("id"), 0);
+        if (brandId <= 0 || brandDAO.findById(brandId) == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        String requestedStatus = "deactivate".equals(action)
+                ? "INACTIVE" : request.getParameter("status");
+        if (!"ACTIVE".equals(requestedStatus)
+                && !"INACTIVE".equals(requestedStatus)) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+
+        boolean activate = "ACTIVE".equals(requestedStatus);
+        brandDAO.setActive(brandId, activate);
+        redirectToList(request, response);
+    }
+
+    private void handleSave(HttpServletRequest request,
+            HttpServletResponse response)
+            throws SQLException, ServletException, IOException {
+        BrandModel brand = readBrand(request);
+        String error = validateBrand(brand, request.getParameter("status"));
+
+        if (error != null) {
+            showFormError(request, response, brand, error);
+            return;
+        }
+
+        if (brandDAO.existsName(brand.getName(), brand.getId())) {
+            showFormError(request, response, brand,
+                    "Brand name already exists. Reactivate the existing brand if it is inactive.");
+            return;
+        }
+
+        brandDAO.save(brand);
+        redirectToList(request, response);
+    }
+
+    private void redirectToList(HttpServletRequest request,
+            HttpServletResponse response) throws IOException {
+        response.sendRedirect(request.getContextPath()
+                + "/manager/brands?message=Saved");
     }
 
     private void showList(HttpServletRequest request, HttpServletResponse response)
