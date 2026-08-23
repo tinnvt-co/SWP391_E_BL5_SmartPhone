@@ -117,8 +117,16 @@
                                                     <c:when test="${empty currentUser}">
                                                         <a href="${pageContext.request.contextPath}/login" class="btn btn-sm btn-outline-danger">Login to Save</a>
                                                     </c:when>
-                                                    <c:when test="${savedVoucherIds.contains(v.id)}">
-                                                        <button class="btn btn-sm btn-secondary" disabled><i class="bi bi-check2"></i> Saved</button>
+                                                    <c:when test="${savedVoucherMap.containsKey(v.id)}">
+                                                        <c:set var="userVoucher" value="${savedVoucherMap[v.id]}" />
+                                                        <c:choose>
+                                                            <c:when test="${not empty v.maxUsesPerUser && userVoucher.usedCount >= v.maxUsesPerUser}">
+                                                                <button class="btn btn-sm btn-secondary" disabled>Đã dùng hết</button>
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <button class="btn btn-sm btn-secondary" disabled><i class="bi bi-check2"></i> Đã lưu</button>
+                                                            </c:otherwise>
+                                                        </c:choose>
                                                     </c:when>
                                                     <c:otherwise>
                                                         <button class="btn btn-sm btn-danger save-voucher-btn" data-id="${v.id}">Save Voucher</button>

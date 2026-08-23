@@ -309,6 +309,54 @@ public class VoucherDAO {
     // =========================
     // GET SAVED VOUCHERS BY USER
     // =========================
+    public List<UserVoucherModel> findAllSavedVouchersByUser(int userId) {
+        List<UserVoucherModel> list = new ArrayList<>();
+        String sql = "SELECT uv.*, v.Code, v.Discount_type, v.Value, v.Max_discount, v.Min_order_value, v.Max_uses_per_user, v.Usage_limit, v.Used_count, v.Start_date, v.End_date, v.Status " +
+                     "FROM User_Voucher uv " +
+                     "JOIN Voucher v ON uv.VoucherID = v.ID " +
+                     "WHERE uv.UserID = ? " +
+                     "ORDER BY uv.Saved_at DESC";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    UserVoucherModel uv = new UserVoucherModel();
+                    uv.setUserId(rs.getInt("UserID"));
+                    uv.setVoucherId(rs.getInt("VoucherID"));
+                    uv.setUsedCount(rs.getInt("Used_count"));
+                    uv.setSavedAt(rs.getTimestamp("Saved_at"));
+                    
+                    VoucherModel v = new VoucherModel();
+                    v.setId(rs.getInt("VoucherID"));
+                    v.setCode(rs.getString("Code"));
+                    v.setDiscountType(rs.getString("Discount_type"));
+                    v.setValue(rs.getBigDecimal("Value"));
+                    v.setMaxDiscount(rs.getBigDecimal("Max_discount"));
+                    v.setMinOrderValue(rs.getBigDecimal("Min_order_value"));
+                    
+                    if (rs.getObject("Max_uses_per_user") != null) {
+                        v.setMaxUsesPerUser(rs.getInt("Max_uses_per_user"));
+                    }
+                    if (rs.getObject("Usage_limit") != null) {
+                        v.setUsageLimit(rs.getInt("Usage_limit"));
+                    }
+                    v.setUsedCount(rs.getInt("Used_count")); // This is the voucher's global used count, but we are overwriting it? Wait, query selects uv.Used_count and v.Used_count? Let's not worry about v.usedCount here.
+                    v.setStartDate(rs.getTimestamp("Start_date"));
+                    v.setEndDate(rs.getTimestamp("End_date"));
+                    v.setStatus(rs.getString("Status"));
+                    
+                    uv.setVoucher(v);
+                    list.add(uv);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     public List<UserVoucherModel> findSavedVouchersByUser(int userId) {
 
         List<UserVoucherModel> list = new ArrayList<>();

@@ -30,12 +30,12 @@ public class HomeController extends HttpServlet {
             // Nếu user đã đăng nhập, lấy danh sách voucher đã lưu để kiểm tra
             model.UserModel currentUser = (model.UserModel) request.getSession().getAttribute("currentUser");
             if (currentUser != null) {
-                java.util.List<model.UserVoucherModel> savedVouchers = voucherDAO.findSavedVouchersByUser(currentUser.getId());
-                java.util.Set<Integer> savedVoucherIds = new java.util.HashSet<>();
+                java.util.List<model.UserVoucherModel> savedVouchers = voucherDAO.findAllSavedVouchersByUser(currentUser.getId());
+                java.util.Map<Integer, model.UserVoucherModel> savedVoucherMap = new java.util.HashMap<>();
                 for (model.UserVoucherModel uv : savedVouchers) {
-                    savedVoucherIds.add(uv.getVoucherId());
+                    savedVoucherMap.put(uv.getVoucherId(), uv);
                 }
-                request.setAttribute("savedVoucherIds", savedVoucherIds);
+                request.setAttribute("savedVoucherMap", savedVoucherMap);
             }
             
             request.getRequestDispatcher("/views/home.jsp").forward(request, response);

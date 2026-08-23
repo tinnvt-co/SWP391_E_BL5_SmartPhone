@@ -414,12 +414,12 @@
                                 const val = parseFloat(valueInput.value);
                                 const minOrder = parseFloat(minOrderInput.value);
                                 
-                                if (!isNaN(val) && !isNaN(minOrder) && val >= minOrder) {
+                                if (!isNaN(val) && !isNaN(minOrder) && val > minOrder) {
                                     e.preventDefault();
                                     Swal.fire({
                                         icon: 'error',
                                         title: 'Invalid Values',
-                                        text: 'Voucher Value must be strictly less than the Min Order Value.'
+                                        text: 'Voucher Value cannot exceed the Min Order Value.'
                                     });
                                 }
                             }
