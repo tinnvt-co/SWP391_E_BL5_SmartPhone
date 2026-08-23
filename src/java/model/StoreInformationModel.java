@@ -9,8 +9,6 @@ package model;
  * @author admin
  */
 public class StoreInformationModel {
-
-    private String storeName;
     private String address;
     private String phone;
     private String email;
@@ -25,14 +23,6 @@ public class StoreInformationModel {
 
     public void setAddress(String address) {
         this.address = address;
-    }
-
-    public String getStoreName() {
-        return storeName;
-    }
-
-    public void setStoreName(String storeName) {
-        this.storeName = storeName;
     }
 
     public String getPhone() {

@@ -12,23 +12,14 @@ public class StoreInformationDAO {
 
     /**
      * Get store information.Since the system has only one store information
- record, we always use id = 1.
-     * @return 
+     * record, we always use id = 1.
+     *
+     * @return
      */
     public StoreInformationModel getStoreInformation() {
 
         String sql = """
-                SELECT id,
-                       store_name,
-                       address,
-                       phone,
-                       email,
-                       opening_hours,
-                       facebook_url,
-                       logo_url,
-                       updated_at
-                FROM StoreInformation
-                WHERE id = 1
+                SELECT * FROM storeinformation
                 """;
 
         try (
@@ -38,12 +29,10 @@ public class StoreInformationDAO {
 
                 StoreInformationModel store = new StoreInformationModel();
 
-                store.setStoreName(rs.getString("store_name"));
                 store.setAddress(rs.getString("address"));
                 store.setPhone(rs.getString("phone"));
                 store.setEmail(rs.getString("email"));
                 store.setFacebookUrl(rs.getString("facebook_url"));
-
                 return store;
             }
 
@@ -56,29 +45,23 @@ public class StoreInformationDAO {
 
     /**
      * Update store information.
+     *
      * @param store
-     * @return 
+     * @return
      */
     public boolean updateStoreInformation(StoreInformationModel store) {
 
         String sql = """
                 UPDATE StoreInformation
-                SET store_name = ?,
-                    address = ?,
+                SET address = ?,
                     phone = ?,
                     email = ?,
-                    opening_hours = ?,
                     facebook_url = ?,
-                    logo_url = ?,
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE id = 1
                 """;
 
         try (
-                Connection conn = DBContext.getConnection(); 
-                PreparedStatement ps = conn.prepareStatement(sql)) {
+                Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setString(1, store.getStoreName());
             ps.setString(2, store.getAddress());
             ps.setString(3, store.getPhone());
             ps.setString(4, store.getEmail());
