@@ -44,6 +44,11 @@
                     <input type="search" name="q" maxlength="100"
                            value="<c:out value='${keyword}'/>"
                            placeholder="Search product name...">
+                    <select name="sort" aria-label="Sort products by price">
+                        <option value="newest" ${selectedSort == 'newest' ? 'selected' : ''}>Newest</option>
+                        <option value="price-asc" ${selectedSort == 'price-asc' ? 'selected' : ''}>Price: Low to High</option>
+                        <option value="price-desc" ${selectedSort == 'price-desc' ? 'selected' : ''}>Price: High to Low</option>
+                    </select>
                     <button class="btn primary search-submit" type="submit">Search</button>
                 </form>
 
@@ -86,10 +91,12 @@
                     <c:url var="previousUrl" value="/manager/brands">
                         <c:param name="action" value="products"/><c:param name="id" value="${selectedBrand.id}"/>
                         <c:param name="page" value="${currentPage - 1}"/><c:if test="${not empty keyword}"><c:param name="q" value="${keyword}"/></c:if>
+                        <c:param name="sort" value="${selectedSort}"/>
                     </c:url>
                     <c:url var="nextUrl" value="/manager/brands">
                         <c:param name="action" value="products"/><c:param name="id" value="${selectedBrand.id}"/>
                         <c:param name="page" value="${currentPage + 1}"/><c:if test="${not empty keyword}"><c:param name="q" value="${keyword}"/></c:if>
+                        <c:param name="sort" value="${selectedSort}"/>
                     </c:url>
                     <nav class="manager-pagination">
                         <div class="manager-page-summary">Showing ${pageStart}–${pageEnd} of ${totalProducts} products</div>

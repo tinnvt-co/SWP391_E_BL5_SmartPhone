@@ -196,6 +196,7 @@ public class BrandController extends HttpServlet {
         }
 
         String keyword = normalizeText(request.getParameter("q"));
+        String sort = normalizeProductSort(request.getParameter("sort"));
         int totalProducts = productDAO.countAll(keyword, brandId, null, false);
         int totalPages = Math.max(1,
                 (int) Math.ceil(totalProducts / (double) PRODUCTS_PER_PAGE));
@@ -204,7 +205,7 @@ public class BrandController extends HttpServlet {
         currentPage = Math.max(1, Math.min(currentPage, totalPages));
 
         List<ProductModel> products = productDAO.findAll(keyword, brandId,
-                null, "newest", false, PRODUCTS_PER_PAGE,
+                null, sort, false, PRODUCTS_PER_PAGE,
                 (currentPage - 1) * PRODUCTS_PER_PAGE);
         List<ProductModel> otherProducts = productDAO.findAll(
                 null, null, null, "newest", false);
@@ -214,6 +215,7 @@ public class BrandController extends HttpServlet {
         request.setAttribute("products", products);
         request.setAttribute("movableProducts", otherProducts);
         request.setAttribute("keyword", keyword == null ? "" : keyword);
+        request.setAttribute("selectedSort", sort);
         request.setAttribute("currentPage", currentPage);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("totalProducts", totalProducts);
@@ -223,6 +225,13 @@ public class BrandController extends HttpServlet {
                 currentPage * PRODUCTS_PER_PAGE, totalProducts));
         request.getRequestDispatcher("/views/manager/brand-product-list.jsp")
                 .forward(request, response);
+    }
+
+    private String normalizeProductSort(String sort) {
+        if ("price-asc".equals(sort) || "price-desc".equals(sort)) {
+            return sort;
+        }
+        return "newest";
     }
 
     private void moveProducts(HttpServletRequest request,
