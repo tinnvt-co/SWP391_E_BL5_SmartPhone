@@ -73,7 +73,7 @@ public class VnpayReturnController extends HttpServlet {
                 input = input.substring(0, input.indexOf('-'));
             }
             return Integer.parseInt(input);
-        } catch (Exception exception) {
+        } catch (NumberFormatException exception) {
             return 0;
         }
     }
@@ -81,39 +81,95 @@ public class VnpayReturnController extends HttpServlet {
     private void handleRefundReturn(HttpServletRequest request, HttpServletResponse response,
             boolean validSignature, boolean success, String txnRef)
             throws IOException, ServletException {
+
         RefundRef ref = refundRef(txnRef);
+
         if (ref.requestId <= 0) {
             response.sendRedirect(vnpayService.browserRedirectUrl(request,
-                    "/manager/return-request?flash=" + encode("Invalid refund payment reference.")));
+                    "/manager/return-request?flash="
+                    + encode("Invalid refund payment reference.")));
             return;
         }
 
+        // VNPay payment failed or signature invalid
         if (!validSignature || !success) {
             response.sendRedirect(vnpayService.browserRedirectUrl(request,
                     "/manager/return-request?action=view&id=" + ref.requestId
-                    + "&flash=" + encode("VNPay refund payment was not completed.")));
+                    + "&flash="
+                    + encode("VNPay refund payment was not completed.")));
             return;
         }
 
         try {
+            // 1. Find refund request
             RefundModel refund = returnRequestDAO.findDetail(ref.requestId);
+
             if (refund == null) {
                 response.sendRedirect(vnpayService.browserRedirectUrl(request,
-                        "/manager/return-request?flash=" + encode("Refund request not found.")));
+                        "/manager/return-request?flash="
+                        + encode("Refund request not found.")));
                 return;
             }
+
+            // 2. Find related order
             OrderModel order = orderDAO.findOrderDetail(refund.getTransactionId());
-            boolean updated = returnRequestDAO.decide(ref.requestId, true, ref.managerId);
-            String flash = updated ? "Refund approved and VNPay sandbox payment completed."
-                    : "Refund payment completed; request was already processed.";
-            if (updated && order != null) {
-                sendRefundEmail(refund, order, request.getParameter("vnp_TransactionNo"));
+
+            if (order == null) {
+                response.sendRedirect(vnpayService.browserRedirectUrl(request,
+                        "/manager/return-request?action=view&id=" + ref.requestId
+                        + "&flash="
+                        + encode("Related order not found.")));
+                return;
             }
+
+            // 3. Approve refund request
+            boolean updated = returnRequestDAO.decide(
+                    ref.requestId,
+                    true,
+                    ref.managerId
+            );
+
+            if (!updated) {
+                response.sendRedirect(vnpayService.browserRedirectUrl(request,
+                        "/manager/return-request?action=view&id=" + ref.requestId
+                        + "&flash="
+                        + encode("Refund payment completed; request was already processed.")));
+                return;
+            }
+
+            // 4. IMPORTANT:
+            // VNPay refund succeeded -> update order status to REFUNDED
+            boolean orderUpdated = orderDAO.updateStatus(
+                    order.getId(),
+                    "REFUNDED",
+                    ref.managerId
+            );
+
+            if (!orderUpdated) {
+                throw new SQLException(
+                        "Refund was approved but order status could not be updated."
+                );
+            }
+
+            // 5. Send email to customer
+            sendRefundEmail(
+                    refund,
+                    order,
+                    request.getParameter("vnp_TransactionNo")
+            );
+
+            // 6. Redirect back to manager refund detail
+            String flash = "Refund approved, payment completed, and order status changed to REFUNDED.";
+
             response.sendRedirect(vnpayService.browserRedirectUrl(request,
                     "/manager/return-request?action=view&id=" + ref.requestId
                     + "&flash=" + encode(flash)));
+
         } catch (SQLException exception) {
-            throw new ServletException("Cannot approve refund after VNPay payment.", exception);
+            throw new ServletException(
+                    "Cannot process refund after VNPay payment.",
+                    exception
+            );
         }
     }
 
@@ -145,7 +201,7 @@ public class VnpayReturnController extends HttpServlet {
             String[] parts = txnRef.split("-");
             ref.requestId = parts.length > 1 ? Integer.parseInt(parts[1]) : 0;
             ref.managerId = parts.length > 2 ? Integer.parseInt(parts[2]) : 0;
-        } catch (Exception ignored) {
+        } catch (NumberFormatException ignored) {
             ref.requestId = 0;
             ref.managerId = 0;
         }
@@ -165,7 +221,7 @@ public class VnpayReturnController extends HttpServlet {
     private long amount(String input) {
         try {
             return Long.parseLong(input) / 100L;
-        } catch (Exception exception) {
+        } catch (NumberFormatException exception) {
             return 0L;
         }
     }

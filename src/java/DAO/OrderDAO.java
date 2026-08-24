@@ -19,7 +19,7 @@ public class OrderDAO {
 
     private static final Set<String> VALID_STATUSES = Set.of(
             "PENDING", "CONFIRMED", "PROCESSING", "SHIPPING", "DELIVERED",
-            "COMPLETED", "CANCEL_REQUESTED", "CANCELLED", "DELIVERY_FAILED");
+            "COMPLETED", "CANCEL_REQUESTED", "CANCELLED", "DELIVERY_FAILED", "REFUNDED");
     private static final Set<String> VALID_TYPES = Set.of("ORDER", "IMPORT");
     private static final Set<String> VALID_SORTS = Set.of("newest", "oldest", "total-desc", "total-asc");
     private static final int MAX_SEARCH_LENGTH = 100;
