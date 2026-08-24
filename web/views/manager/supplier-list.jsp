@@ -317,6 +317,14 @@
                 <c:remove var="msgErr" scope="session"/>
             </c:if>
 
+            <c:if test="${not empty requestScope.msgErr}">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <c:out value="${requestScope.msgErr}"/>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </c:if>
+
             <c:if test="${not empty sessionScope.msgOk}">
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
                     <i class="bi bi-check-circle-fill me-2"></i>
@@ -325,7 +333,7 @@
                 </div>
                 <c:remove var="msgOk" scope="session"/>
             </c:if>
-                        
+
             <!-- =========================
                  FILTER
                  ========================= -->

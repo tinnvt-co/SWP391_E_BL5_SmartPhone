@@ -565,7 +565,7 @@
                                     <div class="form-group">
                                         <label class="form-label">Unit Price</label>
                                         <input type="number" name="unitPrice" class="form-control-custom"
-                                               min="1" step="1" required>
+                                               min="1" max="1000000000" step="1" required>
                                     </div>
 
                                     <!-- REMOVE -->

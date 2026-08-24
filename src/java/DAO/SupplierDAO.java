@@ -88,7 +88,7 @@ public class SupplierDAO {
         sql.append(
                 "ORDER BY s.Created_at DESC, "
                 + "s.ID DESC "
-                + "LIMIT ? OFFSET ?");
+                + "LIMIT ? OFFSET ?"); //OFFSET là số dòng cần bỏ qua
 
         parameters.add(limit);
         parameters.add(Math.max(0, offset));

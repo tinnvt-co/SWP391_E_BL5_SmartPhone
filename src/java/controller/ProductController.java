@@ -132,7 +132,7 @@ public class ProductController extends HttpServlet {
     static int integer(String input, int fallback) {
         try {
             return Integer.parseInt(input);
-        } catch (Exception exception) {
+        } catch (NumberFormatException exception) {
             return fallback;
         }
     }
@@ -140,7 +140,7 @@ public class ProductController extends HttpServlet {
     static double parseDecimal(String input, double fallback) {
         try {
             return Double.parseDouble(input);
-        } catch (Exception exception) {
+        } catch (NumberFormatException exception) {
             return fallback;
         }
     }

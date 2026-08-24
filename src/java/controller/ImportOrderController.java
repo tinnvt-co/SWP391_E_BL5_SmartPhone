@@ -34,14 +34,9 @@ import model.UserModel;
  */
 public class ImportOrderController extends HttpServlet {
 
-    private final ImportOrderDAO importOrderDAO
-            = new ImportOrderDAO();
-
-    private final SupplierDAO supplierDAO
-            = new SupplierDAO();
-
-    private final ProductDAO productDAO
-            = new ProductDAO();
+    private final ImportOrderDAO importOrderDAO = new ImportOrderDAO();
+    private final SupplierDAO supplierDAO = new SupplierDAO();
+    private final ProductDAO productDAO = new ProductDAO();
 
     @Override
     protected void doGet(
@@ -50,6 +45,7 @@ public class ImportOrderController extends HttpServlet {
             throws ServletException, IOException {
 
         try {
+            //check action
             String action = value(
                     request.getParameter("action"),
                     "list");
@@ -59,16 +55,18 @@ public class ImportOrderController extends HttpServlet {
                     showCreate(request, response);
                 case "detail" ->
                     showDetail(request, response);
-                case "history" ->
-                    showHistory(request, response);
+//                case "history" ->
+//                    showHistory(request, response);
                 default ->
                     listImportOrders(request, response);
             }
 
         } catch (SQLException exception) {
-            throw new ServletException(
+            redirect(
+                    request,
+                    response,
                     "Cannot load import orders",
-                    exception);
+                    false);
         }
     }
 
@@ -80,6 +78,7 @@ public class ImportOrderController extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
+        //check action
         String action = value(
                 request.getParameter("action"),
                 "");
@@ -115,15 +114,11 @@ public class ImportOrderController extends HttpServlet {
             HttpServletRequest request,
             HttpServletResponse response)
             throws SQLException, ServletException, IOException {
-
-        String keyword = trim(
-                request.getParameter("keyword"));
-
-        String status = trim(
-                request.getParameter("status"));
-
-        String sort = trim(
-                request.getParameter("sort"));
+        
+        //check null
+        String keyword = trim(request.getParameter("keyword"));
+        String status = trim(request.getParameter("status"));
+        String sort = trim(request.getParameter("sort"));
 
         if (keyword.length() > 100) {
             keyword = "";
@@ -131,7 +126,8 @@ public class ImportOrderController extends HttpServlet {
                     "error",
                     "Search keyword cannot exceed 100 characters.");
         }
-
+        
+        //lấy import order
         request.setAttribute(
                 "importOrders",
                 importOrderDAO.findImportOrders(
@@ -287,7 +283,8 @@ public class ImportOrderController extends HttpServlet {
             HttpServletRequest request,
             HttpServletResponse response)
             throws SQLException, ServletException, IOException {
-
+        
+        //check id nếu đúng thì lấy, nếu sai thì = 0 và redirect error message
         int id = integer(
                 request.getParameter("id"),
                 0);
@@ -300,10 +297,11 @@ public class ImportOrderController extends HttpServlet {
                     false);
             return;
         }
-
+        
+        //tìm importOrder
         OrderModel order
                 = importOrderDAO.findImportOrderDetail(id);
-
+        
         if (order == null) {
             redirect(
                     request,
@@ -378,12 +376,10 @@ public class ImportOrderController extends HttpServlet {
             HttpServletResponse response)
             throws SQLException, IOException {
 
-        HttpSession session
-                = request.getSession();
-
-        UserModel currentUser
-                = (UserModel) session.getAttribute(
-                        "currentUser");
+        HttpSession session = request.getSession();
+        
+        //check roll user
+        UserModel currentUser = (UserModel) session.getAttribute( "currentUser");
 
         if (currentUser == null) {
             response.sendRedirect(
@@ -391,38 +387,32 @@ public class ImportOrderController extends HttpServlet {
                     + "/login");
             return;
         }
-
+        
+        //lấy supplier id, nếu không hợp lệ trả về 0
         int supplierId = integer(
                 request.getParameter("supplierId"),
                 0);
-
-        String[] variantIds
-                = request.getParameterValues(
-                        "variantId");
-
-        String[] quantities
-                = request.getParameterValues(
-                        "quantity");
-
-        String[] unitPrices
-                = request.getParameterValues(
-                        "unitPrice");
-
-        String method = trim(
-                request.getParameter("method"));
-
-        String note = trim(
-                request.getParameter("note"));
+        //lấy các giá trị từ field
+        String[] variantIds = request.getParameterValues( "variantId");
+        String[] quantities = request.getParameterValues( "quantity");
+        String[] unitPrices  = request.getParameterValues( "unitPrice");
+        
+        //lây và check method
+        String method = trim( request.getParameter("method"));
+        
+        //lấy và check note
+        String note = trim( request.getParameter("note"));
 
         if (supplierId <= 0) {
             redirect(
                     request,
                     response,
-                    "Please select a supplier.",
+                    "Please select valid a supplier.",
                     false);
             return;
         }
-
+        
+        //check không có sản phẩm nào
         if (variantIds == null
                 || quantities == null
                 || unitPrices == null
@@ -435,7 +425,8 @@ public class ImportOrderController extends HttpServlet {
                     false);
             return;
         }
-
+        
+        //check số lượng dự liệu khác nhau giữa các field
         if (variantIds.length
                 != quantities.length
                 || variantIds.length
@@ -458,31 +449,19 @@ public class ImportOrderController extends HttpServlet {
          * Supplier phải thực sự cung cấp tất cả variants.
          * -----------------------------------------------------
          */
+        List<OrderItemModel> items = new ArrayList<>();
 
-        List<OrderItemModel> items
-                = new ArrayList<>();
+        BigDecimal totalPrice = BigDecimal.ZERO;
 
-        BigDecimal totalPrice
-                = BigDecimal.ZERO;
-
-        for (int i = 0;
-                i < variantIds.length;
-                i++) {
-
-            int variantId = integer(
-                    variantIds[i],
-                    0);
-
-            int quantity = integer(
-                    quantities[i],
-                    0);
+        for (int i = 0; i < variantIds.length; i++) {
+            //kiểm tra id và quanlity
+            int variantId = integer(variantIds[i],0);
+            int quantity = integer(quantities[i], 0);
 
             BigDecimal unitPrice;
 
             try {
-                unitPrice
-                        = new BigDecimal(
-                                unitPrices[i]);
+                unitPrice= new BigDecimal(unitPrices[i]);
             } catch (NumberFormatException e) {
                 redirect(
                         request,

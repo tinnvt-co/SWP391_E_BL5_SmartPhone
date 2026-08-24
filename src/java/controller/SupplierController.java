@@ -41,17 +41,11 @@ public class SupplierController extends HttpServlet {
 
         try {
             String action = request.getParameter("action");
-            if (action == null || action.isBlank()
-                    || "list".equals(action)) {
-                listSuppliers(request, response);
-                return;
-            }
-
             if ("detail".equals(action)) {
                 showDetail(request, response);
-                return;
+            } else {
+                listSuppliers(request, response);
             }
-            listSuppliers(request, response);
         } catch (SQLException e) {
             HttpSession session = request.getSession();
             session.setAttribute("msgErr", "Cannot load suppliers. Please try again.");
@@ -71,7 +65,11 @@ public class SupplierController extends HttpServlet {
         }
 
         keyword = keyword.trim();
-
+        if (keyword.length() > 100) {
+            request.setAttribute("msgErr", "Keyword should shorter than 100 character");
+            keyword = "";
+        }
+        //validate page number
         int requestedPage = integer(
                 request.getParameter("page"), 1);
 
@@ -86,7 +84,8 @@ public class SupplierController extends HttpServlet {
                         totalSuppliers / (double) PAGE_SIZE
                 )
         );
-
+        
+        //tích hợp validate số trang mà người dùng yêu cầu
         int currentPage = Math.min(
                 Math.max(1, requestedPage),
                 totalPages
@@ -122,7 +121,6 @@ public class SupplierController extends HttpServlet {
         );
 
         request.setAttribute("suppliers", suppliers);
-
         request.setAttribute("keyword", keyword);
         request.setAttribute("status", status);
 
@@ -205,9 +203,7 @@ public class SupplierController extends HttpServlet {
 
             supplier.setStatus("ACTIVE");
 
-            supplier.setProductVariantIds(
-                    new ArrayList<>()
-            );
+            supplier.setProductVariantIds(new ArrayList<>());
         }
 
         loadProductVariants(request, supplier);
@@ -618,8 +614,6 @@ public class SupplierController extends HttpServlet {
         if (phone == null || phone.isBlank()) {
             errors.add("Supplier phone is required.");
         } else if (!isValidPhone(phone)) {
-            // FIX: siết lại theo yêu cầu - đúng 10 chữ số, không cho phép
-            // dấu +, khoảng trắng, gạch ngang hay ký tự nào khác.
             errors.add("Supplier phone must be exactly 10 digits (no other characters).");
         }
 
