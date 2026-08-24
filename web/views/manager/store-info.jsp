@@ -61,31 +61,56 @@
                             <div class="row g-3">
                                 <div class="col-12">
                                     <label class="form-label" for="address">Address</label>
-                                    <input id="address" name="address" class="form-control"
+                                    <input id="address" name="address"
+                                           class="form-control ${not empty errors.address ? 'is-invalid' : ''}"
                                            value="${store.address}"
                                            placeholder="e.g. 123 Nguyen Trai, Ha Noi"
                                            maxlength="255" required>
+                                    <c:if test="${not empty errors.address}">
+                                        <div class="invalid-feedback">
+                                            <c:out value="${errors.address}"/>
+                                        </div>
+                                    </c:if>
                                 </div>
 
                                 <div class="col-md-6">
                                     <label class="form-label" for="phone">Phone</label>
-                                    <input id="phone" name="phone" class="form-control"
+                                    <input id="phone" name="phone"
+                                           class="form-control ${not empty errors.phone ? 'is-invalid' : ''}"
                                            value="${store.phone}"
-                                           placeholder="9-15 digits" maxlength="15" required>
+                                           placeholder="10 digits, e.g. 0912345678"
+                                           maxlength="10" required>
+                                    <c:if test="${not empty errors.phone}">
+                                        <div class="invalid-feedback">
+                                            <c:out value="${errors.phone}"/>
+                                        </div>
+                                    </c:if>
                                 </div>
 
                                 <div class="col-md-6">
                                     <label class="form-label" for="email">Email</label>
-                                    <input id="email" name="email" type="email" class="form-control"
+                                    <input id="email" name="email" type="email"
+                                           class="form-control ${not empty errors.email ? 'is-invalid' : ''}"
                                            value="${store.email}"
                                            placeholder="contact@store.com" maxlength="255" required>
+                                    <c:if test="${not empty errors.email}">
+                                        <div class="invalid-feedback">
+                                            <c:out value="${errors.email}"/>
+                                        </div>
+                                    </c:if>
                                 </div>
 
                                 <div class="col-12">
                                     <label class="form-label" for="facebookUrl">Facebook page URL</label>
-                                    <input id="facebookUrl" name="facebookUrl" type="url" class="form-control"
+                                    <input id="facebookUrl" name="facebookUrl" type="url"
+                                           class="form-control ${not empty errors.facebookUrl ? 'is-invalid' : ''}"
                                            value="${store.facebookUrl}"
                                            placeholder="https://facebook.com/yourpage" maxlength="255">
+                                    <c:if test="${not empty errors.facebookUrl}">
+                                        <div class="invalid-feedback">
+                                            <c:out value="${errors.facebookUrl}"/>
+                                        </div>
+                                    </c:if>
                                 </div>
                             </div>
 

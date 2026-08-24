@@ -558,7 +558,7 @@
                                     <div class="form-group">
                                         <label class="form-label">Quantity</label>
                                         <input type="number" name="quantity" class="form-control-custom"
-                                               min="1" value="1" required>
+                                               min="1" max= "999" value="1" required>
                                     </div>
 
                                     <!-- UNIT PRICE -->

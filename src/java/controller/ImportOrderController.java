@@ -103,7 +103,7 @@ public class ImportOrderController extends HttpServlet {
                     request,
                     response,
                     "Error: "
-                    + exception.getMessage(),
+                    + "Create fail",
                     false);
         }
     }
@@ -458,10 +458,6 @@ public class ImportOrderController extends HttpServlet {
          * Supplier phải thực sự cung cấp tất cả variants.
          * -----------------------------------------------------
          */
-        Set<Integer> suppliedVariantIds
-                = new HashSet<>(
-                        supplierDAO.findProductVariantIds(
-                                supplierId));
 
         List<OrderItemModel> items
                 = new ArrayList<>();
