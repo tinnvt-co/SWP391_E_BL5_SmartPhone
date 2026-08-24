@@ -125,7 +125,10 @@ public class RefundController extends HttpServlet {
             return;
         }
 
+        //kiểm tra nếu chỉ toàn khoảng trắng thì trả về Null
         String description = trimToNull(request.getParameter("description"));
+
+        //validate description
         if (description == null || description.length() < 5) {
             response.sendRedirect(request.getContextPath() + "/return-request?orderId=" + orderId
                     + "&flash=" + encode("Please describe the reason (at least 5 characters)."));
@@ -140,6 +143,7 @@ public class RefundController extends HttpServlet {
         String bankName = trimToNull(request.getParameter("bankName"));
         String bankAccountNumber = trimToNull(request.getParameter("bankAccountNumber"));
         String bankAccountHolder = trimToNull(request.getParameter("bankAccountHolder"));
+        //validate bank field
         if (bankName == null || bankAccountNumber == null || bankAccountHolder == null) {
             response.sendRedirect(request.getContextPath() + "/return-request?orderId=" + orderId
                     + "&flash=" + encode("Please enter bank information for the refund transfer."));
@@ -158,12 +162,14 @@ public class RefundController extends HttpServlet {
                         + "&flash=" + encode("Order is not eligible for refund yet."));
                 return;
             }
+            //kiểm tra xem đã đang yêu cầu refund chưa
             if (returnDAO.hasActiveForTransaction(user.getId(), orderId)) {
                 response.sendRedirect(request.getContextPath() + "/return-request?orderId=" + orderId
                         + "&flash=" + encode("You already have a pending refund request for this order."));
                 return;
             }
 
+            //lưu ảnh
             String savedFileName = saveImageIfAny(request);
 
             RefundModel created = returnDAO.createForOrder(
@@ -172,6 +178,7 @@ public class RefundController extends HttpServlet {
 
             response.sendRedirect(request.getContextPath() + "/return-request?id=" + created.getId()
                     + "&flash=" + encode("Your refund request has been submitted. We'll review it shortly."));
+            //nếu refund lỗi thì lưu lại những gì user nhập vào request + set lỗi và forward về
         } catch (SQLException ex) {
             showRefundFormWithError(
                     request,

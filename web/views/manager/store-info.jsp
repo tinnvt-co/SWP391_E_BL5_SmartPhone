@@ -50,7 +50,7 @@
                             </div>
                         </c:if>
                         <c:if test="${not empty sessionScope.success}">
-                            <div class="alert alert-danger">
+                            <div class="alert alert-success">
                                 <i class="bi bi-check-circle-fill"></i>
                                 <span><c:out value="${sessionScope.success}"/></span>
                             </div>
