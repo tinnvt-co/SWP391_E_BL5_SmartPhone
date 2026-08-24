@@ -26,19 +26,18 @@
             </div>
 
             <c:if test="${not empty error}">
-                <div class="alert error"><c:out value="${error}"/></div>
+                <div class="alert error">
+                    <c:out value="${error}"/>
+                </div>
             </c:if>
             <c:if test="${not empty brandWarning}">
-                <div class="alert warning"><c:out value="${brandWarning}"/></div>
+                <div class="alert warning">
+                    <c:out value="${brandWarning}"/>
+                </div>
             </c:if>
 
             <form class="entity-form product-form" method="post" enctype="multipart/form-data"
                   action="${pageContext.request.contextPath}/manager/products" novalidate>
-                <div class="alert error product-validation-summary"
-                     data-product-validation-summary tabindex="-1" hidden>
-                    <strong>Product cannot be saved. Please fix the following:</strong>
-                    <ul data-product-validation-errors></ul>
-                </div>
                 <input type="hidden" name="action" value="save">
                 <input type="hidden" name="id" value="${product.id}">
                 <input type="hidden" name="confirmBrandMismatch"
@@ -47,15 +46,12 @@
                 <div class="form-grid">
                     <label class="span-2">
                         Product name *
-                        <input name="name" minlength="2" maxlength="50"
-                               pattern="[A-Za-zÀ-ỹ0-9]+(?:[ -][A-Za-zÀ-ỹ0-9]+)*"
-                               title="Use letters, numbers, spaces and hyphens only."
-                               value="<c:out value='${product.name}'/>" required>
+                        <input name="name" value="<c:out value='${product.name}'/>">
                     </label>
 
                     <label>
                         Brand *
-                        <select name="brandId" data-product-brand required>
+                        <select name="brandId">
                             <option value="">Choose brand</option>
                             <c:forEach items="${brands}" var="brand">
                                 <option value="${brand.id}" data-brand-name="<c:out value='${brand.name}'/>"
@@ -86,13 +82,12 @@
 
                     <label>
                         Release year
-                        <input type="number" name="releaseYear" min="2007" max="${maxReleaseYear}"
-                               value="${product.releaseYear}">
+                        <input type="number" name="releaseYear" value="${product.releaseYear}">
                     </label>
 
                     <label>
                         Warranty period (months)
-                        <input type="number" name="warrantyMonths" min="0" max="36"
+                        <input type="number" name="warrantyMonths"
                                value="${product.id == 0 && product.warrantyMonths == 0 ? 12 : product.warrantyMonths}">
                     </label>
 
@@ -106,7 +101,7 @@
 
                     <label class="span-2">
                         Description
-                        <textarea name="description" maxlength="255" rows="4"><c:out value="${product.description}"/></textarea>
+                        <textarea name="description" rows="4"><c:out value="${product.description}"/></textarea>
                     </label>
                 </div>
 
@@ -134,7 +129,7 @@
                                         <td>
                                             <input type="hidden" name="variantId" value="${variant.id}">
                                             <label>RAM (GB) *
-                                                <select name="variantRam" required>
+                                                <select name="variantRam">
                                                     <option value="">Choose RAM</option>
                                                     <c:forEach items="${ramOptions}" var="ram">
                                                         <option value="${ram}" ${variant.ramGb == ram ? 'selected' : ''}>${ram} GB</option>
@@ -142,7 +137,7 @@
                                                 </select>
                                             </label>
                                             <label>Storage (GB) *
-                                                <select name="variantStorage" required>
+                                                <select name="variantStorage">
                                                     <option value="">Choose storage</option>
                                                     <c:forEach items="${storageOptions}" var="storage">
                                                         <option value="${storage}" ${variant.storageGb == storage ? 'selected' : ''}>
@@ -151,22 +146,20 @@
                                                     </c:forEach>
                                                 </select>
                                             </label>
-                                            <label>Color name *<input name="variantColorName" maxlength="50" value="<c:out value='${variant.colorName}'/>" placeholder="Black Titanium" pattern="[A-Za-zÀ-ỹ]+(?:[ -][A-Za-zÀ-ỹ]+)*" title="Use letters, spaces and hyphens only." required></label>
+                                            <label>Color name *<input name="variantColorName" value="<c:out value='${variant.colorName}'/>" placeholder="Black Titanium"></label>
                                         </td>
                                         <td>
                                             <label>Selling price *
-                                                <input type="number" name="variantSellingPrice" min="1" max="500000000" value="${variant.sellingPrice}" required>
-                                                <small class="variant-field-error" data-variant-price-error aria-live="polite"></small>
+                                                <input type="number" name="variantSellingPrice" value="${variant.sellingPrice}">
                                             </label>
                                         </td>
                                         <td>
                                             <input type="hidden" name="existingVariantImage" value="<c:out value='${variant.image}'/>">
                                             <input type="hidden" name="existingVariantBackImage" value="<c:out value='${variant.backImage}'/>">
-                                            <label>Front image *<input type="file" name="variantImageFile" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" ${variant.id == 0 ? 'required' : ''}></label>
+                                            <label>Front image *<input type="file" name="variantImageFile" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"></label>
                                             <c:if test="${not empty variant.image}"><small class="current-image"><i class="bi bi-image"></i> Current: <c:out value="${variant.image}"/></small></c:if>
-                                            <label>Back image *<input type="file" name="variantBackImageFile" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" ${variant.id == 0 ? 'required' : ''}></label>
+                                            <label>Back image *<input type="file" name="variantBackImageFile" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"></label>
                                             <c:if test="${not empty variant.backImage}"><small class="current-image"><i class="bi bi-image"></i> Current: <c:out value="${variant.backImage}"/></small></c:if>
-                                            <small>JPG, PNG or WEBP. Maximum 5 MB per image. File names must be unique.</small>
                                         </td>
                                         <td><button class="variant-remove" type="button" data-remove-variant aria-label="Remove variant">Remove</button></td>
                                     </tr>
@@ -192,7 +185,7 @@
                 <td>
                     <input type="hidden" name="variantId" value="0">
                     <label>RAM (GB) *
-                        <select name="variantRam" required>
+                        <select name="variantRam">
                             <option value="">Choose RAM</option>
                             <c:forEach items="${ramOptions}" var="ram">
                                 <option value="${ram}">${ram} GB</option>
@@ -200,32 +193,30 @@
                         </select>
                     </label>
                     <label>Storage (GB) *
-                        <select name="variantStorage" required>
+                        <select name="variantStorage">
                             <option value="">Choose storage</option>
                             <c:forEach items="${storageOptions}" var="storage">
                                 <option value="${storage}"><c:choose><c:when test="${storage == 1024}">1 TB</c:when><c:when test="${storage == 2048}">2 TB</c:when><c:otherwise>${storage} GB</c:otherwise></c:choose></option>
                             </c:forEach>
                         </select>
                     </label>
-                    <label>Color name *<input name="variantColorName" maxlength="50" placeholder="Black Titanium" pattern="[A-Za-zÀ-ỹ]+(?:[ -][A-Za-zÀ-ỹ]+)*" title="Use letters, spaces and hyphens only." required></label>
+                    <label>Color name *<input name="variantColorName" placeholder="Black Titanium"></label>
                 </td>
                 <td>
                     <label>Selling price *
-                        <input type="number" name="variantSellingPrice" min="1" max="500000000" required>
-                        <small class="variant-field-error" data-variant-price-error aria-live="polite"></small>
+                        <input type="number" name="variantSellingPrice">
                     </label>
                 </td>
                 <td>
                     <input type="hidden" name="existingVariantImage" value="">
                     <input type="hidden" name="existingVariantBackImage" value="">
-                    <label>Front image *<input type="file" name="variantImageFile" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required></label>
-                    <label>Back image *<input type="file" name="variantBackImageFile" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required></label>
-                    <small>JPG, PNG or WEBP. Maximum 5 MB per image. File names must be unique.</small>
+                    <label>Front image *<input type="file" name="variantImageFile" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"></label>
+                    <label>Back image *<input type="file" name="variantBackImageFile" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"></label>
                 </td>
                 <td><button class="variant-remove" type="button" data-remove-variant aria-label="Remove variant">Remove</button></td>
             </tr>
         </template>
-        <script src="${pageContext.request.contextPath}/assets/js/manager-product-form.js?v=20260823-complete-validation"></script>
+        <script src="${pageContext.request.contextPath}/assets/js/manager-product-form.js?v=20260824-variant-ui"></script>
         <%@ include file="/views/common/footer.jsp" %>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     </body>

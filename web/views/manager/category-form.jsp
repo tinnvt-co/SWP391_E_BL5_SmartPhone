@@ -29,24 +29,19 @@
                 <div class="alert error"><c:out value="${error}"/></div>
             </c:if>
 
-            <form method="post" class="entity-form" id="categoryForm"
+            <form method="post" class="entity-form" novalidate
                   action="${pageContext.request.contextPath}/manager/categories">
                 <input type="hidden" name="action" value="save">
                 <input type="hidden" name="id" value="${category.id}">
 
                 <label>
                     Category name *
-                    <input name="name" minlength="2" maxlength="25"
-                           data-category-text="name"
-                           value="<c:out value='${category.name}'/>" required>
-                    <small>Use letters, numbers and spaces only. Maximum 25 characters.</small>
+                    <input name="name" value="<c:out value='${category.name}'/>">
                 </label>
 
                 <label>
                     Description
-                    <textarea name="description" maxlength="255" rows="4"
-                              data-category-text="description"><c:out value="${category.description}"/></textarea>
-                    <small>Optional. Use letters, numbers and spaces only. Maximum 255 characters.</small>
+                    <textarea name="description" rows="4"><c:out value="${category.description}"/></textarea>
                 </label>
 
                 <label>
@@ -64,7 +59,6 @@
             </form>
         </main>
         <%@ include file="/views/common/footer.jsp" %>
-        <script src="${pageContext.request.contextPath}/assets/js/manager-category-form.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     </body>
 </html>
