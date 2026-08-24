@@ -10,12 +10,10 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.SQLException;
 import model.UserModel;
+import util.PasswordPolicy;
 
 @WebServlet(name = "ChangePasswordController", urlPatterns = {"/change-password"})
 public class ChangePasswordController extends HttpServlet {
-
-    private static final int MIN_PASSWORD_LENGTH = 6;
-    private static final int MAX_PASSWORD_LENGTH = 20;
 
     private final UserDAO userDAO = new UserDAO();
 
@@ -68,8 +66,12 @@ public class ChangePasswordController extends HttpServlet {
         if (currentPassword.isBlank() || newPassword.isBlank() || confirmPassword.isBlank()) {
             return "Please fill in all password fields.";
         }
-        if (newPassword.length() < MIN_PASSWORD_LENGTH || newPassword.length() > MAX_PASSWORD_LENGTH) {
+        if (newPassword.length() < PasswordPolicy.MIN_LENGTH
+                || newPassword.length() > PasswordPolicy.MAX_LENGTH) {
             return "New password must be 6-20 characters.";
+        }
+        if (!PasswordPolicy.hasRequiredCharacterTypes(newPassword)) {
+            return "New password must include at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.";
         }
         if (newPassword.equals(currentPassword)) {
             return "New password must be different from current password.";

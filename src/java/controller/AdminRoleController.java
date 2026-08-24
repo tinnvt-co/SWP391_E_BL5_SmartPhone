@@ -56,34 +56,7 @@ public class AdminRoleController extends HttpServlet {
                 request.getSession().setAttribute("error", "Error updating permissions: " + ex.getMessage());
                 response.sendRedirect(request.getContextPath() + "/admin/roles");
             }
-        } else if ("updateRole".equals(action)) {
-            try {
-                int roleId = Integer.parseInt(request.getParameter("roleId"));
-                String name = request.getParameter("name");
-                String status = request.getParameter("status");
 
-                model.UserModel currentUser = (model.UserModel) request.getSession().getAttribute("currentUser");
-                if (currentUser != null && currentUser.getRoleId() == roleId && (!"ACTIVE".equals(status) && status != null)) {
-                    throw new Exception("You cannot deactivate your own role.");
-                }
-
-                // If status is disabled in UI, it comes as null. Default it to current active
-                if (currentUser != null && currentUser.getRoleId() == roleId && status == null) {
-                    status = "ACTIVE";
-                }
-
-                Role role = new Role();
-                role.setId(roleId);
-                role.setName(name);
-                role.setStatus(status);
-
-                roleDAO.update(role);
-                request.getSession().setAttribute("message", "Role information updated successfully.");
-                response.sendRedirect(request.getContextPath() + "/admin/roles");
-            } catch (Exception ex) {
-                request.getSession().setAttribute("error", "Error updating role information: " + ex.getMessage());
-                response.sendRedirect(request.getContextPath() + "/admin/roles");
-            }
         } else if ("toggleStatus".equals(action)) {
             try {
                 int roleId = Integer.parseInt(request.getParameter("roleId"));
@@ -91,6 +64,11 @@ public class AdminRoleController extends HttpServlet {
                 model.UserModel currentUser = (model.UserModel) request.getSession().getAttribute("currentUser");
                 if (currentUser != null && currentUser.getRoleId() == roleId) {
                     throw new Exception("You cannot deactivate your own role.");
+                }
+
+                Role targetRole = roleDAO.findById(roleId);
+                if (targetRole != null && "ADMIN".equalsIgnoreCase(targetRole.getName())) {
+                    throw new Exception("You cannot deactivate the Admin role.");
                 }
 
                 String currentStatus = request.getParameter("currentStatus");

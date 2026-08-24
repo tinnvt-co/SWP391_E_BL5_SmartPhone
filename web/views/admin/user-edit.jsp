@@ -236,7 +236,7 @@
                                     <select class="form-select" id="roleId" name="roleId" required>
                                         <option value="" disabled>Select Role...</option>
                                         <c:forEach items="${roles}" var="role">
-                                            <c:if test="${role.status == 'ACTIVE' || user.roleId == role.id}">
+                                            <c:if test="${(role.status == 'ACTIVE' || user.roleId == role.id) && fn:toLowerCase(role.name) != 'admin'}">
                                                 <option value="${role.id}" ${user.roleId == role.id ? 'selected' : ''}>${role.name}</option>
                                             </c:if>
                                         </c:forEach>
