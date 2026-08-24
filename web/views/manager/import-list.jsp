@@ -317,6 +317,12 @@
                 <c:remove var="error"
                           scope="session"/>
             </c:if>
+            
+            <c:if test="${not empty requestScope.error}">
+                <div class="alert alert-danger">
+                    <c:out value="${requestScope.error}"/>
+                </div>
+            </c:if>
 
 
             <!-- =================================================
@@ -357,9 +363,9 @@
                                     ORDER
                                 </option>
 
-                                <option value="COMPLETE"
-                                        ${selectedStatus == 'COMPLETE' ? 'selected' : ''}>
-                                    COMPLETE
+                                <option value="COMPLETED"
+                                        ${selectedStatus == 'COMPLETED' ? 'selected' : ''}>
+                                    COMPLETED
                                 </option>
 
                             </select>

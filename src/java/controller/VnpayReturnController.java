@@ -103,7 +103,8 @@ public class VnpayReturnController extends HttpServlet {
         try {
             // 1. Find refund request
             RefundModel refund = returnRequestDAO.findDetail(ref.requestId);
-
+            
+            // validate
             if (refund == null) {
                 response.sendRedirect(vnpayService.browserRedirectUrl(request,
                         "/manager/return-request?flash="
