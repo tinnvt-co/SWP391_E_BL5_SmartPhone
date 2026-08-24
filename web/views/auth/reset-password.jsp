@@ -21,7 +21,7 @@
                         </a>
                         <span class="auth-hero-eyebrow"><i class="bi bi-key"></i> Set a new password</span>
                         <h1>Almost done — choose a fresh password.</h1>
-                        <p>Make it at least 6 characters and avoid reusing your old password to keep your account safe.</p>
+                        <p>Use uppercase, lowercase, number, and special characters to keep your account safe.</p>
                         <ul class="auth-hero-features">
                             <li><i class="bi bi-check-circle-fill"></i> Encrypted in transit</li>
                             <li><i class="bi bi-check-circle-fill"></i> Old token becomes invalid</li>
@@ -65,7 +65,10 @@
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="bi bi-lock"></i></span>
                                             <input id="newPassword" name="newPassword" type="password" class="form-control"
-                                                   minlength="6" maxlength="20" required autofocus>
+                                                   minlength="6" maxlength="20"
+                                                   pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9\s])\S{6,20}"
+                                                   title="Use 6-20 characters with at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character."
+                                                   required autofocus>
                                             <button class="input-group-text btn-toggle" type="button" data-toggle-password="newPassword" title="Show password">
                                                 <i class="bi bi-eye"></i>
                                             </button>
@@ -77,7 +80,10 @@
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
                                             <input id="confirmPassword" name="confirmPassword" type="password" class="form-control"
-                                                   minlength="6" maxlength="20" required>
+                                                   minlength="6" maxlength="20"
+                                                   pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9\s])\S{6,20}"
+                                                   title="Use 6-20 characters with at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character."
+                                                   required>
                                             <button class="input-group-text btn-toggle" type="button" data-toggle-password="confirmPassword" title="Show password">
                                                 <i class="bi bi-eye"></i>
                                             </button>

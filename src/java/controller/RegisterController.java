@@ -12,13 +12,20 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.regex.Pattern;
 import model.UserModel;
+import util.PasswordPolicy;
 
 @WebServlet(name = "RegisterController", urlPatterns = {"/register"})
 public class RegisterController extends HttpServlet {
 
+    private static final Pattern FULL_NAME_PATTERN = Pattern.compile(
+            "^(?=.{2,100}$)\\p{L}+(?:[ '\\-]\\p{L}+)*$");
     private static final Pattern USERNAME_PATTERN = Pattern.compile("^[A-Za-z0-9_]{4,50}$");
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(
+            "^[A-Za-z0-9]+@[A-Za-z0-9]+(?:\\.[A-Za-z]{2,})+$");
     private static final Pattern PHONE_PATTERN = Pattern.compile("^[0-9]{9,15}$");
-    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+    private static final Pattern AGE_PATTERN = Pattern.compile("^(?:1[3-9]|[2-9][0-9]|100)$");
+    private static final Pattern ADDRESS_PATTERN = Pattern.compile(
+            "^(?=.{5,255}$)(?=.*[\\p{L}\\p{N}])[\\p{L}\\p{N}\\s,.'/#()&\\-]+$");
 
     private final UserDAO userDAO = new UserDAO();
 
@@ -41,8 +48,9 @@ public class RegisterController extends HttpServlet {
         UserModel form = readForm(request);
         String password = trim(request.getParameter("password"));
         String confirmPassword = trim(request.getParameter("confirmPassword"));
+        String age = trim(request.getParameter("age"));
 
-        String error = validate(form, password, confirmPassword);
+        String error = validate(form, password, confirmPassword, age);
         if (error != null) {
             forwardWithError(request, response, form, error);
             return;
@@ -94,32 +102,39 @@ public class RegisterController extends HttpServlet {
         return user;
     }
 
-    private String validate(UserModel user, String password, String confirmPassword) {
+    private String validate(UserModel user, String password, String confirmPassword, String age) {
         if (user.getName().isEmpty() || user.getUsername().isEmpty() || password.isEmpty()
                 || confirmPassword.isEmpty() || user.getPhone().isEmpty()
                 || user.getAddress().isEmpty() || user.getEmail().isEmpty()) {
             return "Please fill in all required fields.";
         }
+        if (!FULL_NAME_PATTERN.matcher(user.getName()).matches()) {
+            return "Full name must be 2-100 characters and contain only letters, spaces, apostrophes, or hyphens.";
+        }
         if (!USERNAME_PATTERN.matcher(user.getUsername()).matches()) {
             return "Username must be 4-50 characters and contain only letters, numbers, or underscore.";
         }
-        if (password.length() < 6 || password.length() > 20) {
+        if (password.length() < PasswordPolicy.MIN_LENGTH
+                || password.length() > PasswordPolicy.MAX_LENGTH) {
             return "Password must be 6-20 characters.";
+        }
+        if (!PasswordPolicy.hasRequiredCharacterTypes(password)) {
+            return "Password must include at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.";
         }
         if (!password.equals(confirmPassword)) {
             return "Password confirmation does not match.";
         }
+        if (!EMAIL_PATTERN.matcher(user.getEmail()).matches()) {
+            return "Email must use only letters and numbers before @ and have a valid domain.";
+        }
         if (!PHONE_PATTERN.matcher(user.getPhone()).matches()) {
             return "Phone must contain 9-15 digits.";
         }
-        if (!EMAIL_PATTERN.matcher(user.getEmail()).matches()) {
-            return "Email format is invalid.";
-        }
-        if (user.getAge() != null && (user.getAge() < 13 || user.getAge() > 100)) {
+        if (!age.isEmpty() && !AGE_PATTERN.matcher(age).matches()) {
             return "Age must be between 13 and 100.";
         }
-        if (user.getName().length() > 255 || user.getAddress().length() > 255 || user.getEmail().length() > 255) {
-            return "Name, address, and email must be 255 characters or fewer.";
+        if (!ADDRESS_PATTERN.matcher(user.getAddress()).matches()) {
+            return "Address must be 5-255 characters and contain only valid address characters.";
         }
         return null;
     }

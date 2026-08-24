@@ -56,7 +56,10 @@
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
                                         <input id="name" name="name" type="text" class="form-control"
-                                               value="${form.name}" placeholder="Your full name" maxlength="255" required autofocus>
+                                               value="${form.name}" placeholder="Your full name" minlength="2" maxlength="100"
+                                               pattern="(?=.{2,100}$)[\p{L}]+(?:[ '\-][\p{L}]+)*"
+                                               title="Use 2-100 letters; spaces, apostrophes, and hyphens are allowed."
+                                               required autofocus>
                                     </div>
                                 </div>
 
@@ -65,7 +68,9 @@
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="bi bi-person"></i></span>
                                         <input id="username" name="username" type="text" class="form-control"
-                                               value="${form.username}" placeholder="4-50 characters" maxlength="50" required>
+                                               value="${form.username}" placeholder="4-50 characters" minlength="4" maxlength="50"
+                                               pattern="[A-Za-z0-9_]{4,50}"
+                                               title="Use 4-50 letters, numbers, or underscores." required>
                                     </div>
                                 </div>
 
@@ -74,7 +79,10 @@
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="bi bi-envelope"></i></span>
                                         <input id="email" name="email" type="email" class="form-control"
-                                               value="${form.email}" placeholder="you@example.com" maxlength="255" required>
+                                               value="${form.email}" placeholder="you@example.com" maxlength="255"
+                                               pattern="[A-Za-z0-9]+@[A-Za-z0-9]+(\.[A-Za-z]{2,})+"
+                                               title="Use only letters and numbers before @, followed by a valid domain."
+                                               required>
                                     </div>
                                 </div>
 
@@ -83,7 +91,9 @@
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="bi bi-telephone"></i></span>
                                         <input id="phone" name="phone" type="tel" class="form-control"
-                                               value="${form.phone}" placeholder="9-15 digits" maxlength="15" required>
+                                               value="${form.phone}" placeholder="9-15 digits" minlength="9" maxlength="15"
+                                               pattern="[0-9]{9,15}" inputmode="numeric"
+                                               title="Use 9-15 digits without spaces or symbols." required>
                                     </div>
                                 </div>
 
@@ -92,7 +102,10 @@
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="bi bi-lock"></i></span>
                                         <input id="password" name="password" type="password" class="form-control"
-                                               placeholder="6-20 characters" maxlength="20" required>
+                                               placeholder="Upper, lower, number, special" minlength="6" maxlength="20"
+                                               pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9\s])\S{6,20}"
+                                               title="Use 6-20 characters with at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character."
+                                               required>
                                         <button class="input-group-text btn-toggle" type="button" data-toggle-password="password" title="Show password">
                                             <i class="bi bi-eye"></i>
                                         </button>
@@ -104,7 +117,10 @@
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
                                         <input id="confirmPassword" name="confirmPassword" type="password" class="form-control"
-                                               placeholder="Retype password" maxlength="20" required>
+                                               placeholder="Retype password" minlength="6" maxlength="20"
+                                               pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9\s])\S{6,20}"
+                                               title="Use 6-20 characters with at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character."
+                                               required>
                                         <button class="input-group-text btn-toggle" type="button" data-toggle-password="confirmPassword" title="Show password">
                                             <i class="bi bi-eye"></i>
                                         </button>
@@ -115,8 +131,10 @@
                                     <label class="form-label" for="age">Age</label>
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
-                                        <input id="age" name="age" type="number" class="form-control"
-                                               value="${form.age}" placeholder="Optional" min="13" max="100">
+                                        <input id="age" name="age" type="text" class="form-control"
+                                               value="${form.age}" placeholder="Optional" maxlength="3"
+                                               pattern="(?:1[3-9]|[2-9][0-9]|100)" inputmode="numeric"
+                                               title="Age must be a whole number from 13 to 100.">
                                     </div>
                                 </div>
 
@@ -125,7 +143,10 @@
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
                                         <input id="address" name="address" type="text" class="form-control"
-                                               value="${form.address}" placeholder="Delivery address" maxlength="255" required>
+                                               value="${form.address}" placeholder="Delivery address" minlength="5" maxlength="255"
+                                               pattern="(?=.{5,255}$)(?=.*[\p{L}\p{N}])[\p{L}\p{N}\s,.'\/#\(\)&amp;\-]+"
+                                               title="Use 5-255 letters, numbers, spaces, and common address symbols."
+                                               required>
                                     </div>
                                 </div>
                             </div>

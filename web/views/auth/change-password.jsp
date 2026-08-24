@@ -35,7 +35,7 @@
                         <div class="panel-heading">
                             <div>
                                 <h2>Change password</h2>
-                                <p class="password-hint mb-0">Password must be 6-20 characters.</p>
+                                <p class="password-hint mb-0">Use 6-20 characters with uppercase, lowercase, number, and special character.</p>
                             </div>
                             <a class="btn secondary-action" href="${pageContext.request.contextPath}/profile">
                                 <i class="bi bi-person"></i> My Profile
@@ -72,7 +72,10 @@
                                     <label class="form-label" for="newPassword">New password</label>
                                     <div class="input-group">
                                         <input id="newPassword" name="newPassword" type="password" class="form-control"
-                                               minlength="6" maxlength="20" required>
+                                               minlength="6" maxlength="20"
+                                               pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9\s])\S{6,20}"
+                                               title="Use 6-20 characters with at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character."
+                                               required>
                                         <button class="input-group-text btn-toggle" type="button" data-toggle-password="newPassword" title="Show password">
                                             <i class="bi bi-eye"></i>
                                         </button>
@@ -83,7 +86,10 @@
                                     <label class="form-label" for="confirmPassword">Confirm new password</label>
                                     <div class="input-group">
                                         <input id="confirmPassword" name="confirmPassword" type="password" class="form-control"
-                                               minlength="6" maxlength="20" required>
+                                               minlength="6" maxlength="20"
+                                               pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9\s])\S{6,20}"
+                                               title="Use 6-20 characters with at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character."
+                                               required>
                                         <button class="input-group-text btn-toggle" type="button" data-toggle-password="confirmPassword" title="Show password">
                                             <i class="bi bi-eye"></i>
                                         </button>
