@@ -27,6 +27,24 @@ public class RoleDAO {
         }
         return list;
     }
+    public Role findById(int id) throws SQLException {
+        String sql = "SELECT * FROM `Role` WHERE ID = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Role role = new Role();
+                    role.setId(rs.getInt("ID"));
+                    role.setName(rs.getString("Name"));
+                    role.setStatus(rs.getString("Status"));
+                    role.setCreatedAt(rs.getTimestamp("Created_at"));
+                    role.setUpdatedAt(rs.getTimestamp("Updated_at"));
+                    return role;
+                }
+            }
+        }
+        return null;
+    }
 
     public void update(Role role) throws SQLException {
         String sql = "UPDATE `Role` SET Name = ?, Status = ?, Updated_at = CURRENT_TIMESTAMP WHERE ID = ?";
