@@ -44,13 +44,13 @@
                         </div>
 
                         <c:if test="${not empty error}">
-                            <div class="auth-alert danger">
+                            <div class="alert alert-danger">
                                 <i class="bi bi-exclamation-triangle-fill"></i>
                                 <span><c:out value="${error}"/></span>
                             </div>
                         </c:if>
                         <c:if test="${not empty sessionScope.success}">
-                            <div class="auth-alert success">
+                            <div class="alert alert-danger">
                                 <i class="bi bi-check-circle-fill"></i>
                                 <span><c:out value="${sessionScope.success}"/></span>
                             </div>

@@ -40,7 +40,8 @@ public class WishlistController extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         UserModel currentUser = currentUser(request);
-
+        
+        //lấy + kiểm tra action và id
         String action = value(request.getParameter("action"), "add");
         int variantId = integer(request.getParameter("variantId"), 0);
 
@@ -82,9 +83,9 @@ public class WishlistController extends HttpServlet {
             String status) throws IOException {
         response.sendRedirect(request.getContextPath() + "/wishlist?status=" + status);
     }
-
-    private void redirectAfterAdd(HttpServletRequest request,
-            HttpServletResponse response) throws IOException {
+    
+    //quay lại trang sau khi add
+    private void redirectAfterAdd(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String redirect = request.getParameter("redirect");
         if (redirect == null || redirect.isBlank()) {
             redirect(request, response, "added");

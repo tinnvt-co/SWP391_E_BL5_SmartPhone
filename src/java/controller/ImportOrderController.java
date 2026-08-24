@@ -114,7 +114,7 @@ public class ImportOrderController extends HttpServlet {
             HttpServletRequest request,
             HttpServletResponse response)
             throws SQLException, ServletException, IOException {
-        
+
         //check null
         String keyword = trim(request.getParameter("keyword"));
         String status = trim(request.getParameter("status"));
@@ -126,7 +126,7 @@ public class ImportOrderController extends HttpServlet {
                     "error",
                     "Search keyword cannot exceed 100 characters.");
         }
-        
+
         //lấy import order
         request.setAttribute(
                 "importOrders",
@@ -283,7 +283,7 @@ public class ImportOrderController extends HttpServlet {
             HttpServletRequest request,
             HttpServletResponse response)
             throws SQLException, ServletException, IOException {
-        
+
         //check id nếu đúng thì lấy, nếu sai thì = 0 và redirect error message
         int id = integer(
                 request.getParameter("id"),
@@ -297,11 +297,11 @@ public class ImportOrderController extends HttpServlet {
                     false);
             return;
         }
-        
+
         //tìm importOrder
         OrderModel order
                 = importOrderDAO.findImportOrderDetail(id);
-        
+
         if (order == null) {
             redirect(
                     request,
@@ -377,9 +377,9 @@ public class ImportOrderController extends HttpServlet {
             throws SQLException, IOException {
 
         HttpSession session = request.getSession();
-        
+
         //check roll user
-        UserModel currentUser = (UserModel) session.getAttribute( "currentUser");
+        UserModel currentUser = (UserModel) session.getAttribute("currentUser");
 
         if (currentUser == null) {
             response.sendRedirect(
@@ -387,21 +387,21 @@ public class ImportOrderController extends HttpServlet {
                     + "/login");
             return;
         }
-        
+
         //lấy supplier id, nếu không hợp lệ trả về 0
         int supplierId = integer(
                 request.getParameter("supplierId"),
                 0);
         //lấy các giá trị từ field
-        String[] variantIds = request.getParameterValues( "variantId");
-        String[] quantities = request.getParameterValues( "quantity");
-        String[] unitPrices  = request.getParameterValues( "unitPrice");
-        
+        String[] variantIds = request.getParameterValues("variantId");
+        String[] quantities = request.getParameterValues("quantity");
+        String[] unitPrices = request.getParameterValues("unitPrice");
+
         //lây và check method
-        String method = trim( request.getParameter("method"));
-        
+        String method = trim(request.getParameter("method"));
+
         //lấy và check note
-        String note = trim( request.getParameter("note"));
+        String note = trim(request.getParameter("note"));
 
         if (supplierId <= 0) {
             redirect(
@@ -411,7 +411,7 @@ public class ImportOrderController extends HttpServlet {
                     false);
             return;
         }
-        
+
         //check không có sản phẩm nào
         if (variantIds == null
                 || quantities == null
@@ -425,7 +425,7 @@ public class ImportOrderController extends HttpServlet {
                     false);
             return;
         }
-        
+
         //check số lượng dự liệu khác nhau giữa các field
         if (variantIds.length
                 != quantities.length
@@ -455,13 +455,13 @@ public class ImportOrderController extends HttpServlet {
 
         for (int i = 0; i < variantIds.length; i++) {
             //kiểm tra id và quanlity
-            int variantId = integer(variantIds[i],0);
+            int variantId = integer(variantIds[i], 0);
             int quantity = integer(quantities[i], 0);
 
             BigDecimal unitPrice;
 
             try {
-                unitPrice= new BigDecimal(unitPrices[i]);
+                unitPrice = new BigDecimal(unitPrices[i]);
             } catch (NumberFormatException e) {
                 redirect(
                         request,
@@ -471,11 +471,7 @@ public class ImportOrderController extends HttpServlet {
                 return;
             }
 
-            if (variantId <= 0
-                    || !supplierDAO.isSupplierProvidingVariant(
-                            supplierId,
-                            variantId)) {
-
+            if (variantId <= 0 || !supplierDAO.isSupplierProvidingVariant(supplierId, variantId)) {
                 redirect(
                         request,
                         response,
@@ -514,10 +510,15 @@ public class ImportOrderController extends HttpServlet {
 
             items.add(item);
 
-            totalPrice = totalPrice.add(
-                    unitPrice.multiply(
-                            BigDecimal.valueOf(
-                                    quantity)));
+            totalPrice = totalPrice.add(unitPrice.multiply(BigDecimal.valueOf(quantity)));
+            if (totalPrice.compareTo(new BigDecimal("9999999999.99")) > 0) {
+                redirect(
+                        request,
+                        response,
+                        "Total price must less than 10 billion",
+                        false);
+                return;
+            }
         }
 
         /*
@@ -527,14 +528,13 @@ public class ImportOrderController extends HttpServlet {
          * Transaction_ProductVariant
          * TransactionStatusHistory = ORDER
          */
-        int transactionId
-                = importOrderDAO.createImportOrder(
-                        currentUser.getId(),
-                        supplierId,
-                        totalPrice,
-                        method,
-                        note,
-                        items);
+        int transactionId = importOrderDAO.createImportOrder(
+                currentUser.getId(),
+                supplierId,
+                totalPrice,
+                method,
+                note,
+                items);
 
         session.setAttribute(
                 "message",
