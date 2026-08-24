@@ -84,6 +84,16 @@
                                 </a>
                             </div>
 
+                            <c:if test="${param.payment == 'success'}">
+                                <div class="alert-flash">
+                                    <i class="bi bi-check-circle-fill"></i>
+                                    <span>
+                                        Payment completed successfully for order
+                                        #<c:out value="${param.orderId}"/>.
+                                    </span>
+                                </div>
+                            </c:if>
+
                             <c:choose>
                                 <c:when test="${empty orders}">
                                     <div class="history-empty">

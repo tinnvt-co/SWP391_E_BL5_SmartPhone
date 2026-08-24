@@ -359,7 +359,7 @@ public class ManagerProductController extends HttpServlet {
         request.setAttribute("categories", categoryDAO.findAll(true));
         request.setAttribute("ramOptions", RAM_OPTIONS);
         request.setAttribute("storageOptions", STORAGE_OPTIONS);
-        request.setAttribute("maxReleaseYear", Year.now().getValue() + 1);
+        request.setAttribute("maxReleaseYear", Year.now().getValue());
     }
 
     private ProductModel read(HttpServletRequest request) {
@@ -485,7 +485,7 @@ public class ManagerProductController extends HttpServlet {
                 || product.getDescription().contains(">"))) {
             return "Description cannot contain angle brackets.";
         }
-        int maxReleaseYear = Year.now().getValue() + 1;
+        int maxReleaseYear = Year.now().getValue();
         if (product.getReleaseYear() != null
                 && (product.getReleaseYear() < 2007
                 || product.getReleaseYear() > maxReleaseYear)) {
@@ -778,6 +778,7 @@ public class ManagerProductController extends HttpServlet {
     private void forwardFormWithError(HttpServletRequest request,
             HttpServletResponse response, ProductModel product, String error)
             throws ServletException, IOException {
+        restoreExistingImageNames(request, product);
         request.setAttribute("error", error);
         request.setAttribute("product", product);
         request.setAttribute("selectedCategoryIds",
@@ -793,6 +794,7 @@ public class ManagerProductController extends HttpServlet {
     private void forwardFormWithBrandWarning(HttpServletRequest request,
             HttpServletResponse response, ProductModel product, String warning)
             throws ServletException, IOException {
+        restoreExistingImageNames(request, product);
         request.setAttribute("brandWarning", warning);
         request.setAttribute("confirmBrandMismatch", true);
         request.setAttribute("product", product);
@@ -804,6 +806,19 @@ public class ManagerProductController extends HttpServlet {
         }
         request.getRequestDispatcher("/views/manager/product-form.jsp")
                 .forward(request, response);
+    }
+
+    private void restoreExistingImageNames(HttpServletRequest request,
+            ProductModel product) {
+        try {
+            for (int index = 0; index < product.getVariants().size(); index++) {
+                ProductVariantModel variant = product.getVariants().get(index);
+                variant.setImage(valueAt(request, "existingVariantImage", index));
+                variant.setBackImage(valueAt(
+                        request, "existingVariantBackImage", index));
+            }
+        } catch (IllegalStateException ignored) {
+        }
     }
 
     private String friendly(SQLException exception) {

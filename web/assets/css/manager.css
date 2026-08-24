@@ -95,7 +95,7 @@
    SEARCH ROW
    ============================================================= */
 .search-row {
-    grid-template-columns: minmax(240px, 1fr) minmax(150px, 190px) minmax(170px, 210px) minmax(180px, 220px) auto;
+    grid-template-columns: minmax(220px, 1fr) minmax(130px, 170px) minmax(150px, 190px) minmax(160px, 200px) minmax(170px, 210px) auto;
     align-items: center;
 }
 
@@ -147,7 +147,7 @@
 }
 
 .brand-products-search {
-    grid-template-columns: minmax(260px, 1fr) auto;
+    grid-template-columns: minmax(260px, 1fr) minmax(190px, 230px) auto;
 }
 
 .category-picker-panel .selection-cell {
