@@ -150,7 +150,8 @@
                                         </td>
                                         <td>
                                             <label>Selling price *
-                                                <input type="number" name="variantSellingPrice" value="${variant.sellingPrice}">
+                                                <input type="number" name="variantSellingPrice"
+                                                       min="1" value="${variant.sellingPrice}">
                                             </label>
                                         </td>
                                         <td>
@@ -204,7 +205,7 @@
                 </td>
                 <td>
                     <label>Selling price *
-                        <input type="number" name="variantSellingPrice">
+                        <input type="number" name="variantSellingPrice" min="1">
                     </label>
                 </td>
                 <td>

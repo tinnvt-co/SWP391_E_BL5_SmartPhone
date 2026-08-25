@@ -23,6 +23,20 @@
         removeButton.closest('.variant-row').remove();
     });
 
+    rows.addEventListener('keydown', function (event) {
+        if (event.target.matches('[name="variantSellingPrice"]')
+                && (event.key === '-' || event.key === 'e' || event.key === 'E')) {
+            event.preventDefault();
+        }
+    });
+
+    rows.addEventListener('input', function (event) {
+        if (event.target.matches('[name="variantSellingPrice"]')
+                && Number(event.target.value) < 0) {
+            event.target.value = '';
+        }
+    });
+
     if (!rows.querySelector('.variant-row')) {
         addRow();
     }
