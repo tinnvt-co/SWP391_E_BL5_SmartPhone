@@ -63,8 +63,14 @@ public class RefundController extends HttpServlet {
         if (user == null) {
             return;
         }
+        
+        String flash = request.getParameter("flash");
+        if (flash != null && !flash.isBlank()) {
+            request.setAttribute("flash", flash);
+        }
 
         try {
+            //tìm xem có trong bảng return request không, nếu có thì lấy ra rồi kết thúc
             int id = parseInt(request.getParameter("id"));
             if (id > 0) {
                 RefundModel r = returnDAO.findDetail(id);
@@ -78,6 +84,7 @@ public class RefundController extends HttpServlet {
                 return;
             }
 
+            //không có trong return request thì tìm ở bảng transaction nếu không phải Completed hoặc delivered thì lấy ra để người dùng tạo return reqeust
             int orderId = parseInt(request.getParameter("orderId"));
             if (orderId > 0) {
                 OrderModel order = orderDAO.findOrderDetail(orderId);
@@ -140,6 +147,7 @@ public class RefundController extends HttpServlet {
             return;
         }
 
+        //bank field chỉ kiểm tra null
         String bankName = trimToNull(request.getParameter("bankName"));
         String bankAccountNumber = trimToNull(request.getParameter("bankAccountNumber"));
         String bankAccountHolder = trimToNull(request.getParameter("bankAccountHolder"));
