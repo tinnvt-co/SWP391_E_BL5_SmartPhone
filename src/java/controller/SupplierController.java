@@ -636,7 +636,7 @@ public class SupplierController extends HttpServlet {
     }
 
     private boolean isValidPhone(String phone) {
-        return phone.matches("\\d{10}");
+        return phone.matches("0\\d{9}");
     }
 
     private String normalizeKeyword(
