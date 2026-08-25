@@ -192,7 +192,7 @@
                                                                 <c:when test="${o.hasCancelPending}">
                                                                     <span class="cancel-pending"><i class="bi bi-clock-history"></i> Cancel pending</span>
                                                                 </c:when>
-                                                                <c:when test="${o.status != 'DELIVERED' && o.status != 'COMPLETED' && o.status != 'CANCELLED' && o.status != 'CANCEL_REQUESTED'}">
+                                                                <c:when test="${o.status != 'DELIVERED' && o.status != 'COMPLETED' && o.status != 'CANCELLED' && o.status != 'CANCEL_REQUESTED' && o.status != 'REFUND'}">
                                                                     <button type="button" class="cancel-btn"
                                                                             data-bs-toggle="modal"
                                                                             data-bs-target="#cancelOrderModal"
