@@ -261,7 +261,7 @@ public class SupplierController extends HttpServlet {
                         true
                 );
 
-        // FIX: áp dụng thêm filter theo Product cụ thể (dropdown mới).
+        // áp dụng thêm filter theo Product cụ thể (dropdown mới).
         if (selectedProductId != null) {
             allProducts.removeIf(
                     product -> product.getId() != selectedProductId
@@ -273,7 +273,7 @@ public class SupplierController extends HttpServlet {
                         supplier.getProductVariantIds()
                 );
 
-        // FIX: làm phẳng Product + Variant thành 1 list các "dòng variant", mỗi
+        // làm phẳng Product + Variant thành 1 list các "dòng variant", mỗi
         // dòng tự mang theo tên product/brand để hiển thị (vì không còn group
         // theo product-card nữa). Dùng Map thay vì tạo model mới cho gọn.
         List<Map<String, Object>> allVariantRows = new ArrayList<>();
@@ -311,13 +311,11 @@ public class SupplierController extends HttpServlet {
      * not      -> variant supplier chưa cung cấp
          */
         if ("supplied".equals(suppliedFilter)) {
-
             allVariantRows.removeIf(
                     row -> !(Boolean) row.get("supplied")
             );
 
         } else if ("not".equals(suppliedFilter)) {
-
             allVariantRows.removeIf(
                     row -> (Boolean) row.get("supplied")
             );
@@ -349,9 +347,7 @@ public class SupplierController extends HttpServlet {
 
         List<Map<String, Object>> pageRows
                 = from < to
-                        ? new ArrayList<>(
-                                allVariantRows.subList(from, to)
-                        )
+                        ? new ArrayList<>(allVariantRows.subList(from, to))
                         : new ArrayList<>();
 
         int startItem = totalVariants == 0

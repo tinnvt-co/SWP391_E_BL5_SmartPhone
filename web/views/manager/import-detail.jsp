@@ -811,7 +811,7 @@
                                         <span class="history-dot"></span>
                                         <div class="history-status"><c:out value="${h.status}"/></div>
                                         <div class="history-date">
-                                            <fmt:formatDate value="${h.createdAt}" pattern="dd/MM/yyyy HH:mm"/>
+                                            <fmt:formatDate value="${h.updatedAt}" pattern="dd/MM/yyyy HH:mm"/>
                                         </div>
                                         <c:if test="${not empty h.userName}">
                                             <div class="history-user">By <c:out value="${h.userName}"/></div>

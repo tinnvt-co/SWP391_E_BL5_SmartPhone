@@ -55,8 +55,6 @@ public class ImportOrderController extends HttpServlet {
                     showCreate(request, response);
                 case "detail" ->
                     showDetail(request, response);
-//                case "history" ->
-//                    showHistory(request, response);
                 default ->
                     listImportOrders(request, response);
             }
@@ -315,56 +313,14 @@ public class ImportOrderController extends HttpServlet {
                 "order",
                 order);
 
-        request.setAttribute("mode", "detail");
-
-        request.getRequestDispatcher(
-                "/views/manager/import-detail.jsp")
-                .forward(request, response);
-    }
-
-    /* =========================================================
-       HISTORY
-       ========================================================= */
-    private void showHistory(
-            HttpServletRequest request,
-            HttpServletResponse response)
-            throws SQLException, ServletException, IOException {
-
-        int id = integer(
-                request.getParameter("id"),
-                0);
-
-        if (id <= 0) {
-            redirect(
-                    request,
-                    response,
-                    "Invalid import order.",
-                    false);
-            return;
-        }
-
-        OrderModel order
-                = importOrderDAO.findImportOrderDetail(id);
-
-        if (order == null) {
-            redirect(
-                    request,
-                    response,
-                    "Import order not found.",
-                    false);
-            return;
-        }
-
-        request.setAttribute(
-                "order",
-                order);
-
         request.setAttribute(
                 "history",
                 importOrderDAO.findStatusHistory(id));
 
+        request.setAttribute("mode", "detail");
+
         request.getRequestDispatcher(
-                "/views/manager/import-history.jsp")
+                "/views/manager/import-detail.jsp")
                 .forward(request, response);
     }
 
