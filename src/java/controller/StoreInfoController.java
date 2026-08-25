@@ -50,7 +50,7 @@ public class StoreInfoController extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
 
-        String address = request.getParameter("address");
+        String address = request.getParameter("address").trim().replaceAll("\\s+", " ");;
         String phone = request.getParameter("phone");
         String email = request.getParameter("email");
         String facebookUrl = request.getParameter("facebookUrl");
@@ -130,8 +130,8 @@ public class StoreInfoController extends HttpServlet {
         // --- Address ---
         if (address == null || address.trim().isEmpty()) {
             errors.put("address", "Địa chỉ không được để trống.");
-        } else if (address.trim().length() > 255) {
-            errors.put("address", "Địa chỉ không được vượt quá 255 ký tự.");
+        } else if (address.trim().length() > 255 || address.trim().length() < 5) {
+            errors.put("address", "Địa chỉ không được ít hơn 5 hoặc vượt quá 255 ký tự.");
         }
 
         // --- Phone ---
