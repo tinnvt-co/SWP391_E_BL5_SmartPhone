@@ -1,25 +1,25 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%><%@taglib prefix="c" uri="jakarta.tags.core"%><%@taglib prefix="fmt" uri="jakarta.tags.fmt"%>
 <!DOCTYPE html><html><head><title>Order Management</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"><link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"><link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css">
-<style>
-.order-status-option.is-locked {
-    opacity: 0.45;
-    cursor: not-allowed;
-    background: #f5f7fb;
-}
-.order-status-option.is-locked:hover {
-    border-color: #e3e7ef;
-    background: #f5f7fb;
-}
-.order-status-option.is-locked .order-status-option-code {
-    color: #6b7280;
-    letter-spacing: 0.04em;
-}
-.order-status-option-code .bi-lock-fill {
-    font-size: 0.8em;
-    margin-left: 4px;
-    color: #94a3b8;
-}
-</style><%@include file="../common/head.jsp"%></head><body>
+        <style>
+            .order-status-option.is-locked {
+                opacity: 0.45;
+                cursor: not-allowed;
+                background: #f5f7fb;
+            }
+            .order-status-option.is-locked:hover {
+                border-color: #e3e7ef;
+                background: #f5f7fb;
+            }
+            .order-status-option.is-locked .order-status-option-code {
+                color: #6b7280;
+                letter-spacing: 0.04em;
+            }
+            .order-status-option-code .bi-lock-fill {
+                font-size: 0.8em;
+                margin-left: 4px;
+                color: #94a3b8;
+            }
+        </style><%@include file="../common/head.jsp"%></head><body>
         <c:set var="activePage" value="staff-orders" scope="request"/><%@ include file="/views/common/header.jsp" %>
         <main class="page-shell">
             <div class="page-heading"><div><h1>Order Management</h1><p>${orders.size()} orders shown</p></div></div>
@@ -39,8 +39,8 @@
                                 <option value="${s}" ${selectedStatus==s?'selected':''}><c:out value="${s}"/></option>
                             </c:if>
                         </c:forEach>
-                        </select>
-                        <select name="type"><option value="ALL" ${selectedType=='ALL'?'selected':''}>All Types</option><option value="ORDER" ${selectedType=='ORDER'?'selected':''}>Customer Order</option><option value="IMPORT" ${selectedType=='IMPORT'?'selected':''}>Import</option></select>
+                    </select>
+                    <select name="type"><option value="ALL" ${selectedType=='ALL'?'selected':''}>All Types</option><option value="ORDER" ${selectedType=='ORDER'?'selected':''}>Customer Order</option><option value="IMPORT" ${selectedType=='IMPORT'?'selected':''}>Import</option></select>
                     <button class="btn primary">Search</button>
                 </form>
                 <div class="table-wrap"><table><thead><tr><th>Order ID</th><th>Customer</th><th>Type</th><th>Status</th><th>Items</th><th>Total</th><th>Method</th><th>Created</th><th>Actions</th></tr></thead><tbody>
