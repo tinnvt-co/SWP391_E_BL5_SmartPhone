@@ -2,15 +2,18 @@ package controller;
 
 import DAO.ImportOrderDAO;
 import DAO.OrderDAO;
+import jakarta.mail.Session;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Set;
 import model.OrderModel;
+import model.UserModel;
 
 @WebServlet(name = "OrderController", urlPatterns = {"/staff/orders"})
 public class OrderController extends HttpServlet {
@@ -53,10 +56,21 @@ public class OrderController extends HttpServlet {
         String action = value(request.getParameter("action"), "update-status");
 
         try {
+            HttpSession session = request.getSession();
             if ("update-status".equals(action)) {
                 int orderId = integer(request.getParameter("id"), 0);
+                
                 String status = request.getParameter("status");
-                Integer updatedBy = integerOrNull(request.getParameter("updatedBy"));
+                UserModel currentUser
+                        = (UserModel) session.getAttribute(
+                                "currentUser");
+
+                if (currentUser == null) {
+                    response.sendRedirect(
+                            request.getContextPath()
+                            + "/login");
+                    return;
+                }
                 if (orderId <= 0 || status == null || !VALID_STATUSES.contains(status)) {
                     redirectBack(request, response, "Invalid request");
                     return;
@@ -81,7 +95,7 @@ public class OrderController extends HttpServlet {
                 }
                 boolean ok = importOrderDAO.completeImportOrder(
                         orderId,
-                        updatedBy);
+                        currentUser.getId());
                 redirectBack(request, response, ok ? "Order status updated" : "Cannot update order");
             }
         } catch (SQLException exception) {

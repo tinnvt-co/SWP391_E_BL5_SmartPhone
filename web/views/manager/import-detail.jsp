@@ -693,7 +693,8 @@
                                 </div>
 
                                 <c:if test="${not empty order.note}">
-                                    <div class="info-note">
+                                    <div class="info-note" style="overflow-wrap: break-word;
+                                         word-break: break-word ">
                                         <span class="info-label">Note</span>
                                         <div style="margin-top: 6px;"><c:out value="${order.note}"/></div>
                                     </div>
