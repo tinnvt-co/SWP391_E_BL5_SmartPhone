@@ -850,7 +850,7 @@
                     supplierId: '',
                     productSearch: '',
                     supplierSearch: '',
-                    selectedVariantIds: [] // variantId currently picked in each item row
+                    selectedVariantIds: []
                 };
 
                 /* =========================================================
@@ -868,11 +868,13 @@
 
                 function buildSupplierVariantMap() {
                     const map = {};
+                    //Lấy select chưa name = variantId, nếu không tìm thấy thì trả về map rỗng
                     const firstSelect = document.querySelector('select[name="variantId"]');
                     if (!firstSelect) {
                         return map;
                     }
-
+                    
+                    //tạo map mới để lưu với key là nhà cung cấp và value là list sản phẩm
                     Array.from(firstSelect.options).forEach(function (opt) {
                         if (!opt.value) {
                             return;
@@ -891,7 +893,8 @@
 
                     return map;
                 }
-
+                
+                //lấy tất cả id mà người dùng chọn để phục vụ create trong controller
                 function getSelectedVariantIds() {
                     return Array.from(document.querySelectorAll('select[name="variantId"]'))
                             .map(function (select) {
@@ -899,46 +902,56 @@
                             })
                             .filter(Boolean);
                 }
-
+                
+                
                 function applyVariantFilter() {
                     const selects = document.querySelectorAll('select[name="variantId"]');
                     let anyVisibleAnywhere = false;
-
+                    
+                    //lặp qua từng select
                     selects.forEach(function (select) {
+                        //chuyển select thành array để duyệt các option của select
                         Array.from(select.options).forEach(function (opt) {
                             if (!opt.value) {
                                 // keep the "-- Select product --" placeholder always visible
                                 opt.hidden = false;
+                                //chuyển đến lần lặp tiếp theo
                                 return;
                             }
-
+                            
+                            //Lấy danh sách supplier của variant
                             const supplierIds = (opt.dataset.supplierIds || '')
                                     .split(',')
-                                    .filter(Boolean);
-
+                                    .filter(Boolean);//loại bỏ giá trị rỗng
+                            
+                            //kiểm tra variant có chưa id của supplier đang chọn không, nếu có trả về true
                             const matchSupplier = !filterState.supplierId
                                     || supplierIds.includes(filterState.supplierId);
-
+                            
+                            //lấy tên sản phẩm nếu có trong opt
                             const name = opt.dataset.name || '';
+                            //kiểm tra product search
                             const matchSearch = !filterState.productSearch
                                     || name.includes(filterState.productSearch);
-
+                            
+                            //kết hợp vừa có search vừa có id supplier mà user yêu cầu
                             const visible = matchSupplier && matchSearch;
+                            
+                            //thực hiển ẩn, hiện option
                             opt.hidden = !visible;
-
+                            
                             if (visible) {
                                 anyVisibleAnywhere = true;
                             }
 
-                            // If the currently selected option got filtered out,
-                            // clear the selection so the form can't silently
-                            // submit a product that no longer matches.
+                            // Nếu sản phẩm đang chọn nhưng bị lọc bỏ thì sẽ bỏ chọn để không bị lỗi khi create
                             if (!visible && opt.selected) {
                                 select.value = '';
                             }
                         });
                     });
-
+                    
+                    //nếu không thấy thì hiển thị không báo no product found
                     const hint = document.getElementById('variantFilterEmptyHint');
                     if (hint) {
                         hint.classList.toggle('visible', !anyVisibleAnywhere);
@@ -950,7 +963,12 @@
                     filterState.selectedVariantIds = getSelectedVariantIds();
                     applySupplierFilter();
                 }
-
+                
+                /*
+                 * lọc supplier nếu cung cấp tất cả các sản phẩm đã chọn thì sẽ hiển thị nếu không có 
+                 * kết quả hợp lệ thì hiển thị không tìm thấy
+                 * 
+                 */
                 function applySupplierFilter() {
                     const select = document.getElementById('supplierSelect');
                     if (!select) {
@@ -1031,7 +1049,8 @@
                     filterState.selectedVariantIds = getSelectedVariantIds();
                     applySupplierFilter();
                 }
-
+                
+                //load xong html thì cạy phần này
                 document.addEventListener('DOMContentLoaded', function () {
                     const supplierSelect = document.getElementById('supplierSelect');
                     const productSearchInput = document.getElementById('productSearchInput');
