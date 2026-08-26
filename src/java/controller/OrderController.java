@@ -1,5 +1,6 @@
 package controller;
 
+import DAO.ImportOrderDAO;
 import DAO.OrderDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -21,13 +22,14 @@ public class OrderController extends HttpServlet {
     private static final Set<String> VALID_TYPES = Set.of("ORDER", "IMPORT", "ALL");
 
     /**
-     * Statuses a staff member may choose when updating an order.
-     *  - CANCEL_REQUESTED / CANCELLED / DELIVERED are intentionally excluded:
-     *    staff cannot cancel orders nor mark them as delivered.
+     * Statuses a staff member may choose when updating an order. -
+     * CANCEL_REQUESTED / CANCELLED / DELIVERED are intentionally excluded:
+     * staff cannot cancel orders nor mark them as delivered.
      */
     private static final Set<String> STAFF_UPDATABLE_STATUSES = Set.of(
             "PENDING", "CONFIRMED", "PROCESSING", "SHIPPING", "COMPLETED");
     private final OrderDAO orderDAO = new OrderDAO();
+    private final ImportOrderDAO importOrderDAO = new ImportOrderDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -77,7 +79,9 @@ public class OrderController extends HttpServlet {
                     redirectBack(request, response, "Invalid status for this order");
                     return;
                 }
-                boolean ok = orderDAO.updateStatus(orderId, status, updatedBy);
+                boolean ok = importOrderDAO.completeImportOrder(
+                        orderId,
+                        updatedBy);
                 redirectBack(request, response, ok ? "Order status updated" : "Cannot update order");
             }
         } catch (SQLException exception) {
