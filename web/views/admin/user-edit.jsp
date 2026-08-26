@@ -233,14 +233,17 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label for="roleId" class="form-label fw-bold">Role <span class="text-danger">*</span></label>
-                                    <select class="form-select" id="roleId" name="roleId" required>
+                                    <select class="form-select" id="roleId" name="roleId" required ${user.id == 1 ? 'disabled' : ''}>
                                         <option value="" disabled>Select Role...</option>
                                         <c:forEach items="${roles}" var="role">
-                                            <c:if test="${(role.status == 'ACTIVE' || user.roleId == role.id) && fn:toLowerCase(role.name) != 'admin'}">
+                                            <c:if test="${role.status == 'ACTIVE' || user.roleId == role.id}">
                                                 <option value="${role.id}" ${user.roleId == role.id ? 'selected' : ''}>${role.name}</option>
                                             </c:if>
                                         </c:forEach>
                                     </select>
+                                    <c:if test="${user.id == 1}">
+                                        <input type="hidden" name="roleId" value="${user.roleId}">
+                                    </c:if>
                                 </div>
                                 <div class="col-12">
                                     <label for="address" class="form-label fw-bold">Address</label>

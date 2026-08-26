@@ -116,11 +116,11 @@ public class AdminUserController extends HttpServlet {
                         userDAO.updateStatus(id, "INACTIVE");
                     } else if ("delete".equals(action)) {
                         UserModel userToDelete = userDAO.findById(id);
-                        if (userToDelete != null && !"ADMIN".equalsIgnoreCase(userToDelete.getRoleName())) {
+                        if (userToDelete != null && userToDelete.getId() != 1) {
                             userDAO.delete(id);
                             request.getSession().setAttribute("message", "User deleted successfully.");
                         } else {
-                            request.getSession().setAttribute("error", "Cannot delete Admin accounts.");
+                            request.getSession().setAttribute("error", "Cannot delete the main Admin account.");
                         }
                     }
                 }
@@ -187,10 +187,6 @@ public class AdminUserController extends HttpServlet {
             } else {
                 try {
                     roleId = Integer.parseInt(roleIdStr);
-                    model.Role r = roleDAO.findById(roleId);
-                    if (r != null && "ADMIN".equalsIgnoreCase(r.getName())) {
-                        errors.add("Cannot assign the Admin role to a new user.");
-                    }
                 } catch (NumberFormatException e) {
                     errors.add("Invalid role format.");
                 }
@@ -236,12 +232,6 @@ public class AdminUserController extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/admin/users");
                 return;
             }
-            if ("ADMIN".equalsIgnoreCase(existingUser.getRoleName())) {
-                request.getSession().setAttribute("error", "Cannot update Admin accounts.");
-                response.sendRedirect(request.getContextPath() + "/admin/users");
-                return;
-            }
-
             if (name == null || name.trim().isEmpty() || name.length() > 50) {
                 errors.add("Name is required and must not exceed 50 characters.");
             }
@@ -276,9 +266,8 @@ public class AdminUserController extends HttpServlet {
             } else {
                 try {
                     roleId = Integer.parseInt(roleIdStr);
-                    model.Role r = roleDAO.findById(roleId);
-                    if (r != null && "ADMIN".equalsIgnoreCase(r.getName())) {
-                        errors.add("Cannot assign the Admin role to a user.");
+                    if (id == 1 && roleId != existingUser.getRoleId()) {
+                        errors.add("Cannot change the role of the main Admin account.");
                     }
                 } catch (NumberFormatException e) {
                     errors.add("Invalid role format.");
