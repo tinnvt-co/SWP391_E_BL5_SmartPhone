@@ -7,6 +7,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="jakarta.tags.core"%>
 <%@taglib prefix="fmt" uri="jakarta.tags.fmt"%>
+<%@taglib prefix="fn" uri="jakarta.tags.functions"%>
 
 <!DOCTYPE html>
 <html>
@@ -371,6 +372,43 @@
                 border-radius: 12px;
             }
 
+            /* =========================
+               FORM ERRORS
+               ========================= */
+
+            .form-errors {
+                display: flex;
+                gap: 12px;
+                align-items: flex-start;
+                background: #fef2f2;
+                border: 1px solid #fecaca;
+                border-radius: 14px;
+                padding: 16px 18px;
+                margin-bottom: 20px;
+                color: #991b1b;
+            }
+
+            .form-errors i {
+                font-size: 18px;
+                margin-top: 2px;
+            }
+
+            .form-errors-title {
+                font-weight: 700;
+                margin: 0 0 6px;
+                font-size: 14px;
+            }
+
+            .form-errors ul {
+                margin: 0;
+                padding-left: 18px;
+                font-size: 13.5px;
+            }
+
+            .form-errors li {
+                margin-bottom: 2px;
+            }
+
             @media (max-width: 850px) {
 
                 .supplier-detail-grid {
@@ -446,6 +484,29 @@
                        id="productVariantIds"
                        name="productVariantIds"
                        value="">
+
+                <!-- ============================================= -->
+                <!-- VALIDATION ERRORS -->
+                <!-- ============================================= -->
+                <c:if test="${not empty errors}">
+                    <div class="form-errors">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <div>
+                            <p class="form-errors-title">
+                                Please fix the following
+                                ${fn:length(errors)} error(s):
+                            </p>
+                            <ul>
+                                <c:forEach var="err" items="${errors}">
+                                    <li>
+                                        <c:out value="${err}"/>
+                                    </li>
+                                </c:forEach>
+                            </ul>
+                        </div>
+                    </div>
+                </c:if>
+
                 <div class="supplier-detail-grid">
 
                     <!-- ========================================= -->

@@ -838,19 +838,67 @@
                  SHARED FILTER STATE
                  ---------------------------------------------------------
                  Every filter (supplier dropdown, product-name search,
-                 supplier-name search) writes into this single object.
-                 applyVariantFilter()/applySupplierFilter() are the only
-                 places that touch `option.hidden`, and each one always
-                 ANDs together every active criterion. Never let two
-                 separate functions independently set `hidden` on the
-                 same option set — that's what causes one filter to
-                 silently undo another.
+                 supplier-name search, selected product variants) writes
+                 into this single object. applyVariantFilter()/
+                 applySupplierFilter() are the only places that touch
+                 `option.hidden`, and each one always ANDs together every
+                 active criterion. Never let two separate functions
+                 independently set `hidden` on the same option set —
+                 that's what causes one filter to silently undo another.
                  ========================================================= */
                 const filterState = {
                     supplierId: '',
                     productSearch: '',
-                    supplierSearch: ''
+                    supplierSearch: '',
+                    selectedVariantIds: [] // variantId currently picked in each item row
                 };
+
+                /* =========================================================
+                 SUPPLIER -> VARIANT REVERSE MAP
+                 ---------------------------------------------------------
+                 Each <option> under select[name="variantId"] already
+                 carries data-supplier-ids (built server-side from
+                 variantSupplierMap). We invert that once on load into
+                 supplierId -> Set(variantId), which is what the
+                 "product picked -> narrow supplier list" direction needs.
+                 Built once because every item row is a clone of the
+                 same option list, so reading the first row is enough.
+                 ========================================================= */
+                let supplierVariantMap = {};
+
+                function buildSupplierVariantMap() {
+                    const map = {};
+                    const firstSelect = document.querySelector('select[name="variantId"]');
+                    if (!firstSelect) {
+                        return map;
+                    }
+
+                    Array.from(firstSelect.options).forEach(function (opt) {
+                        if (!opt.value) {
+                            return;
+                        }
+                        const supplierIds = (opt.dataset.supplierIds || '')
+                                .split(',')
+                                .filter(Boolean);
+
+                        supplierIds.forEach(function (sid) {
+                            if (!map[sid]) {
+                                map[sid] = new Set();
+                            }
+                            map[sid].add(opt.value);
+                        });
+                    });
+
+                    return map;
+                }
+
+                function getSelectedVariantIds() {
+                    return Array.from(document.querySelectorAll('select[name="variantId"]'))
+                            .map(function (select) {
+                                return select.value;
+                            })
+                            .filter(Boolean);
+                }
 
                 function applyVariantFilter() {
                     const selects = document.querySelectorAll('select[name="variantId"]');
@@ -895,6 +943,12 @@
                     if (hint) {
                         hint.classList.toggle('visible', !anyVisibleAnywhere);
                     }
+
+                    // a variant selection may have just been cleared above ->
+                    // keep the supplier list in sync with whatever products
+                    // are still actually selected
+                    filterState.selectedVariantIds = getSelectedVariantIds();
+                    applySupplierFilter();
                 }
 
                 function applySupplierFilter() {
@@ -910,9 +964,19 @@
                         }
 
                         const name = opt.dataset.name || '';
-                        const visible = !filterState.supplierSearch
+                        const matchSearch = !filterState.supplierSearch
                                 || name.includes(filterState.supplierSearch);
 
+                        // supplier must supply EVERY product currently picked
+                        // in the item rows, since one import order has a
+                        // single supplier for all its lines
+                        const suppliedVariants = supplierVariantMap[opt.value] || new Set();
+                        const matchProducts = filterState.selectedVariantIds
+                                .every(function (vid) {
+                                    return suppliedVariants.has(vid);
+                                });
+
+                        const visible = matchSearch && matchProducts;
                         opt.hidden = !visible;
 
                         if (!visible && opt.selected) {
@@ -961,16 +1025,25 @@
                     }
 
                     button.closest('.import-item-row').remove();
+
+                    // removing a row may remove a product selection ->
+                    // the supplier list can potentially widen again
+                    filterState.selectedVariantIds = getSelectedVariantIds();
+                    applySupplierFilter();
                 }
 
                 document.addEventListener('DOMContentLoaded', function () {
                     const supplierSelect = document.getElementById('supplierSelect');
                     const productSearchInput = document.getElementById('productSearchInput');
                     const supplierSearchInput = document.getElementById('supplierSearchInput');
+                    const itemsContainer = document.getElementById('itemsContainer');
+
+                    supplierVariantMap = buildSupplierVariantMap();
 
                     // pick up a supplierId that was pre-selected server-side
                     // (e.g. navigated here from a supplier's page)
                     filterState.supplierId = supplierSelect ? supplierSelect.value : '';
+                    filterState.selectedVariantIds = getSelectedVariantIds();
 
                     if (supplierSelect) {
                         supplierSelect.addEventListener('change', function () {
@@ -990,6 +1063,19 @@
                         supplierSearchInput.addEventListener('input', function () {
                             filterState.supplierSearch = this.value.trim().toLowerCase();
                             applySupplierFilter();
+                        });
+                    }
+
+                    // event delegation: item rows are cloned dynamically by
+                    // addItem(), so a single listener on the container
+                    // catches "change" from every current AND future
+                    // select[name="variantId"] without re-binding per row
+                    if (itemsContainer) {
+                        itemsContainer.addEventListener('change', function (e) {
+                            if (e.target.matches('select[name="variantId"]')) {
+                                filterState.selectedVariantIds = getSelectedVariantIds();
+                                applySupplierFilter();
+                            }
                         });
                     }
 

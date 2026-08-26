@@ -59,7 +59,7 @@ public class OrderController extends HttpServlet {
             HttpSession session = request.getSession();
             if ("update-status".equals(action)) {
                 int orderId = integer(request.getParameter("id"), 0);
-                
+
                 String status = request.getParameter("status");
                 UserModel currentUser
                         = (UserModel) session.getAttribute(
@@ -93,9 +93,15 @@ public class OrderController extends HttpServlet {
                     redirectBack(request, response, "Invalid status for this order");
                     return;
                 }
-                boolean ok = importOrderDAO.completeImportOrder(
-                        orderId,
-                        currentUser.getId());
+
+                boolean ok;
+                if (isImport) {
+                    ok = importOrderDAO.completeImportOrder(
+                            orderId,
+                            currentUser.getId());
+                } else {
+                    ok = orderDAO.updateStatus(orderId, status, currentUser.getId());
+                }
                 redirectBack(request, response, ok ? "Order status updated" : "Cannot update order");
             }
         } catch (SQLException exception) {
