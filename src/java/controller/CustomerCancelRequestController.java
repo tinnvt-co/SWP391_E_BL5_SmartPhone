@@ -60,17 +60,33 @@ public class CustomerCancelRequestController extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/order-history");
                 return;
             }
-            if (!isCancelable(order.getStatus())) {
-                request.setAttribute("error", "This order can no longer be cancelled.");
+            if (isCancelable(order.getStatus())) {
+                boolean alreadyRequested = cancelDAO.hasActiveRequest(orderId);
                 request.setAttribute("order", order);
+                request.setAttribute("alreadyRequested", alreadyRequested);
+                request.setAttribute("isPaid", isPaidOrder(order));
                 request.getRequestDispatcher("/views/customer/cancel-request.jsp").forward(request, response);
                 return;
             }
-            boolean alreadyRequested = cancelDAO.hasActiveRequest(orderId);
+            // Lấy thông tin lý do không cancel được để hiển thị rõ ràng cho user
+            String status = order.getStatus() == null ? "" : order.getStatus().toUpperCase();
+            String errorMsg;
+            boolean alreadyPending = cancelDAO.hasActiveRequest(orderId);
+            if ("CANCEL_REQUESTED".equals(status) || alreadyPending) {
+                errorMsg = "A cancellation request for this order is already pending staff review.";
+            } else if ("DELIVERED".equals(status) || "COMPLETED".equals(status)) {
+                errorMsg = "This order has already been delivered, so it can no longer be cancelled.";
+            } else if ("CANCELLED".equals(status)) {
+                errorMsg = "This order has already been cancelled.";
+            } else if ("REFUNDED".equals(status)) {
+                errorMsg = "This order has been refunded and can no longer be cancelled.";
+            } else {
+                errorMsg = "This order can no longer be cancelled (current status: " + order.getStatus() + ").";
+            }
+            request.setAttribute("error", errorMsg);
             request.setAttribute("order", order);
-            request.setAttribute("alreadyRequested", alreadyRequested);
-            request.setAttribute("isPaid", isPaidOrder(order));
             request.getRequestDispatcher("/views/customer/cancel-request.jsp").forward(request, response);
+            return;
         } catch (SQLException ex) {
             response.sendRedirect(request.getContextPath() + "/order-history?flash="
                     + encode("Cannot load cancel form. Please try again."));
@@ -121,8 +137,13 @@ public class CustomerCancelRequestController extends HttpServlet {
                 redirectBack(request, response, "You cannot cancel this order");
                 return;
             }
-            if (!isCancelable(order.getStatus())) {
-                redirectBack(request, response, "This order can no longer be cancelled");
+            String status = order.getStatus() == null ? "" : order.getStatus().toUpperCase();
+            if ("CANCEL_REQUESTED".equals(status) || cancelDAO.hasActiveRequest(orderId)) {
+                redirectBack(request, response, "A cancellation request for this order is already pending staff review");
+                return;
+            }
+            if (!isCancelable(status)) {
+                redirectBack(request, response, "This order can no longer be cancelled (status: " + order.getStatus() + ")");
                 return;
             }
             if (cancelDAO.hasActiveRequest(orderId)) {
