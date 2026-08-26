@@ -39,6 +39,9 @@ DROP TABLE IF EXISTS `DeliveryStatusHistory`;
 DROP TABLE IF EXISTS `User_Voucher`;
 DROP TABLE IF EXISTS `Voucher`;
 DROP TABLE IF EXISTS `CancelRequest`;
+DROP TABLE IF EXISTS `ComplaintMessage`;
+DROP TABLE IF EXISTS `Complaint`;
+DROP TABLE IF EXISTS `StoreInformation`;
 
 CREATE TABLE `Category` (
   `ID` INT NOT NULL AUTO_INCREMENT,
@@ -212,12 +215,12 @@ CREATE TABLE `Transaction` (
   `Updated_by` INT NOT NULL,
   `Updated_at` TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   `Created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `Delivered_at` TIMESTAMP NULL DEFAULT NULL,
   `Reference_transactionID` INT,
   `DeliveryInfoID` INT,
   `ShipperID` INT NULL,
   `VoucherID` INT NULL,
-  PRIMARY KEY (`ID`),
-  FOREIGN KEY (`VoucherID`) REFERENCES `Voucher`(`ID`) ON DELETE SET NULL
+  PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
  
 CREATE TABLE `Transaction_ProductVariant` (
@@ -290,7 +293,7 @@ CREATE TABLE `Voucher` (
   `Value` DECIMAL(12,2) NOT NULL,
   `Max_discount` DECIMAL(12,2) NULL,
   `Min_order_value` DECIMAL(12,2) NULL,
-  `Max_uses_per_user` INT NULL,
+  `Max_uses_per_user` INT NOT NULL DEFAULT 1,
   `Usage_limit` INT NULL,
   `Used_count` INT NOT NULL DEFAULT 0,
   `Start_date` TIMESTAMP NOT NULL,
@@ -364,6 +367,9 @@ CREATE TABLE `CancelRequest` (
   `UserID` INT NOT NULL,
   `Reason` VARCHAR(100) NOT NULL,
   `CustomReason` VARCHAR(500) NULL,
+  `BankName` VARCHAR(80) NULL,
+  `BankAccountNumber` VARCHAR(40) NULL,
+  `BankAccountHolder` VARCHAR(80) NULL,
   `Status` VARCHAR(50) NOT NULL DEFAULT 'PENDING',
   `StaffNote` VARCHAR(500) NULL,
   `Created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -377,11 +383,59 @@ CREATE TABLE `CancelRequest` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
  
  
+ CREATE TABLE `Complaint` (
+  `ID` INT NOT NULL AUTO_INCREMENT,
+  `TransactionID` INT NOT NULL,
+  `UserID` INT NOT NULL,
+  `Category` VARCHAR(50) NOT NULL,
+  `CustomReason` VARCHAR(500) NULL,
+  `Description` VARCHAR(2000) NULL,
+  `Status` VARCHAR(50) NOT NULL DEFAULT 'OPEN',
+  `Resolution` VARCHAR(50) NULL,
+  `ResolutionNote` VARCHAR(1000) NULL,
+  `Assigned_to` INT NULL,
+  `Created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `Updated_at` TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  `Closed_at` TIMESTAMP NULL,
+  `Closed_by` INT NULL,
+  PRIMARY KEY (`ID`),
+  KEY `idx_Complaint_TransactionID_Status` (`TransactionID`, `Status`),
+  KEY `idx_Complaint_UserID` (`UserID`),
+  KEY `idx_Complaint_Status` (`Status`),
+  KEY `idx_Complaint_Assigned_to` (`Assigned_to`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `ComplaintMessage` (
+  `ID` INT NOT NULL AUTO_INCREMENT,
+  `ComplaintID` INT NOT NULL,
+  `SenderID` INT NOT NULL,
+  `SenderRole` VARCHAR(20) NOT NULL,
+  `Content` VARCHAR(2000) NOT NULL,
+  `Created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`ID`),
+  KEY `idx_ComplaintMessage_ComplaintID_Created` (`ComplaintID`, `Created_at`),
+  KEY `idx_ComplaintMessage_SenderID` (`SenderID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+ 
+ 
  CREATE TABLE StoreInformation (
     address VARCHAR(500),
     phone VARCHAR(50),
     email VARCHAR(255),
     facebook_url VARCHAR(500)
+);
+
+INSERT INTO StoreInformation (
+    address,
+    phone,
+    email,
+    facebook_url
+)
+VALUES (
+    '123 Nguyễn Trãi, Hà Nội',
+    '0911903220',
+    'khanhtit16@gmail.com',
+    'https://www.facebook.com/namkhanh.vu.980'
 );
 -- =====================================================
 -- FOREIGN KEY CONSTRAINTS
@@ -407,6 +461,8 @@ ALTER TABLE `Transaction` ADD CONSTRAINT `fk_Transaction_SupplierID` FOREIGN KEY
 ALTER TABLE `Transaction` ADD CONSTRAINT `fk_Transaction_Updated_by` FOREIGN KEY (`Updated_by`) REFERENCES `User` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `Transaction` ADD CONSTRAINT `fk_Transaction_ Reference_transactionID` FOREIGN KEY (`Reference_transactionID`) REFERENCES `Transaction` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `Transaction` ADD CONSTRAINT `fk_Transaction_DeliveryInfoID` FOREIGN KEY (`DeliveryInfoID`) REFERENCES `DeliveryInfo` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Transaction` ADD CONSTRAINT `fk_Transaction_ShipperID` FOREIGN KEY (`ShipperID`) REFERENCES `User` (`ID`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `Transaction` ADD CONSTRAINT `fk_Transaction_VoucherID` FOREIGN KEY (`VoucherID`) REFERENCES `Voucher` (`ID`) ON DELETE SET NULL ON UPDATE CASCADE;
 ALTER TABLE `Transaction_ProductVariant` ADD CONSTRAINT `fk_Transaction_ProductVariant_TransactionID` FOREIGN KEY (`TransactionID`) REFERENCES `Transaction` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `Transaction_ProductVariant` ADD CONSTRAINT `fk_Transaction_ProductVariant_ProductVariantID` FOREIGN KEY (`ProductVariantID`) REFERENCES `ProductVariant` (`ID`) ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE `Feedback` ADD CONSTRAINT `fk_Feedback_UserID` FOREIGN KEY (`UserID`) REFERENCES `User` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -428,6 +484,13 @@ ALTER TABLE `DeliveryStatusHistory` ADD CONSTRAINT `fk_DeliveryStatusHistory_Del
 ALTER TABLE `CancelRequest` ADD CONSTRAINT `fk_CancelRequest_TransactionID` FOREIGN KEY (`TransactionID`) REFERENCES `Transaction` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `CancelRequest` ADD CONSTRAINT `fk_CancelRequest_UserID` FOREIGN KEY (`UserID`) REFERENCES `User` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `CancelRequest` ADD CONSTRAINT `fk_CancelRequest_Processed_by` FOREIGN KEY (`Processed_by`) REFERENCES `User` (`ID`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `Complaint` ADD CONSTRAINT `fk_Complaint_TransactionID` FOREIGN KEY (`TransactionID`) REFERENCES `Transaction` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Complaint` ADD CONSTRAINT `fk_Complaint_UserID` FOREIGN KEY (`UserID`) REFERENCES `User` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Complaint` ADD CONSTRAINT `fk_Complaint_Assigned_to` FOREIGN KEY (`Assigned_to`) REFERENCES `User` (`ID`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `Complaint` ADD CONSTRAINT `fk_Complaint_Closed_by` FOREIGN KEY (`Closed_by`) REFERENCES `User` (`ID`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `ComplaintMessage` ADD CONSTRAINT `fk_ComplaintMessage_ComplaintID` FOREIGN KEY (`ComplaintID`) REFERENCES `Complaint` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `ComplaintMessage` ADD CONSTRAINT `fk_ComplaintMessage_SenderID` FOREIGN KEY (`SenderID`) REFERENCES `User` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
  
 SET FOREIGN_KEY_CHECKS = 1;
 
@@ -492,12 +555,14 @@ INSERT INTO `Permisson` (`ID`, `Name`) VALUES
 (27, 'DELIVERY_STATUS_VIEW'),
 (28, 'ORDER_CANCEL'),
 (29, 'DELIVERY_ORDER_VIEW'),
-(30, 'DELIVERY_STATUS_UPDATE');
+(30, 'DELIVERY_STATUS_UPDATE'),
+(31, 'COMPLAINT_MANAGE'),
+(32, 'COMPLAINT_VIEW');
 
 INSERT INTO `Permisson_Role` (`PermissonID`, `RoleID`) VALUES
 (1,1),(2,1),(3,1),(4,1),(5,1),(6,1),(7,1),
-(8,2),(9,2),(10,2),(11,2),(12,2),(13,2),(14,2),(15,2),(16,2),(18,2),(19,2),(20,2),
-(16,3),(17,3),(20,3),
+(8,2),(9,2),(10,2),(11,2),(12,2),(13,2),(14,2),(15,2),(16,2),(18,2),(19,2),(20,2),(31,2),
+(16,3),(17,3),(20,3),(32,3),
 (21,4),(22,4),(23,4),(24,4),(25,4),(26,4),(27,4),(28,4),
 (29,5),(30,5);
 
@@ -2983,12 +3048,12 @@ INSERT INTO ReturnRequest (ID, Status, Description, Image, UserID, TransactionID
 INSERT INTO ReturnRequest_ProductVariant (ReturnRequestID, ProductVariantID) VALUES
 (1, 601);
 
-INSERT INTO Voucher (ID, Code, Discount_type, Value, Max_discount, Min_order_value, Max_uses_per_user, Usage_limit, Used_count, Start_date, End_date, Status) VALUES
-(1, 'SUMMER2026', 'PERCENTAGE', 10.00, 500000.00, 1000000.00, 5, 100, 0, '2026-06-01 00:00:00', '2026-12-31 23:59:59', 'ACTIVE'),
-(2, 'WELCOME50K', 'FIXED_AMOUNT', 50000.00, NULL, 500000.00, 1, 50, 0, '2026-01-01 00:00:00', '2026-12-31 23:59:59', 'ACTIVE'),
-(3, 'VIPDISCOUNT', 'PERCENTAGE', 15.00, 1000000.00, 5000000.00, 10, 20, 0, '2026-08-01 00:00:00', '2026-10-31 23:59:59', 'ACTIVE');
+INSERT INTO Voucher (ID, Code, Discount_type, Value, Max_discount, Min_order_value, Usage_limit, Max_uses_per_user, Used_count, Start_date, End_date, Status) VALUES
+(1, 'SUMMER2026', 'PERCENTAGE', 10.00, 500000.00, 1000000.00, 100, 1, 0, '2026-06-01 00:00:00', '2026-12-31 23:59:59', 'ACTIVE'),
+(2, 'WELCOME50K', 'FIXED_AMOUNT', 50000.00, NULL, 500000.00, 50, 1, 0, '2026-01-01 00:00:00', '2026-12-31 23:59:59', 'ACTIVE'),
+(3, 'VIPDISCOUNT', 'PERCENTAGE', 15.00, 1000000.00, 5000000.00, 20, 1, 0, '2026-08-01 00:00:00', '2026-10-31 23:59:59', 'ACTIVE');
 
 INSERT INTO User_Voucher (UserID, VoucherID, Used_count, Saved_at) VALUES
-(4, 1, 0, '2026-08-10 10:00:00'),
-(4, 2, 0, '2026-08-11 11:30:00'),
+(4, 1, 0, '2026-07-28 10:00:00'),
+(4, 2, 0, '2026-07-29 11:30:00'),
 (6, 1, 0, '2026-08-12 09:15:00');

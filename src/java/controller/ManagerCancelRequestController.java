@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpSession;
 import model.CancelRequestModel;
 import model.OrderModel;
 import model.UserModel;
+import service.VnpayService;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -26,6 +27,7 @@ public class ManagerCancelRequestController extends HttpServlet {
 
     private final CancelRequestDAO cancelDAO = new CancelRequestDAO();
     private final OrderDAO orderDAO = new OrderDAO();
+    private final VnpayService vnpayService = new VnpayService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -113,6 +115,39 @@ public class ManagerCancelRequestController extends HttpServlet {
             redirectBack(request, response, "Cancel request is no longer pending", "/manager/cancel-request");
             return;
         }
+        OrderModel order = orderDAO.findOrderDetail(cancelRequest.getTransactionId());
+        if (order == null) {
+            redirectBack(request, response, "Related order not found", "/manager/cancel-request");
+            return;
+        }
+
+       // Các đơn hàng đã thanh toán (qua VNPay) cần có giao dịch hoàn tiền qua VNPay
+       // trước khi đánh dấu yêu cầu là đã được phê duyệt. Các đơn hàng COD có thể bị hủy
+       // trực tiếp mà không cần hoàn tiền.
+        if (isPaidOrder(order)) {
+            if (!cancelRequest.isHasBankInfo()) {
+                redirectBack(request, response,
+                        "Customer bank information is required before VNPay refund for paid orders",
+                        "/manager/cancel-request");
+                return;
+            }
+            try {
+                String txnRef = "CR-" + requestId + "-" + manager.getId() + "-" + System.currentTimeMillis();
+                String paymentUrl = vnpayService.createPaymentUrl(
+                        request,
+                        order.getTotalPrice().intValue(),
+                        "Hoan tien SmartPhone store cancel order " + cancelRequest.getTransactionId(),
+                        txnRef);
+                response.sendRedirect(paymentUrl);
+                return;
+            } catch (Exception ex) {
+                redirectBack(request, response,
+                        "Cannot start VNPay refund: " + ex.getMessage(),
+                        "/manager/cancel-request");
+                return;
+            }
+        }
+
         boolean ok = cancelDAO.approveRequest(requestId, cancelRequest.getTransactionId(),
                 manager.getId(), managerNote);
         redirectBack(request, response, ok ? "Cancel request approved" : "Cannot approve cancel request",
@@ -146,6 +181,10 @@ public class ManagerCancelRequestController extends HttpServlet {
 
     private CancelRequestModel findById(int id) throws SQLException {
         return cancelDAO.findById(id);
+    }
+
+    private boolean isPaidOrder(OrderModel order) {
+        return order != null && order.getMethod() != null && "VNPAY".equalsIgnoreCase(order.getMethod());
     }
 
     private int parseInt(String input, int fallback) {

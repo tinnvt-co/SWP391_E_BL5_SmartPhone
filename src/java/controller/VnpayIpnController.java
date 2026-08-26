@@ -24,7 +24,7 @@ public class VnpayIpnController extends HttpServlet {
         }
 
         String txnRef = request.getParameter("vnp_TxnRef");
-        if (txnRef != null && txnRef.startsWith("RF-")) {
+        if (txnRef != null && (txnRef.startsWith("RF-") || txnRef.startsWith("CR-"))) {
             response.getWriter().write("{\"RspCode\":\"00\",\"Message\":\"Confirm Success\"}");
             return;
         }

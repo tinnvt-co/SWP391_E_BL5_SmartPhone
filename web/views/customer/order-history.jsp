@@ -193,13 +193,10 @@
                                                                     <span class="cancel-pending"><i class="bi bi-clock-history"></i> Cancel pending</span>
                                                                 </c:when>
                                                                 <c:when test="${o.status != 'DELIVERED' && o.status != 'COMPLETED' && o.status != 'CANCELLED' && o.status != 'CANCEL_REQUESTED' && o.status != 'REFUND'}">
-                                                                    <button type="button" class="cancel-btn"
-                                                                            data-bs-toggle="modal"
-                                                                            data-bs-target="#cancelOrderModal"
-                                                                            data-order-id="${o.id}"
-                                                                            data-order-code="${o.code}">
+                                                                    <a class="cancel-btn"
+                                                                       href="${pageContext.request.contextPath}/customer/cancel-request?orderId=${o.id}">
                                                                         <i class="bi bi-x-circle"></i> Cancel
-                                                                    </button>
+                                                                    </a>
                                                                 </c:when>
                                                             </c:choose>
                                                         </div>

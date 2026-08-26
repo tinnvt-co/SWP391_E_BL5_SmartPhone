@@ -40,6 +40,7 @@ public class CancelRequestDAO {
 
     public CancelRequestModel findById(int id) throws SQLException {
         String sql = "SELECT cr.ID, cr.TransactionID, cr.UserID, cr.Reason, cr.CustomReason, "
+                + "       cr.BankName, cr.BankAccountNumber, cr.BankAccountHolder, "
                 + "       cr.Status, cr.StaffNote, cr.Created_at, cr.Updated_at, "
                 + "       cr.Processed_by, cr.Processed_at, "
                 + "       u.Name AS ProcessedByName "
@@ -59,6 +60,7 @@ public class CancelRequestDAO {
 
     public CancelRequestModel findActiveRequest(int transactionId) throws SQLException {
         String sql = "SELECT cr.ID, cr.TransactionID, cr.UserID, cr.Reason, cr.CustomReason, "
+                + "       cr.BankName, cr.BankAccountNumber, cr.BankAccountHolder, "
                 + "       cr.Status, cr.StaffNote, cr.Created_at, cr.Updated_at, "
                 + "       cr.Processed_by, cr.Processed_at, "
                 + "       u.Name AS ProcessedByName "
@@ -80,6 +82,7 @@ public class CancelRequestDAO {
 
     public CancelRequestModel findLatestRequest(int transactionId) throws SQLException {
         String sql = "SELECT cr.ID, cr.TransactionID, cr.UserID, cr.Reason, cr.CustomReason, "
+                + "       cr.BankName, cr.BankAccountNumber, cr.BankAccountHolder, "
                 + "       cr.Status, cr.StaffNote, cr.Created_at, cr.Updated_at, "
                 + "       cr.Processed_by, cr.Processed_at, "
                 + "       u.Name AS ProcessedByName "
@@ -99,14 +102,20 @@ public class CancelRequestDAO {
     }
 
     public int createRequest(int transactionId, int userId, String reason, String customReason) throws SQLException {
+        return createRequest(transactionId, userId, reason, customReason, null, null, null);
+    }
+
+    public int createRequest(int transactionId, int userId, String reason, String customReason,
+            String bankName, String bankAccountNumber, String bankAccountHolder) throws SQLException {
         if (!VALID_REASONS.contains(reason)) {
             throw new SQLException("Invalid cancel reason: " + reason);
         }
         if (hasActiveRequest(transactionId)) {
             throw new SQLException("A pending cancel request already exists for this order");
         }
-        String sql = "INSERT INTO CancelRequest (TransactionID, UserID, Reason, CustomReason, Status) "
-                + "VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO CancelRequest (TransactionID, UserID, Reason, CustomReason, "
+                + "BankName, BankAccountNumber, BankAccountHolder, Status) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
             statement.setInt(1, transactionId);
             statement.setInt(2, userId);
@@ -116,7 +125,22 @@ public class CancelRequestDAO {
             } else {
                 statement.setString(4, customReason.trim());
             }
-            statement.setString(5, CancelRequestModel.STATUS_PENDING);
+            if (bankName == null || bankName.isBlank()) {
+                statement.setNull(5, Types.VARCHAR);
+            } else {
+                statement.setString(5, bankName.trim());
+            }
+            if (bankAccountNumber == null || bankAccountNumber.isBlank()) {
+                statement.setNull(6, Types.VARCHAR);
+            } else {
+                statement.setString(6, bankAccountNumber.trim());
+            }
+            if (bankAccountHolder == null || bankAccountHolder.isBlank()) {
+                statement.setNull(7, Types.VARCHAR);
+            } else {
+                statement.setString(7, bankAccountHolder.trim());
+            }
+            statement.setString(8, CancelRequestModel.STATUS_PENDING);
             int affected = statement.executeUpdate();
             if (affected == 0) {
                 return 0;
@@ -201,9 +225,32 @@ public class CancelRequestDAO {
         }
     }
 
+    /**
+     * Mark a cancel request as APPROVED after VNPay sandbox refund succeeded.
+     * Mirrors {@link RefundDAO#decide} in the refund flow: only flips PENDING
+     * -> APPROVED and records who processed it.
+     *
+     * @param requestId cancel request id
+     * @param staffId  manager id who initiated the refund
+     * @return true if the row was transitioned
+     */
+    public boolean markRefundApproved(int requestId, int staffId) throws SQLException {
+        String sql = "UPDATE CancelRequest SET Status = ?, "
+                + "Processed_by = ?, Processed_at = CURRENT_TIMESTAMP "
+                + "WHERE ID = ? AND Status = ?";
+        try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, CancelRequestModel.STATUS_APPROVED);
+            statement.setInt(2, staffId);
+            statement.setInt(3, requestId);
+            statement.setString(4, CancelRequestModel.STATUS_PENDING);
+            return statement.executeUpdate() > 0;
+        }
+    }
+
     public List<CancelRequestModel> findPendingRequests(String keyword, String sort) throws SQLException {
         StringBuilder sql = new StringBuilder()
                 .append("SELECT cr.ID, cr.TransactionID, cr.UserID, cr.Reason, cr.CustomReason, ")
+                .append("       cr.BankName, cr.BankAccountNumber, cr.BankAccountHolder, ")
                 .append("       cr.Status, cr.StaffNote, cr.Created_at, cr.Updated_at, ")
                 .append("       cr.Processed_by, cr.Processed_at, ")
                 .append("       u.Name AS ProcessedByName, ")
@@ -254,6 +301,7 @@ public class CancelRequestDAO {
     public List<CancelRequestModel> findHistoryRequests(String keyword, String sort) throws SQLException {
         StringBuilder sql = new StringBuilder()
                 .append("SELECT cr.ID, cr.TransactionID, cr.UserID, cr.Reason, cr.CustomReason, ")
+                .append("       cr.BankName, cr.BankAccountNumber, cr.BankAccountHolder, ")
                 .append("       cr.Status, cr.StaffNote, cr.Created_at, cr.Updated_at, ")
                 .append("       cr.Processed_by, cr.Processed_at, ")
                 .append("       u.Name AS ProcessedByName, ")
@@ -361,6 +409,9 @@ public class CancelRequestDAO {
         request.setUserId(rs.getInt("UserID"));
         request.setReason(rs.getString("Reason"));
         request.setCustomReason(rs.getString("CustomReason"));
+        request.setBankName(rs.getString("BankName"));
+        request.setBankAccountNumber(rs.getString("BankAccountNumber"));
+        request.setBankAccountHolder(rs.getString("BankAccountHolder"));
         request.setStatus(rs.getString("Status"));
         request.setStaffNote(rs.getString("StaffNote"));
         request.setCreatedAt(rs.getTimestamp("Created_at"));
@@ -369,6 +420,13 @@ public class CancelRequestDAO {
         request.setProcessedBy(rs.wasNull() ? null : processedBy);
         request.setProcessedByName(rs.getString("ProcessedByName"));
         request.setProcessedAt(rs.getTimestamp("Processed_at"));
+        try {
+            request.setOrderStatus(rs.getString("OrderStatus"));
+            request.setOrderMethod(rs.getString("OrderMethod"));
+            request.setOrderTotal(rs.getBigDecimal("OrderTotal"));
+        } catch (SQLException ignored) {
+            // Columns not present in this result set (e.g. lookup-by-id query)
+        }
         return request;
     }
 }

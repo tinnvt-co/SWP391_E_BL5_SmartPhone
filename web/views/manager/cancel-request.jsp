@@ -8,6 +8,30 @@
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/manager.css">
         <%@include file="../common/head.jsp"%>
+        <style>
+            .bank-cell {
+                background:#eff6ff;
+                border:1px solid #bfdbfe;
+                border-radius:8px;
+                padding:10px 12px;
+                font-size:.85rem;
+                color:#1e3a8a;
+            }
+            .bank-cell b { color:#1e3a8a; }
+            .paid-badge {
+                display:inline-block;
+                background:#dbeafe;
+                color:#1e40af;
+                border:1px solid #93c5fd;
+                border-radius:999px;
+                padding:2px 10px;
+                font-size:.7rem;
+                font-weight:800;
+                text-transform:uppercase;
+                letter-spacing:.4px;
+                margin-left:6px;
+            }
+        </style>
     </head>
     <body>
         <c:set var="activePage" value="manager-cancel-request" scope="request"/>
@@ -28,6 +52,11 @@
             <c:if test="${not empty param.error}">
                 <div class="alert error">
                     <c:out value="${param.error}"/>
+                </div>
+            </c:if>
+            <c:if test="${not empty param.flash}">
+                <div class="alert success">
+                    <c:out value="${param.flash}"/>
                 </div>
             </c:if>
 
@@ -67,6 +96,7 @@
                                 <th>Order</th>
                                 <th>Customer</th>
                                 <th>Reason</th>
+                                <th>Bank info</th>
                                 <th>Submitted</th>
                                 <th>Status</th>
                                 <c:if test="${selectedView == 'history'}">
@@ -83,6 +113,9 @@
                                         <a class="mono" href="${pageContext.request.contextPath}/manager/orders?action=detail&id=${r.transactionId}">
                                             ORD${r.transactionId}
                                         </a>
+                                        <c:if test="${r.orderMethod == 'VNPAY'}">
+                                            <span class="paid-badge">VNPay</span>
+                                        </c:if>
                                     </td>
                                     <td>
                                         <div class="order-customer">
@@ -112,6 +145,20 @@
                                             <div class="cancel-reason-custom">"${r.customReason}"</div>
                                         </c:if>
                                     </td>
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${r.hasBankInfo}">
+                                                <div class="bank-cell">
+                                                    <b><i class="bi bi-bank"></i> <c:out value="${r.bankName}"/></b><br>
+                                                    <c:out value="${r.bankAccountNumber}"/><br>
+                                                    <small><c:out value="${r.bankAccountHolder}"/></small>
+                                                </div>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span style="color:var(--muted); font-size:.82rem;">—</span>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </td>
                                     <td><small style="font-family:monospace;color:var(--muted)"><fmt:formatDate value="${r.createdAt}" pattern="dd/MM/yyyy HH:mm"/></small></td>
                                     <td>
                                         <span class="status-pill ${r.status.toLowerCase()}">${r.status}</span>
@@ -136,6 +183,8 @@
                                                             data-bs-target="#approveCancelModal"
                                                             data-request-id="${r.id}"
                                                             data-request-code="REQ#${r.id}"
+                                                            data-paid="${r.orderMethod == 'VNPAY' ? 'true' : 'false'}"
+                                                            data-has-bank="${r.hasBankInfo ? 'true' : 'false'}"
                                                             data-action="approve">
                                                         <i class="bi bi-check-circle"></i> Approve
                                                     </button>
@@ -176,14 +225,26 @@
         <div class="modal fade" id="approveCancelModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
-                    <form method="post" action="${pageContext.request.contextPath}/manager/cancel-request">
+                    <form method="post" action="${pageContext.request.contextPath}/manager/cancel-request" id="approveCancelForm">
                         <div class="modal-header">
                             <h5 class="modal-title"><i class="bi bi-check-circle"></i> Approve cancellation</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
                             <p>Approve cancellation for <strong id="approveModalCode">--</strong>?</p>
-                            <p class="text-muted small">The order status will be moved to <strong>CANCELLED</strong>.</p>
+                            <div id="approvePaidNote" style="display:none;">
+                                <div class="alert" style="background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a;">
+                                    <i class="bi bi-credit-card"></i>
+                                    This order was paid via <b>VNPay</b>. Confirming approval will redirect you to the VNPay sandbox to issue the refund.
+                                </div>
+                            </div>
+                            <div id="approveMissingBank" style="display:none;">
+                                <div class="alert error">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    This paid order is missing customer bank information. Ask the customer to update their cancel request before approving.
+                                </div>
+                            </div>
+                            <p class="text-muted small">The order status will be moved to <strong>CANCELLED</strong> after the refund (or right away for COD orders).</p>
                             <label class="form-label" for="approveStaffNote">Internal note (optional)</label>
                             <textarea class="form-control" name="staffNote" id="approveStaffNote" maxlength="500" rows="3"
                                       placeholder="Optional note for the customer / internal record"></textarea>
@@ -192,7 +253,7 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-success">
+                            <button type="submit" class="btn btn-success" id="approveConfirmBtn">
                                 <i class="bi bi-check-circle"></i> Confirm approval
                             </button>
                         </div>
@@ -243,8 +304,30 @@
                         document.getElementById(idId).value = button.getAttribute('data-request-id') || '';
                     });
                 }
-                wireUp('approveCancelModal', 'approveModalCode', 'approveModalId');
                 wireUp('rejectCancelModal', 'rejectModalCode', 'rejectModalId');
+
+                // Approve modal: react to paid / has-bank attributes
+                var approveModal = document.getElementById('approveCancelModal');
+                if (approveModal) {
+                    approveModal.addEventListener('show.bs.modal', function (event) {
+                        var button = event.relatedTarget;
+                        if (!button) return;
+                        var id = button.getAttribute('data-request-id') || '';
+                        var code = button.getAttribute('data-request-code') || '';
+                        var paid = button.getAttribute('data-paid') === 'true';
+                        var hasBank = button.getAttribute('data-has-bank') === 'true';
+                        document.getElementById('approveModalCode').textContent = code;
+                        document.getElementById('approveModalId').value = id;
+
+                        document.getElementById('approvePaidNote').style.display = paid ? 'block' : 'none';
+                        document.getElementById('approveMissingBank').style.display = (paid && !hasBank) ? 'block' : 'none';
+                        var confirmBtn = document.getElementById('approveConfirmBtn');
+                        confirmBtn.disabled = (paid && !hasBank);
+                        confirmBtn.innerHTML = paid
+                            ? '<i class="bi bi-credit-card"></i> Approve & refund via VNPay'
+                            : '<i class="bi bi-check-circle"></i> Confirm approval';
+                    });
+                }
             })();
         </script>
     </body>

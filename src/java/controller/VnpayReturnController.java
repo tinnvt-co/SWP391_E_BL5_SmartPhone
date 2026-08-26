@@ -1,6 +1,7 @@
 package controller;
 
 import DAO.CheckoutDAO;
+import DAO.CancelRequestDAO;
 import DAO.OrderDAO;
 import DAO.RefundDAO;
 import jakarta.servlet.ServletException;
@@ -11,6 +12,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import jakarta.mail.MessagingException;
+import model.CancelRequestModel;
 import model.OrderModel;
 import model.RefundModel;
 import service.VnpayService;
@@ -21,6 +23,7 @@ public class VnpayReturnController extends HttpServlet {
     private final VnpayService vnpayService = new VnpayService();
     private final CheckoutDAO checkoutDAO = new CheckoutDAO();
     private final RefundDAO returnRequestDAO = new RefundDAO();
+    private final CancelRequestDAO cancelRequestDAO = new CancelRequestDAO();
     private final OrderDAO orderDAO = new OrderDAO();
     private final MailService mailService = new MailService();
 
@@ -33,6 +36,10 @@ public class VnpayReturnController extends HttpServlet {
 
         if (txnRef != null && txnRef.startsWith("RF-")) {
             handleRefundReturn(request, response, validSignature, success, txnRef);
+            return;
+        }
+        if (txnRef != null && txnRef.startsWith("CR-")) {
+            handleCancelReturn(request, response, validSignature, success, txnRef);
             return;
         }
 
@@ -187,6 +194,122 @@ public class VnpayReturnController extends HttpServlet {
         } catch (MessagingException ignored) {
             // The refund is approved even if SMTP is temporarily unavailable.
         }
+    }
+
+    private void handleCancelReturn(HttpServletRequest request, HttpServletResponse response,
+            boolean validSignature, boolean success, String txnRef)
+            throws IOException, ServletException {
+
+        CancelRef ref = parseCancelRef(txnRef);
+        if (ref.requestId <= 0) {
+            response.sendRedirect(vnpayService.browserRedirectUrl(request,
+                    "/manager/cancel-request?flash="
+                    + encode("Invalid cancel payment reference.")));
+            return;
+        }
+
+        // VNPay payment failed or signature invalid
+        if (!validSignature || !success) {
+            response.sendRedirect(vnpayService.browserRedirectUrl(request,
+                    "/manager/cancel-request?flash="
+                    + encode("VNPay cancel payment was not completed.")));
+            return;
+        }
+
+        try {
+            // 1. Find cancel request
+            CancelRequestModel cancelRequest = cancelRequestDAO.findById(ref.requestId);
+            if (cancelRequest == null) {
+                response.sendRedirect(vnpayService.browserRedirectUrl(request,
+                        "/manager/cancel-request?flash="
+                        + encode("Cancel request not found.")));
+                return;
+            }
+            if (!cancelRequest.isPending()) {
+                response.sendRedirect(vnpayService.browserRedirectUrl(request,
+                        "/manager/cancel-request?flash="
+                        + encode("Cancel request was already processed.")));
+                return;
+            }
+
+            // 2. Find related order
+            OrderModel order = orderDAO.findOrderDetail(cancelRequest.getTransactionId());
+            if (order == null) {
+                response.sendRedirect(vnpayService.browserRedirectUrl(request,
+                        "/manager/cancel-request?flash="
+                        + encode("Related order not found.")));
+                return;
+            }
+
+            // 3. Mark cancel request as APPROVED
+            boolean updated = cancelRequestDAO.markRefundApproved(ref.requestId, ref.managerId);
+            if (!updated) {
+                response.sendRedirect(vnpayService.browserRedirectUrl(request,
+                        "/manager/cancel-request?flash="
+                        + encode("Cancel payment completed; request was already processed.")));
+                return;
+            }
+
+            // 4. Update order status to CANCELLED.
+            // Per design decision: keep status as CANCELLED for cancelled orders
+            // even when a VNPay refund was issued.
+            boolean orderUpdated = orderDAO.updateStatus(
+                    order.getId(),
+                    "CANCELLED",
+                    ref.managerId
+            );
+            if (!orderUpdated) {
+                throw new SQLException(
+                        "Cancel was approved but order status could not be updated."
+                );
+            }
+
+            // 5. Send email to customer
+            sendCancelEmail(cancelRequest, order, request.getParameter("vnp_TransactionNo"));
+
+            // 6. Redirect back to manager cancel list
+            String flash = "Cancel approved, VNPay refund completed, and order status changed to CANCELLED.";
+            response.sendRedirect(vnpayService.browserRedirectUrl(request,
+                    "/manager/cancel-request?flash=" + encode(flash)));
+        } catch (SQLException exception) {
+            throw new ServletException(
+                    "Cannot process cancel after VNPay payment.",
+                    exception
+            );
+        }
+    }
+
+    private void sendCancelEmail(CancelRequestModel cancelRequest, OrderModel order,
+            String vnpayTransactionNo) {
+        if (order.getUserEmail() == null || order.getUserEmail().isBlank()) {
+            return;
+        }
+        try {
+            mailService.sendRefundPaymentNotification(order.getUserEmail(), order.getUserName(),
+                    cancelRequest.getId(), order.getId(), money(order.getTotalPrice()),
+                    cancelRequest.getBankName(), cancelRequest.getBankAccountNumber(),
+                    cancelRequest.getBankAccountHolder(), vnpayTransactionNo);
+        } catch (MessagingException ignored) {
+            // Cancellation is approved even if SMTP is temporarily unavailable.
+        }
+    }
+
+    private CancelRef parseCancelRef(String txnRef) {
+        CancelRef ref = new CancelRef();
+        try {
+            String[] parts = txnRef.split("-");
+            ref.requestId = parts.length > 1 ? Integer.parseInt(parts[1]) : 0;
+            ref.managerId = parts.length > 2 ? Integer.parseInt(parts[2]) : 0;
+        } catch (NumberFormatException ignored) {
+            ref.requestId = 0;
+            ref.managerId = 0;
+        }
+        return ref;
+    }
+
+    private static class CancelRef {
+        int requestId;
+        int managerId;
     }
 
     private String money(BigDecimal value) {

@@ -14,6 +14,9 @@ public class CancelRequestModel implements Serializable {
     private int userId;
     private String reason;
     private String customReason;
+    private String bankName;
+    private String bankAccountNumber;
+    private String bankAccountHolder;
     private String status;
     private String staffNote;
     private Timestamp createdAt;
@@ -21,6 +24,9 @@ public class CancelRequestModel implements Serializable {
     private Integer processedBy;
     private String processedByName;
     private Timestamp processedAt;
+    private String orderStatus;
+    private String orderMethod;
+    private java.math.BigDecimal orderTotal;
 
     public int getId() {
         return id;
@@ -60,6 +66,67 @@ public class CancelRequestModel implements Serializable {
 
     public void setCustomReason(String customReason) {
         this.customReason = customReason;
+    }
+
+    public String getBankName() {
+        return bankName;
+    }
+
+    public void setBankName(String bankName) {
+        this.bankName = bankName;
+    }
+
+    public String getBankAccountNumber() {
+        return bankAccountNumber;
+    }
+
+    public void setBankAccountNumber(String bankAccountNumber) {
+        this.bankAccountNumber = bankAccountNumber;
+    }
+
+    public String getBankAccountHolder() {
+        return bankAccountHolder;
+    }
+
+    public void setBankAccountHolder(String bankAccountHolder) {
+        this.bankAccountHolder = bankAccountHolder;
+    }
+
+    public boolean isHasBankInfo() {
+        return bankName != null && !bankName.isBlank()
+                && bankAccountNumber != null && !bankAccountNumber.isBlank()
+                && bankAccountHolder != null && !bankAccountHolder.isBlank();
+    }
+
+    public boolean isPaidOrder() {
+        if (orderMethod == null) {
+            return false;
+        }
+        return "VNPAY".equalsIgnoreCase(orderMethod);
+    }
+
+    public String getOrderStatus() {
+        return orderStatus;
+    }
+
+    public void setOrderStatus(String orderStatus) {
+        this.orderStatus = orderStatus;
+    }
+
+    public String getOrderMethod() {
+        return orderMethod;
+    }
+
+    public void setOrderMethod(String orderMethod) {
+        this.orderMethod = orderMethod;
+    }
+
+    public java.math.BigDecimal getOrderTotal() {
+        return orderTotal;
+    }
+
+    public void setOrderTotal(java.math.BigDecimal orderTotal) {
+        this.orderTotal = orderTotal;
     }
 
     public String getStatus() {
