@@ -22,12 +22,19 @@ public class AdminDashboardController extends HttpServlet {
         try {
             java.util.List<model.UserModel> allUsers = userDAO.findAll();
             int totalUsers = allUsers.size();
-            int totalRoles = roleDAO.findAll().size();
+            java.util.List<model.Role> allRoles = roleDAO.findAll();
+            int totalRoles = allRoles.size();
 
-            // Calculate users by role
+            java.util.Set<String> activeRoleNames = allRoles.stream()
+                    .filter(r -> "ACTIVE".equalsIgnoreCase(r.getStatus()))
+                    .map(model.Role::getName)
+                    .collect(java.util.stream.Collectors.toSet());
+
+            // Calculate users by role (only for active roles)
             java.util.Map<String, Long> usersByRole = allUsers.stream()
+                    .filter(u -> u.getRoleName() != null && activeRoleNames.contains(u.getRoleName()))
                     .collect(java.util.stream.Collectors.groupingBy(
-                            u -> u.getRoleName() != null ? u.getRoleName() : "Unknown",
+                            u -> u.getRoleName(),
                             java.util.stream.Collectors.counting()
                     ));
 
@@ -38,7 +45,7 @@ public class AdminDashboardController extends HttpServlet {
                             java.util.stream.Collectors.counting()
                     ));
 
-            // Convert to JSON strings manually for JSP (since we don't have GSON imported directly here, we'll format it simply)
+            // Convert to JSON strings manually for JSP
             StringBuilder roleLabels = new StringBuilder("[");
             StringBuilder roleData = new StringBuilder("[");
             usersByRole.forEach((k, v) -> {

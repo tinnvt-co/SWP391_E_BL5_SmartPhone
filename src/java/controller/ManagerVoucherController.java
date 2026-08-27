@@ -164,18 +164,26 @@ public class ManagerVoucherController extends HttpServlet {
             v.setMinOrderValue(null);
         }
 
+        Integer usageLimitVal = null;
         String limitStr = request.getParameter("usageLimit");
         if (limitStr != null && !limitStr.isBlank()) {
-            v.setUsageLimit(Integer.parseInt(limitStr));
+            usageLimitVal = Integer.parseInt(limitStr);
+            v.setUsageLimit(usageLimitVal);
         } else {
             v.setUsageLimit(null);
         }
 
+        Integer maxUsesVal = 1;
         String maxUsesStr = request.getParameter("maxUsesPerUser");
         if (maxUsesStr != null && !maxUsesStr.isBlank()) {
-            v.setMaxUsesPerUser(Integer.parseInt(maxUsesStr));
+            maxUsesVal = Integer.parseInt(maxUsesStr);
+            v.setMaxUsesPerUser(maxUsesVal);
         } else {
             v.setMaxUsesPerUser(1); // default
+        }
+
+        if (usageLimitVal != null && maxUsesVal > usageLimitVal) {
+            throw new Exception("Max Uses per User cannot exceed the Total Quantity.");
         }
 
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
