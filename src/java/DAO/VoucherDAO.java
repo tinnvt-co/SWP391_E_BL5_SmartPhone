@@ -363,12 +363,19 @@ public class VoucherDAO {
         String sql = "SELECT uv.*, v.Code, v.Discount_type, v.Value, v.Max_discount, v.Min_order_value, v.Max_uses_per_user, v.Usage_limit, v.Used_count, v.Start_date, v.End_date, v.Status " +
                      "FROM User_Voucher uv " +
                      "JOIN Voucher v ON uv.VoucherID = v.ID " +
-                     "WHERE uv.UserID = ? AND (v.Max_uses_per_user IS NULL OR uv.Used_count < v.Max_uses_per_user) " +
+                     "WHERE uv.UserID = ? " +
+                     "AND v.Status = 'ACTIVE' " +
+                     "AND v.Start_date <= ? AND v.End_date >= ? " +
+                     "AND (v.Usage_limit IS NULL OR v.Used_count < v.Usage_limit) " +
+                     "AND (v.Max_uses_per_user IS NULL OR uv.Used_count < v.Max_uses_per_user) " +
                      "ORDER BY uv.Saved_at DESC";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
+            java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
             ps.setInt(1, userId);
+            ps.setTimestamp(2, now);
+            ps.setTimestamp(3, now);
 
             try (ResultSet rs = ps.executeQuery()) {
 
