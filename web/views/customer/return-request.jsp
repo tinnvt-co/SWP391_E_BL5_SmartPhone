@@ -476,7 +476,7 @@
                                                 </div>
 
                                                 <div class="mb-3">
-                                                    <label class="form-label" style="font-weight:700;">Photo evidence (optional)</label>
+                                                    <label class="form-label" style="font-weight:700;">Photo evidence</label>
                                                     <div class="upload-card" id="uploadCard">
                                                         <i class="bi bi-cloud-arrow-up" style="font-size:2rem; color:#94a3b8;"></i>
                                                         <p style="margin:8px 0 6px;">
