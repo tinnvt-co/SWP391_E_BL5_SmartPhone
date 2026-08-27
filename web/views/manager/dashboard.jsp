@@ -183,12 +183,12 @@
                     <b>Open review queue <span>→</span></b>
                 </a>
 
-                <a class="manager-module complaint-module" href="${pageContext.request.contextPath}/manager/complaint">
-                    <span class="module-icon">⚠️</span>
-                    <span class="module-count">${pendingComplaints} pending</span>
-                    <h3>Customer Complaints</h3>
-                    <p>Review customer-submitted complaints, track resolution status and reply to keep service quality high.</p>
-                    <b>Open complaint queue <span>→</span></b>
+                <a class="manager-module chat-module" href="${pageContext.request.contextPath}/manager/chat">
+                    <span class="module-icon">💬</span>
+                    <span class="module-count">${pendingChats} open</span>
+                    <h3>Chat Inbox</h3>
+                    <p>Reply to customer support messages and inquiries in real time.</p>
+                    <b>Open chat inbox <span>→</span></b>
                 </a>
 
                 <a class="manager-module cancel-module" href="${pageContext.request.contextPath}/manager/cancel-request">

@@ -39,8 +39,6 @@ DROP TABLE IF EXISTS `DeliveryStatusHistory`;
 DROP TABLE IF EXISTS `User_Voucher`;
 DROP TABLE IF EXISTS `Voucher`;
 DROP TABLE IF EXISTS `CancelRequest`;
-DROP TABLE IF EXISTS `ComplaintMessage`;
-DROP TABLE IF EXISTS `Complaint`;
 DROP TABLE IF EXISTS `StoreInformation`;
 
 CREATE TABLE `Category` (
@@ -383,41 +381,6 @@ CREATE TABLE `CancelRequest` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
  
  
- CREATE TABLE `Complaint` (
-  `ID` INT NOT NULL AUTO_INCREMENT,
-  `TransactionID` INT NOT NULL,
-  `UserID` INT NOT NULL,
-  `Category` VARCHAR(50) NOT NULL,
-  `CustomReason` VARCHAR(500) NULL,
-  `Description` VARCHAR(2000) NULL,
-  `Status` VARCHAR(50) NOT NULL DEFAULT 'OPEN',
-  `Resolution` VARCHAR(50) NULL,
-  `ResolutionNote` VARCHAR(1000) NULL,
-  `Assigned_to` INT NULL,
-  `Created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `Updated_at` TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  `Closed_at` TIMESTAMP NULL,
-  `Closed_by` INT NULL,
-  PRIMARY KEY (`ID`),
-  KEY `idx_Complaint_TransactionID_Status` (`TransactionID`, `Status`),
-  KEY `idx_Complaint_UserID` (`UserID`),
-  KEY `idx_Complaint_Status` (`Status`),
-  KEY `idx_Complaint_Assigned_to` (`Assigned_to`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE `ComplaintMessage` (
-  `ID` INT NOT NULL AUTO_INCREMENT,
-  `ComplaintID` INT NOT NULL,
-  `SenderID` INT NOT NULL,
-  `SenderRole` VARCHAR(20) NOT NULL,
-  `Content` VARCHAR(2000) NOT NULL,
-  `Created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`ID`),
-  KEY `idx_ComplaintMessage_ComplaintID_Created` (`ComplaintID`, `Created_at`),
-  KEY `idx_ComplaintMessage_SenderID` (`SenderID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
- 
- 
  CREATE TABLE StoreInformation (
     address VARCHAR(500),
     phone VARCHAR(50),
@@ -484,13 +447,6 @@ ALTER TABLE `DeliveryStatusHistory` ADD CONSTRAINT `fk_DeliveryStatusHistory_Del
 ALTER TABLE `CancelRequest` ADD CONSTRAINT `fk_CancelRequest_TransactionID` FOREIGN KEY (`TransactionID`) REFERENCES `Transaction` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `CancelRequest` ADD CONSTRAINT `fk_CancelRequest_UserID` FOREIGN KEY (`UserID`) REFERENCES `User` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `CancelRequest` ADD CONSTRAINT `fk_CancelRequest_Processed_by` FOREIGN KEY (`Processed_by`) REFERENCES `User` (`ID`) ON DELETE SET NULL ON UPDATE CASCADE;
-
-ALTER TABLE `Complaint` ADD CONSTRAINT `fk_Complaint_TransactionID` FOREIGN KEY (`TransactionID`) REFERENCES `Transaction` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `Complaint` ADD CONSTRAINT `fk_Complaint_UserID` FOREIGN KEY (`UserID`) REFERENCES `User` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `Complaint` ADD CONSTRAINT `fk_Complaint_Assigned_to` FOREIGN KEY (`Assigned_to`) REFERENCES `User` (`ID`) ON DELETE SET NULL ON UPDATE CASCADE;
-ALTER TABLE `Complaint` ADD CONSTRAINT `fk_Complaint_Closed_by` FOREIGN KEY (`Closed_by`) REFERENCES `User` (`ID`) ON DELETE SET NULL ON UPDATE CASCADE;
-ALTER TABLE `ComplaintMessage` ADD CONSTRAINT `fk_ComplaintMessage_ComplaintID` FOREIGN KEY (`ComplaintID`) REFERENCES `Complaint` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `ComplaintMessage` ADD CONSTRAINT `fk_ComplaintMessage_SenderID` FOREIGN KEY (`SenderID`) REFERENCES `User` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
  
 SET FOREIGN_KEY_CHECKS = 1;
 
@@ -556,8 +512,8 @@ INSERT INTO `Permisson` (`ID`, `Name`) VALUES
 (28, 'ORDER_CANCEL'),
 (29, 'DELIVERY_ORDER_VIEW'),
 (30, 'DELIVERY_STATUS_UPDATE'),
-(31, 'COMPLAINT_MANAGE'),
-(32, 'COMPLAINT_VIEW');
+(31, 'CHAT_MANAGE'),
+(32, 'CHAT_VIEW');
 
 INSERT INTO `Permisson_Role` (`PermissonID`, `RoleID`) VALUES
 (1,1),(2,1),(3,1),(4,1),(5,1),(6,1),(7,1),
@@ -3057,3 +3013,117 @@ INSERT INTO User_Voucher (UserID, VoucherID, Used_count, Saved_at) VALUES
 (4, 1, 0, '2026-07-28 10:00:00'),
 (4, 2, 0, '2026-07-29 11:30:00'),
 (6, 1, 0, '2026-08-12 09:15:00');
+
+-- =====================================================
+-- Chat / Support Conversation System
+-- =====================================================
+-- Customer ↔ Manager/Staff realtime chat (support/inquiry)
+-- Không gắn với đơn hàng cụ thể.
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS `Conversation` (
+    `ID`            INT          AUTO_INCREMENT PRIMARY KEY,
+    `UserID`        INT          NOT NULL,
+    `Status`        VARCHAR(30)  NOT NULL DEFAULT 'OPEN',   -- OPEN | IN_PROGRESS | CLOSED
+    `LastMessage`   VARCHAR(500) NULL,
+    `LastMessageAt` DATETIME     NULL,
+    `AssignedTo`    INT          NULL,
+    `ClosedBy`      INT          NULL,
+    `ClosedAt`      DATETIME     NULL,
+    `CreatedAt`     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `UpdatedAt`     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY `idx_Conversation_UserID_Open` (`UserID`, `Status`),
+    KEY `idx_Conversation_AssignedTo` (`AssignedTo`),
+    KEY `idx_Conversation_Status` (`Status`),
+    KEY `idx_Conversation_LastMessageAt` (`LastMessageAt`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `ChatMessage` (
+    `ID`             INT      AUTO_INCREMENT PRIMARY KEY,
+    `ConversationID` INT      NOT NULL,
+    `SenderID`       INT      NOT NULL,
+    `SenderRole`     VARCHAR(30) NOT NULL,   -- CUSTOMER | STAFF | MANAGER | ADMIN
+    `Content`        VARCHAR(2000) NOT NULL,
+    `CreatedAt`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY `idx_ChatMessage_ConversationID_Created` (`ConversationID`, `CreatedAt`),
+    KEY `idx_ChatMessage_SenderID` (`SenderID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Drop existing FK if any (idempotent re-run safe)
+SET @db := DATABASE();
+
+-- fk_Conversation_UserID
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
+     WHERE CONSTRAINT_SCHEMA = @db AND TABLE_NAME = 'Conversation'
+     AND CONSTRAINT_NAME = 'fk_Conversation_UserID') > 0,
+  'ALTER TABLE `Conversation` DROP FOREIGN KEY `fk_Conversation_UserID`',
+  'DO 0'));
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- fk_Conversation_AssignedTo
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
+     WHERE CONSTRAINT_SCHEMA = @db AND TABLE_NAME = 'Conversation'
+     AND CONSTRAINT_NAME = 'fk_Conversation_AssignedTo') > 0,
+  'ALTER TABLE `Conversation` DROP FOREIGN KEY `fk_Conversation_AssignedTo`',
+  'DO 0'));
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- fk_Conversation_ClosedBy
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
+     WHERE CONSTRAINT_SCHEMA = @db AND TABLE_NAME = 'Conversation'
+     AND CONSTRAINT_NAME = 'fk_Conversation_ClosedBy') > 0,
+  'ALTER TABLE `Conversation` DROP FOREIGN KEY `fk_Conversation_ClosedBy`',
+  'DO 0'));
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- fk_ChatMessage_ConversationID
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
+     WHERE CONSTRAINT_SCHEMA = @db AND TABLE_NAME = 'ChatMessage'
+     AND CONSTRAINT_NAME = 'fk_ChatMessage_ConversationID') > 0,
+  'ALTER TABLE `ChatMessage` DROP FOREIGN KEY `fk_ChatMessage_ConversationID`',
+  'DO 0'));
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- fk_ChatMessage_SenderID
+SET @sql := (SELECT IF(
+  (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
+     WHERE CONSTRAINT_SCHEMA = @db AND TABLE_NAME = 'ChatMessage'
+     AND CONSTRAINT_NAME = 'fk_ChatMessage_SenderID') > 0,
+  'ALTER TABLE `ChatMessage` DROP FOREIGN KEY `fk_ChatMessage_SenderID`',
+  'DO 0'));
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+ALTER TABLE `Conversation`
+    ADD CONSTRAINT `fk_Conversation_UserID`
+    FOREIGN KEY (`UserID`) REFERENCES `User` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE `Conversation`
+    ADD CONSTRAINT `fk_Conversation_AssignedTo`
+    FOREIGN KEY (`AssignedTo`) REFERENCES `User` (`ID`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `Conversation`
+    ADD CONSTRAINT `fk_Conversation_ClosedBy`
+    FOREIGN KEY (`ClosedBy`) REFERENCES `User` (`ID`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `ChatMessage`
+    ADD CONSTRAINT `fk_ChatMessage_ConversationID`
+    FOREIGN KEY (`ConversationID`) REFERENCES `Conversation` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE `ChatMessage`
+    ADD CONSTRAINT `fk_ChatMessage_SenderID`
+    FOREIGN KEY (`SenderID`) REFERENCES `User` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- Permissions cho chat
+INSERT INTO `Permisson` (`ID`, `Name`) VALUES
+    (33, 'CHAT_VIEW'),
+    (34, 'CHAT_MANAGE')
+ON DUPLICATE KEY UPDATE `Name` = VALUES(`Name`);
+
+-- Gán quyền CHAT_VIEW + CHAT_MANAGE cho Manager (RoleID=2) chỉ
+-- Customer ↔ Manager chat, Staff KHÔNG tham gia
+INSERT IGNORE INTO `Permisson_Role` (`PermissonID`, `RoleID`) VALUES
+    (33, 2), (34, 2);

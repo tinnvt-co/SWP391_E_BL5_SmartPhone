@@ -1,6 +1,5 @@
 package controller;
 
-import DAO.ComplaintDAO;
 import DAO.OrderDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -18,17 +17,12 @@ import java.sql.SQLException;
 
 /**
  * Lets the customer mark a DELIVERED order as COMPLETED.
- * Review / refund options become visible only after the order is COMPLETED.
- * The action is blocked while an open complaint exists.
+ * Không còn yêu cầu complaint trước khi complete (đã bỏ luồng complaint).
  */
 @WebServlet(name = "CustomerCompleteOrderController", urlPatterns = {"/customer/complete-order"})
 public class CustomerCompleteOrderController extends HttpServlet {
 
-    private static final java.util.Set<String> ALLOWED_FROM_STATUSES =
-            java.util.Set.of("DELIVERED", "COMPLETED");
-
     private final OrderDAO orderDAO = new OrderDAO();
-    private final ComplaintDAO complaintDAO = new ComplaintDAO();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -55,18 +49,13 @@ public class CustomerCompleteOrderController extends HttpServlet {
                 redirectBack(request, response, "Only delivered orders can be marked as completed", true);
                 return;
             }
-            if (complaintDAO.hasOpenComplaint(orderId)) {
-                redirectBack(request, response,
-                        "Please resolve the open complaint before completing this order", true);
-                return;
-            }
             boolean ok = orderDAO.updateStatus(orderId, "COMPLETED", user.getId());
             if (!ok) {
                 redirectBack(request, response, "Cannot complete order", true);
                 return;
             }
             redirectBack(request, response,
-                    "Order marked as completed. You can now review your products or request a refund.",
+                    "Order marked as completed.",
                     false);
         } catch (SQLException exception) {
             redirectBack(request, response, "Database error: " + exception.getMessage(), true);

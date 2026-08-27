@@ -1,7 +1,6 @@
 package controller;
 
 import DAO.CancelRequestDAO;
-import DAO.ComplaintDAO;
 import DAO.OrderDAO;
 import DAO.RefundDAO;
 import jakarta.servlet.ServletException;
@@ -24,13 +23,9 @@ public class OrderHistoryController extends HttpServlet {
     private static final Set<String> NON_CANCELABLE_STATUSES = Set.of(
             "DELIVERED", "COMPLETED", "CANCELLED", "CANCEL_REQUESTED", "REFUND");
 
-    private static final Set<String> COMPLAINTABLE_STATUSES = Set.of(
-            "DELIVERED", "COMPLETED");
-
     private final OrderDAO orderDAO = new OrderDAO();
     private final RefundDAO returnDAO = new RefundDAO();
     private final CancelRequestDAO cancelDAO = new CancelRequestDAO();
-    private final ComplaintDAO complaintDAO = new ComplaintDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -58,18 +53,11 @@ public class OrderHistoryController extends HttpServlet {
                 boolean cancelPending = cancelDAO.hasActiveRequest(order.getId());
                 order.setHasCancelPending(cancelPending);
 
-                boolean complaintEligible = COMPLAINTABLE_STATUSES.contains(order.getStatus());
-                if (complaintEligible) {
-                    order.setHasOpenComplaint(complaintDAO.hasOpenComplaint(order.getId()));
-                    order.setHasAnyComplaint(complaintDAO.hasAnyComplaint(order.getId()));
-                } else {
-                    order.setHasOpenComplaint(Boolean.FALSE);
-                    order.setHasAnyComplaint(Boolean.FALSE);
-                }
+                order.setHasOpenComplaint(Boolean.FALSE);
+                order.setHasAnyComplaint(Boolean.FALSE);
             }
             request.setAttribute("orders", orders);
             request.setAttribute("cancelReasons", cancelDAO.findValidReasons());
-            request.setAttribute("complaintCategories", complaintDAO.findValidCategories());
             request.getRequestDispatcher("/views/customer/order-history.jsp").forward(request, response);
         } catch (SQLException exception) {
             throw new ServletException("Cannot load order history", exception);
@@ -80,7 +68,6 @@ public class OrderHistoryController extends HttpServlet {
         if (status == null) {
             return false;
         }
-        String upper = status.toUpperCase();
-        return !NON_CANCELABLE_STATUSES.contains(upper);
+        return !NON_CANCELABLE_STATUSES.contains(status.toUpperCase());
     }
 }

@@ -110,6 +110,13 @@
                                             <i class="bi bi-person me-2"></i>Profile
                                         </a>
                                     </li>
+                                    <c:if test="${currentRole == 'Customer' or currentRole == 'CUSTOMER'}">
+                                        <li>
+                                            <a class="dropdown-item" href="${pageContext.request.contextPath}/customer/chat" onclick="window.location.href=this.href;return true;">
+                                                <i class="bi bi-chat-dots me-2"></i>Chat with Manager
+                                            </a>
+                                        </li>
+                                    </c:if>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
                                         <a class="dropdown-item text-danger" href="${pageContext.request.contextPath}/logout">
@@ -151,6 +158,17 @@
                     menu.classList.toggle('show');
                     dropdownButton.setAttribute('aria-expanded', menu.classList.contains('show') ? 'true' : 'false');
                 }
+                return;
+            }
+
+            // Handle dropdown item click - navigate normally
+            var dropdownItem = event.target.closest('.dropdown-item');
+            if (dropdownItem && dropdownItem.href) {
+                var menu = dropdownItem.closest('.dropdown-menu');
+                if (menu) {
+                    menu.classList.remove('show');
+                }
+                window.location.href = dropdownItem.href;
                 return;
             }
 

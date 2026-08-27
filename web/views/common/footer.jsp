@@ -1,3 +1,6 @@
+<%-- Chat widget cũ - đã chuyển sang dropdown menu trong header (link /customer/chat) --%>
+<%-- <jsp:include page="/customer/chat"/> --%>
+
 <footer class="swp-layout-footer">
     <div class="swp-layout-container">
 

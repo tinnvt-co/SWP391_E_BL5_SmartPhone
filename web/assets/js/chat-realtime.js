@@ -1,17 +1,13 @@
 /* =============================================================
-   Complaint Realtime Client
+   Chat Realtime Client
    -------------------------------------------------------------
-   Polls the server every few seconds for new complaint messages
+   Polls the server every few seconds for new chat messages
    and appends them to the chatbox in real time.
 
    The backend endpoint lives in
-       src/java/controller/CustomerComplaintController.java
-       src/java/controller/ManagerComplaintController.java
-   and is whitelisted in src/java/filter/AuthFilter.java.
+       src/java/controller/ChatRealtimeServlet.java
 
-   To upgrade to WebSocket / SSE later, swap the `poll` block
-   for a WebSocket connection while keeping the same render
-   helpers (appendMessage, formatDate, etc.).
+   Tái sử dụng polling mechanism từ complaint-realtime.js cũ.
    ============================================================= */
 (function () {
     'use strict';
@@ -20,15 +16,14 @@
     var instance = null;
 
     function init(options) {
-        if (!options || !options.complaintId || !options.pollUrl) {
+        if (!options || !options.conversationId || !options.pollUrl) {
             return;
         }
         if (instance) {
-            // Avoid double-binding if the script runs twice.
             return;
         }
         var state = {
-            complaintId: options.complaintId,
+            conversationId: options.conversationId,
             pollUrl: options.pollUrl,
             scope: options.scope || 'customer',
             since: Date.now(),
@@ -55,8 +50,7 @@
         }
         state.running = true;
         var url = state.pollUrl
-                + '?action=poll'
-                + '&complaintId=' + encodeURIComponent(state.complaintId)
+                + '?conversationId=' + encodeURIComponent(state.conversationId)
                 + '&since=' + state.since;
 
         fetch(url, {credentials: 'same-origin', cache: 'no-store'})
@@ -84,17 +78,12 @@
     function handlePayload(state, payload) {
         if (payload.status && payload.status !== state.lastStatus) {
             state.lastStatus = payload.status;
-            updateStatusBadge(payload.status);
+            updateConversationStatus(payload.status);
         }
         if (payload.messages && payload.messages.length) {
-            var box = document.getElementById('chatbox');
+            var box = document.getElementById('chatbox-messages');
             if (!box) {
                 return;
-            }
-            // Remove empty-state placeholder if it exists.
-            var placeholder = box.querySelector('.chatbox-empty');
-            if (placeholder) {
-                placeholder.remove();
             }
             payload.messages.forEach(function (msg) {
                 appendMessage(box, msg, state.scope);
@@ -140,30 +129,12 @@
         box.appendChild(wrapper);
     }
 
-    function updateStatusBadge(status) {
-        var badge = document.querySelector('.complaint-status-card .status-pill');
+    function updateConversationStatus(status) {
+        var badge = document.querySelector('.chat-conversation-status');
         if (!badge) {
             return;
         }
-        badge.className = 'status-pill ' + status.toLowerCase();
-        badge.textContent = humanizeStatus(status);
-    }
-
-    function humanizeStatus(status) {
-        switch (status) {
-            case 'OPEN':
-                return 'Open';
-            case 'IN_PROGRESS':
-                return 'In progress';
-            case 'RESOLVED':
-                return 'Resolved';
-            case 'CLOSED':
-                return 'Closed';
-            case 'REJECTED':
-                return 'Rejected';
-            default:
-                return status;
-        }
+        badge.textContent = status;
     }
 
     function formatDate(value) {
@@ -181,11 +152,10 @@
     }
 
     function scrollToBottom(box) {
-        // Defer until after the DOM has flushed.
         setTimeout(function () {
             box.scrollTop = box.scrollHeight;
         }, 0);
     }
 
-    window.ComplaintRealtime = {init: init};
+    window.ChatRealtime = {init: init};
 })();

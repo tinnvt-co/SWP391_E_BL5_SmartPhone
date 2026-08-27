@@ -12,7 +12,6 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app-layout.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customer.css">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/complaint.css">
     </head>
     <body>
         <c:set var="activePage" value="orders" scope="request"/>
@@ -165,27 +164,15 @@
                                                                 </c:when>
                                                             </c:choose>
                                                             <c:choose>
-                                                                <c:when test="${o.status == 'DELIVERED' && !o.hasOpenComplaint}">
+                                                                <c:when test="${o.status == 'DELIVERED'}">
                                                                     <form method="post" action="${pageContext.request.contextPath}/customer/complete-order" class="inline-form">
                                                                         <input type="hidden" name="orderId" value="${o.id}">
                                                                         <button type="submit" class="complete-btn"
                                                                                 title="Mark this order as received & completed"
-                                                                                onclick="return confirm('Mark this order as completed? You will then be able to review your products or request a refund.');">
+                                                                                onclick="return confirm('Mark this order as completed?');">
                                                                             <i class="bi bi-check2-circle"></i> Completed
                                                                         </button>
                                                                     </form>
-                                                                </c:when>
-                                                            </c:choose>
-                                                            <c:choose>
-                                                                <c:when test="${o.status == 'DELIVERED' && !o.hasOpenComplaint}">
-                                                                    <a class="complaint-btn" href="${pageContext.request.contextPath}/customer/complaint?orderId=${o.id}">
-                                                                        <i class="bi bi-megaphone-fill"></i> Complaint
-                                                                    </a>
-                                                                </c:when>
-                                                                <c:when test="${o.status == 'DELIVERED' && o.hasOpenComplaint}">
-                                                                    <a class="complaint-btn open" href="${pageContext.request.contextPath}/customer/complaint?orderId=${o.id}">
-                                                                        <i class="bi bi-chat-dots-fill"></i> View complaint
-                                                                    </a>
                                                                 </c:when>
                                                             </c:choose>
                                                             <c:choose>
