@@ -259,6 +259,27 @@
     color: var(--cust-red);
 }
 
+.complete-btn {
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    border: 1px solid var(--cust-green);
+    background: var(--cust-green);
+    color: #fff;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.complete-btn:hover {
+    background: var(--cust-green-dark);
+    border-color: var(--cust-green-dark);
+}
+
 /* =============================================================
    CART PAGE
    ============================================================= */

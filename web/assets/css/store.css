@@ -1221,11 +1221,16 @@ td small {
 }
 
 .status-paid,
-.status-delivered,
-.status-completed {
+.status-delivered {
     color: var(--green);
     border-color: #a7f3d0;
     background: var(--green-soft);
+}
+
+.status-completed {
+    color: #fff;
+    border-color: var(--green);
+    background: var(--green);
 }
 
 .status-shipping,
