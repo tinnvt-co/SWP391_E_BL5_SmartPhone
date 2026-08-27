@@ -410,6 +410,24 @@
                             const valueInput = form.querySelector('input[name="value"]');
                             const minOrderInput = form.querySelector('input[name="minOrderValue"]');
                             
+                            const usageLimitInput = form.querySelector('input[name="usageLimit"]');
+                            const maxUsesInput = form.querySelector('input[name="maxUsesPerUser"]');
+                            
+                            if (usageLimitInput && maxUsesInput) {
+                                const usageLimit = parseInt(usageLimitInput.value);
+                                const maxUses = parseInt(maxUsesInput.value);
+
+                                if (!isNaN(usageLimit) && !isNaN(maxUses) && maxUses > usageLimit) {
+                                    e.preventDefault();
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Invalid Values',
+                                        text: 'Max Uses per User cannot exceed the Total Quantity.'
+                                    });
+                                    return;
+                                }
+                            }
+                            
                             if (valueInput && minOrderInput) {
                                 const val = parseFloat(valueInput.value);
                                 const minOrder = parseFloat(minOrderInput.value);
