@@ -21,7 +21,7 @@ import java.util.Set;
 public class OrderHistoryController extends HttpServlet {
 
     private static final Set<String> NON_CANCELABLE_STATUSES = Set.of(
-            "DELIVERED", "COMPLETED", "CANCELLED", "CANCEL_REQUESTED", "REFUND");
+            "DELIVERED", "COMPLETED", "CANCELLED", "CANCEL_REQUESTED", "REFUND", "REFUNDED");
 
     private final OrderDAO orderDAO = new OrderDAO();
     private final RefundDAO returnDAO = new RefundDAO();
