@@ -16,6 +16,20 @@ import model.OrderModel;
 import model.UserModel;
 
 @WebServlet(name = "OrderController", urlPatterns = {"/staff/orders"})
+/**
+ * OrderController - Controller xu ly cac thao tac quan ly don hang cua Staff.
+ *
+ * Tinh nang chinh:
+ * - HIEN THI danh sach don hang (doOrder)
+ * - CAP NHAT trang thai don hang (doPost)
+ * - Xem CHI TIET don hang (showDetail)
+ *
+ * Quy tac phan quyen:
+ * - Staff chi duoc thay doi cac trang thai: PENDING -> CONFIRMED -> PROCESSING -> SHIPPING
+ * - Staff KHONG duoc phep thay doi cac trang thai: COMPLETED, REFUNDED, CANCELLED, DELIVERY_FAILED
+ * - Staff KHONG duoc phep danh dau don hang thanh DELIVERED (chi Shipper lam dien)
+ * - Staff KHONG duoc phep huy don hang (chi Manager hoac qua yeu cau huy cua KH)
+ */
 public class OrderController extends HttpServlet {
 
     private static final int MAX_SEARCH_LENGTH = 100;
@@ -30,7 +44,15 @@ public class OrderController extends HttpServlet {
      * staff cannot cancel orders nor mark them as delivered.
      */
     private static final Set<String> STAFF_UPDATABLE_STATUSES = Set.of(
-            "PENDING", "CONFIRMED", "PROCESSING", "SHIPPING", "COMPLETED");
+            "PENDING", "CONFIRMED", "PROCESSING", "SHIPPING");
+
+    /**
+     * Cac trang thai don hang ma Staff KHONG the thay doi.
+     * Khi don hang da COMPLETED, REFUNDED hoac CANCELLED thi khong duoc phep sua trang thai nua.
+     * Vi: don hang da hoan thanh => khong the quay lai trang thai truoc.
+     */
+    private static final Set<String> STAFF_IMMUTABLE_STATUSES = Set.of(
+            "COMPLETED", "REFUNDED", "CANCELLED", "DELIVERY_FAILED");
     private final OrderDAO orderDAO = new OrderDAO();
     private final ImportOrderDAO importOrderDAO = new ImportOrderDAO();
 
@@ -49,6 +71,21 @@ public class OrderController extends HttpServlet {
         }
     }
 
+    /**
+     * XU LY YEU CAU CAP NHAT TRANG THAI DON HANG (doPost).
+     *
+     * Cac buoc thuc hien:
+     * 1. Kiem tra nguoi dung da dang nhap chua
+     * 2. Kiem tra don hang co ton tai khong
+     * 3. Kiem tra don hang co o trang thai IMMUTABLE khong (COMPLETED, REFUNDED, CANCELLED, DELIVERY_FAILED)
+     *    -> Neu la IMMUTABLE thi tra ve loi, khong cho cap nhat
+     * 4. Kiem tra don hang IMPORT chi duoc cap nhat thanh COMPLETED
+     * 5. Kiem tra don hang ORDER khong duoc danh dau thanh DELIVERED
+     * 6. Neu tat ca kiem tra deu qua -> goi DAO de cap nhat trang thai
+     *
+     * @param request  HttpServletRequest chua orderId va status moi
+     * @param response HttpServletResponse de redirect ve trang danh sach
+     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -80,6 +117,11 @@ public class OrderController extends HttpServlet {
                     redirectBack(request, response, "Order not found");
                     return;
                 }
+                // Neu don hang da o trang thai IMMUTABLE (COMPLETED, REFUNDED, CANCELLED, DELIVERY_FAILED) thi khong cho phep thay doi
+                if (STAFF_IMMUTABLE_STATUSES.contains(existing.getStatus())) {
+                    redirectBack(request, response, "Orders with status '" + existing.getStatus() + "' cannot be updated");
+                    return;
+                }
                 boolean isImport = "IMPORT".equalsIgnoreCase(existing.getType());
                 if (isImport && !"COMPLETED".equals(status)) {
                     redirectBack(request, response, "Import orders can only be updated to COMPLETED");
@@ -109,6 +151,23 @@ public class OrderController extends HttpServlet {
         }
     }
 
+    /**
+     * HIEN THI DANH SACH DON HANG (doGet).
+     *
+     * Lay cac tham so loc tu request:
+     * - q: tu khoa tim kiem (theo ma don, ten KH, sdt)
+     * - status: loc theo trang thai don hang
+     * - type: loc theo loai (ORDER hoac IMPORT)
+     * - sort: sap xep (newest, oldest, total-desc, total-asc)
+     *
+     * Tra ve:
+     * - Danh sach don hang phan trang (10 don/trang)
+     * - Tong so trang, trang hien tai
+     * - Cac bo loc de hien thi tren giao dien
+     *
+     * @param request  HttpServletRequest
+     * @param response HttpServletResponse
+     */
     private void listOrders(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
         String keyword = normalizeKeyword(request.getParameter("q"));
@@ -140,6 +199,17 @@ public class OrderController extends HttpServlet {
         request.getRequestDispatcher("/views/staff/order-list.jsp").forward(request, response);
     }
 
+    /**
+     * HIEN THI CHI TIET MOT DON HANG (doGet - action=detail).
+     *
+     * Lay thong tin chi tiet don hang theo orderId.
+     * Dong thoi truyen danh sach trang thai co the chon:
+     * - Neu la IMPORT: chi co the chon COMPLETED
+     * - Neu la ORDER: chi co the chon PENDING, CONFIRMED, PROCESSING, SHIPPING
+     *
+     * @param request  HttpServletRequest chua id cua don hang
+     * @param response HttpServletResponse de forward sang trang chi tiet
+     */
     private void showDetail(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
         int orderId = integer(request.getParameter("id"), 0);
@@ -154,6 +224,22 @@ public class OrderController extends HttpServlet {
         request.getRequestDispatcher("/views/staff/order-detail.jsp").forward(request, response);
     }
 
+    /**
+     * CHUYEN HUONG VE TRANG TRUOC (redirect back).
+     *
+     * Muc dich: Sau khi xu ly xong (thanh cong hoac that bai), quay ve trang ma nguoi dung
+     * da dang xem truoc do (su dung Referer header).
+     *
+     * Logic:
+     * - Neu co Referer -> su dung lai URL do (nhom cac tham so status/message cu)
+     * - Neu khong co Referer -> chuyen ve /staff/orders
+     * - Loai bo tham so 'status' va 'message' cu khoi URL de tranh loi
+     * - Them tham so 'message' chua thong bao ket qua thao tac
+     *
+     * @param request  HttpServletRequest de lay Referer
+     * @param response HttpServletResponse de sendRedirect
+     * @param message  Thong bao hien thi sau khi chuyen huong (thanh cong/that bai)
+     */
     private void redirectBack(HttpServletRequest request, HttpServletResponse response,
             String message) throws IOException {
         String referer = request.getHeader("Referer");
