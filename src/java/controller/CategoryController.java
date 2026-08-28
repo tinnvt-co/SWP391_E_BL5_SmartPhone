@@ -82,6 +82,16 @@ public class CategoryController extends HttpServlet {
             HttpServletResponse response)
             throws SQLException, ServletException, IOException {
         CategoryModel category = readCategory(request);
+        if (category.getId() < 0) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+        if (category.getId() > 0
+                && categoryDAO.findById(category.getId()) == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
         // Validate format first, then check database uniqueness before saving.
         String error = validateCategory(category,
                 request.getParameter("status"));
@@ -117,6 +127,11 @@ public class CategoryController extends HttpServlet {
     private void showForm(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
         int categoryId = ProductController.integer(request.getParameter("id"), 0);
+        if (categoryId < 0) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+
         // The same JSP is reused: ID 0 = Add Category, ID > 0 = Edit Category.
         CategoryModel category = categoryId > 0
                 ? categoryDAO.findById(categoryId)

@@ -97,6 +97,10 @@ public class ManagerProductController extends HttpServlet {
                 request.getParameter("category"));
         int productId = ProductController.integer(
                 request.getParameter("id"), 0);
+        if (productId < 0) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
 
         // category + no product ID means "select existing products for a category",
         // while a product ID (or no category) means the normal Add/Edit form.
@@ -210,6 +214,16 @@ public class ManagerProductController extends HttpServlet {
             // Validation order: map form -> business rules -> database uniqueness
             // -> brand warning -> image files -> database transaction.
             product = read(request);
+            if (product.getId() < 0) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                return;
+            }
+            if (product.getId() > 0
+                    && productDAO.findById(product.getId()) == null) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                return;
+            }
+
             String validationError = validate(product);
             if (validationError != null) {
                 forwardFormWithError(request, response, product, validationError);
@@ -352,6 +366,11 @@ public class ManagerProductController extends HttpServlet {
     private void showForm(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
         int productId = ProductController.integer(request.getParameter("id"), 0);
+        if (productId < 0) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+
         // ID 0 creates an empty model for Add; ID > 0 loads the model for Edit.
         ProductModel product = productId > 0
                 ? productDAO.findById(productId)

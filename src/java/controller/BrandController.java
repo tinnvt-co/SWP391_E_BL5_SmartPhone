@@ -96,6 +96,15 @@ public class BrandController extends HttpServlet {
             HttpServletResponse response)
             throws SQLException, ServletException, IOException {
         BrandModel brand = readBrand(request);
+        if (brand.getId() < 0) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+        if (brand.getId() > 0 && brandDAO.findById(brand.getId()) == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
         // Validate user input before checking the normalized name in the database.
         String error = validateBrand(brand, request.getParameter("status"));
 
@@ -130,6 +139,11 @@ public class BrandController extends HttpServlet {
     private void showForm(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
         int brandId = ProductController.integer(request.getParameter("id"), 0);
+        if (brandId < 0) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+
         // The same JSP is reused: ID 0 = Add Brand, ID > 0 = Edit Brand.
         BrandModel brand = brandId > 0
                 ? brandDAO.findById(brandId)
