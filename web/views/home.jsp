@@ -188,16 +188,29 @@
                             <i class="bi bi-chevron-left"></i>
                         </button>
                         <div class="category-strip" data-category-track>
-                            <c:forEach var="category" items="${categories}">
-                                <a class="category-tile" href="${pageContext.request.contextPath}/products?category=${category.id}">
+                            <c:forEach items="${categories}" var="category">
+                                <a class="category-tile"
+                                   href="${pageContext.request.contextPath}/products?category=${category.id}">
                                     <span class="category-icon">
                                         <c:choose>
-                                            <c:when test="${category.name == 'Gaming Phone'}"><i class="bi bi-controller"></i></c:when>
-                                            <c:when test="${category.name == 'Foldable Phone'}"><i class="bi bi-phone-flip"></i></c:when>
-                                            <c:when test="${category.name == 'Camera Phone'}"><i class="bi bi-camera"></i></c:when>
-                                            <c:when test="${category.name == 'Long Battery Phone'}"><i class="bi bi-battery-charging"></i></c:when>
-                                            <c:when test="${category.name == 'AI Phone'}"><i class="bi bi-stars"></i></c:when>
-                                            <c:otherwise><i class="bi bi-phone"></i></c:otherwise>
+                                            <c:when test="${category.name == 'Gaming Phone'}">
+                                                <i class="bi bi-controller"></i>
+                                            </c:when>
+                                            <c:when test="${category.name == 'Foldable Phone'}">
+                                                <i class="bi bi-phone-flip"></i>
+                                            </c:when>
+                                            <c:when test="${category.name == 'Camera Phone'}">
+                                                <i class="bi bi-camera"></i>
+                                            </c:when>
+                                            <c:when test="${category.name == 'Long Battery Phone'}">
+                                                <i class="bi bi-battery-charging"></i>
+                                            </c:when>
+                                            <c:when test="${category.name == 'AI Phone'}">
+                                                <i class="bi bi-stars"></i>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <i class="bi bi-phone"></i>
+                                            </c:otherwise>
                                         </c:choose>
                                     </span>
                                     <div>

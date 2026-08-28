@@ -33,7 +33,6 @@ public class AuthFilter implements Filter {
             "/index.jsp",
             "/home",
             "/products",
-            "/ProductController",
             "/login",
             "/register",
             "/logout",

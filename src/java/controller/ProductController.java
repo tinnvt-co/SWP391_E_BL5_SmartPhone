@@ -5,6 +5,7 @@ import DAO.CategoryDAO;
 import DAO.FeedbackDAO;
 import DAO.ProductDAO;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,6 +18,7 @@ import model.CategoryModel;
 import model.FeedbackWithReplies;
 import model.ProductModel;
 
+@WebServlet(name = "ProductController", urlPatterns = {"/products"})
 public class ProductController extends HttpServlet {
 
     private static final int MAX_SEARCH_LENGTH = 100;
@@ -33,77 +35,83 @@ public class ProductController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        String action = value(request.getParameter("action"), "list");
+
         try {
-            String action = value(request.getParameter("action"), "list");
-            if ("detail".equals(action)) {
-                showDetail(request, response);
-                return;
+            switch (action) {
+                case "detail" -> showDetail(request, response);
+                default -> showList(request, response);
             }
-
-            Integer brandId = integerOrNull(request.getParameter("brand"));
-            Integer categoryId = integerOrNull(request.getParameter("category"));
-            String keyword = normalizeKeyword(request.getParameter("q"));
-            String sort = normalizeSort(request.getParameter("sort"));
-            String priceRange = normalizePriceRange(
-                    request.getParameter("priceRange"));
-            int requestedPage = Math.max(1, integer(request.getParameter("page"), 1));
-
-            String validationError = validateSearch(keyword);
-            if (validationError != null) {
-                request.setAttribute("products", java.util.Collections.emptyList());
-                request.setAttribute("validationError", validationError);
-                request.setAttribute("totalProducts", 0);
-                request.setAttribute("currentPage", 1);
-                request.setAttribute("totalPages", 1);
-            } else {
-                int totalProducts = productDAO.countAll(
-                        keyword, brandId, categoryId, priceRange, true);
-                int totalPages = Math.max(1,
-                        (int) Math.ceil(totalProducts / (double) PAGE_SIZE));
-                int currentPage = Math.min(requestedPage, totalPages);
-                int offset = (currentPage - 1) * PAGE_SIZE;
-                int startPage = Math.max(1, currentPage - 2);
-                int endPage = Math.min(totalPages, currentPage + 2);
-
-                request.setAttribute("products",
-                        productDAO.findAll(keyword, brandId, categoryId,
-                                priceRange, sort, true, PAGE_SIZE, offset));
-                request.setAttribute("totalProducts", totalProducts);
-                request.setAttribute("currentPage", currentPage);
-                request.setAttribute("totalPages", totalPages);
-                request.setAttribute("startPage", startPage);
-                request.setAttribute("endPage", endPage);
-            }
-
-            List<CategoryModel> categories = categoryDAO.findAll(true);
-            String catalogTitle = "All Smartphones";
-            String selectedCategoryName = null;
-            if (categoryId != null) {
-                for (CategoryModel category : categories) {
-                    if (category.getId() == categoryId) {
-                        selectedCategoryName = category.getName();
-                        catalogTitle = category.getName() + " Collection";
-                        break;
-                    }
-                }
-            }
-
-            request.setAttribute("brands", brandDAO.findAll(true));
-            request.setAttribute("categories", categories);
-            request.setAttribute("selectedBrand", brandId);
-            request.setAttribute("selectedCategory", categoryId);
-            request.setAttribute("selectedCategoryName", selectedCategoryName);
-            request.setAttribute("catalogTitle", catalogTitle);
-            request.setAttribute("keyword", keyword);
-            request.setAttribute("selectedSort", sort);
-            request.setAttribute("selectedPriceRange", priceRange);
-            request.setAttribute("pageSize", PAGE_SIZE);
-            request.getRequestDispatcher("/views/public/product-list.jsp")
-                    .forward(request, response);
         } catch (SQLException exception) {
             throw new ServletException(
                     "Cannot load products from database_swp391", exception);
         }
+    }
+
+    private void showList(HttpServletRequest request, HttpServletResponse response)
+            throws SQLException, ServletException, IOException {
+        Integer brandId = integerOrNull(request.getParameter("brand"));
+        Integer categoryId = integerOrNull(request.getParameter("category"));
+        String keyword = normalizeKeyword(request.getParameter("q"));
+        String sort = normalizeSort(request.getParameter("sort"));
+        String priceRange = normalizePriceRange(
+                request.getParameter("priceRange"));
+        int requestedPage = Math.max(
+                1, integer(request.getParameter("page"), 1));
+
+        String validationError = validateSearch(keyword);
+        if (validationError != null) {
+            request.setAttribute("products", java.util.Collections.emptyList());
+            request.setAttribute("validationError", validationError);
+            request.setAttribute("totalProducts", 0);
+            request.setAttribute("currentPage", 1);
+            request.setAttribute("totalPages", 1);
+        } else {
+            int totalProducts = productDAO.countAll(
+                    keyword, brandId, categoryId, priceRange, true);
+            int totalPages = Math.max(1,
+                    (int) Math.ceil(totalProducts / (double) PAGE_SIZE));
+            int currentPage = Math.min(requestedPage, totalPages);
+            int offset = (currentPage - 1) * PAGE_SIZE;
+            int startPage = Math.max(1, currentPage - 2);
+            int endPage = Math.min(totalPages, currentPage + 2);
+
+            request.setAttribute("products",
+                    productDAO.findAll(keyword, brandId, categoryId,
+                            priceRange, sort, true, PAGE_SIZE, offset));
+            request.setAttribute("totalProducts", totalProducts);
+            request.setAttribute("currentPage", currentPage);
+            request.setAttribute("totalPages", totalPages);
+            request.setAttribute("startPage", startPage);
+            request.setAttribute("endPage", endPage);
+        }
+
+        List<CategoryModel> categories = categoryDAO.findAll(true);
+        String catalogTitle = "All Smartphones";
+        String selectedCategoryName = null;
+
+        if (categoryId != null) {
+            for (CategoryModel category : categories) {
+                if (category.getId() == categoryId) {
+                    selectedCategoryName = category.getName();
+                    catalogTitle = category.getName() + " Collection";
+                    break;
+                }
+            }
+        }
+
+        request.setAttribute("brands", brandDAO.findAll(true));
+        request.setAttribute("categories", categories);
+        request.setAttribute("selectedBrand", brandId);
+        request.setAttribute("selectedCategory", categoryId);
+        request.setAttribute("selectedCategoryName", selectedCategoryName);
+        request.setAttribute("catalogTitle", catalogTitle);
+        request.setAttribute("keyword", keyword);
+        request.setAttribute("selectedSort", sort);
+        request.setAttribute("selectedPriceRange", priceRange);
+        request.setAttribute("pageSize", PAGE_SIZE);
+        request.getRequestDispatcher("/views/public/product-list.jsp")
+                .forward(request, response);
     }
 
     private void showDetail(HttpServletRequest request, HttpServletResponse response)
