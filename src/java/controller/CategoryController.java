@@ -72,6 +72,7 @@ public class CategoryController extends HttpServlet {
             return;
         }
 
+        // Categories are soft-deactivated so historical product relationships remain valid.
         boolean activate = "ACTIVE".equals(requestedStatus);
         categoryDAO.setActive(categoryId, activate);
         redirectToList(request, response);
@@ -81,6 +82,7 @@ public class CategoryController extends HttpServlet {
             HttpServletResponse response)
             throws SQLException, ServletException, IOException {
         CategoryModel category = readCategory(request);
+        // Validate format first, then check database uniqueness before saving.
         String error = validateCategory(category,
                 request.getParameter("status"));
 
@@ -115,6 +117,7 @@ public class CategoryController extends HttpServlet {
     private void showForm(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
         int categoryId = ProductController.integer(request.getParameter("id"), 0);
+        // The same JSP is reused: ID 0 = Add Category, ID > 0 = Edit Category.
         CategoryModel category = categoryId > 0
                 ? categoryDAO.findById(categoryId)
                 : new CategoryModel();
@@ -139,6 +142,7 @@ public class CategoryController extends HttpServlet {
     }
 
     private String validateCategory(CategoryModel category, String status) {
+        // Controller validation remains authoritative even if the form is bypassed.
         if (category.getName() == null || category.getName().isBlank()) {
             return "Category name is required.";
         }
@@ -180,6 +184,7 @@ public class CategoryController extends HttpServlet {
         if (value == null) {
             return null;
         }
+        // Store one clean space between words to avoid visually duplicate names.
         return value.trim().replaceAll("\\s+", " ");
     }
 

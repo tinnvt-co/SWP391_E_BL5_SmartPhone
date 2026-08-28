@@ -36,8 +36,19 @@
                 </div>
             </c:if>
 
+            <c:set var="nameError" value="${not empty errorFields and errorFields.contains('name')}"/>
+            <c:set var="brandError" value="${not empty errorFields and errorFields.contains('brandId')}"/>
+            <c:set var="categoriesError" value="${not empty errorFields and errorFields.contains('categoryIds')}"/>
+            <c:set var="releaseYearError" value="${not empty errorFields and errorFields.contains('releaseYear')}"/>
+            <c:set var="warrantyError" value="${not empty errorFields and errorFields.contains('warrantyMonths')}"/>
+            <c:set var="statusError" value="${not empty errorFields and errorFields.contains('status')}"/>
+            <c:set var="descriptionError" value="${not empty errorFields and errorFields.contains('description')}"/>
+            <c:set var="variantsError" value="${not empty errorFields and errorFields.contains('variants')}"/>
+
+            <%-- multipart/form-data is required because every variant may upload two image files. --%>
             <form class="entity-form product-form" method="post" enctype="multipart/form-data"
                   action="${pageContext.request.contextPath}/manager/products" novalidate>
+                <%-- The same form handles Add and Edit; id=0 means Add, id>0 means Edit. --%>
                 <input type="hidden" name="action" value="save">
                 <input type="hidden" name="id" value="${product.id}">
                 <input type="hidden" name="confirmBrandMismatch"
@@ -46,12 +57,15 @@
                 <div class="form-grid">
                     <label class="span-2">
                         Product name *
-                        <input name="name" value="<c:out value='${product.name}'/>">
+                        <input name="name" class="${nameError ? 'server-invalid' : ''}"
+                               aria-invalid="${nameError}"
+                               value="<c:out value='${product.name}'/>">
                     </label>
 
                     <label>
                         Brand *
-                        <select name="brandId">
+                        <select name="brandId" class="${brandError ? 'server-invalid' : ''}"
+                                aria-invalid="${brandError}">
                             <option value="">Choose brand</option>
                             <c:forEach items="${brands}" var="brand">
                                 <option value="${brand.id}" data-brand-name="<c:out value='${brand.name}'/>"
@@ -62,7 +76,7 @@
                         </select>
                     </label>
 
-                    <fieldset class="span-2 category-selector">
+                    <fieldset class="span-2 category-selector ${categoriesError ? 'server-invalid-group' : ''}">
                         <legend>Categories *</legend>
                         <p>Select every feature group that applies to this phone.</p>
                         <div class="category-options">
@@ -82,18 +96,23 @@
 
                     <label>
                         Release year
-                        <input type="number" name="releaseYear" value="${product.releaseYear}">
+                        <input type="number" name="releaseYear"
+                               class="${releaseYearError ? 'server-invalid' : ''}"
+                               aria-invalid="${releaseYearError}" value="${product.releaseYear}">
                     </label>
 
                     <label>
                         Warranty period (months)
                         <input type="number" name="warrantyMonths"
+                               class="${warrantyError ? 'server-invalid' : ''}"
+                               aria-invalid="${warrantyError}"
                                value="${product.id == 0 && product.warrantyMonths == 0 ? 12 : product.warrantyMonths}">
                     </label>
 
                     <label>
                         Status
-                        <select name="status">
+                        <select name="status" class="${statusError ? 'server-invalid' : ''}"
+                                aria-invalid="${statusError}">
                             <option value="ACTIVE" ${product.active ? 'selected' : ''}>Active</option>
                             <option value="INACTIVE" ${!product.active && product.id > 0 ? 'selected' : ''}>Inactive</option>
                         </select>
@@ -101,11 +120,13 @@
 
                     <label class="span-2">
                         Description
-                        <textarea name="description" rows="4"><c:out value="${product.description}"/></textarea>
+                        <textarea name="description" rows="4"
+                                  class="${descriptionError ? 'server-invalid' : ''}"
+                                  aria-invalid="${descriptionError}"><c:out value="${product.description}"/></textarea>
                     </label>
                 </div>
 
-                <section class="variant-editor" data-variant-editor>
+                <section class="variant-editor ${variantsError ? 'server-invalid-group' : ''}" data-variant-editor>
                     <div class="variant-editor-heading">
                         <div>
                             <h2>Product variants</h2>
@@ -124,12 +145,21 @@
                                 </tr>
                             </thead>
                             <tbody data-variant-rows>
-                                <c:forEach items="${product.variants}" var="variant">
+                                <%-- Each row submits parallel field arrays read by the Controller at the same index. --%>
+                                <c:forEach items="${product.variants}" var="variant" varStatus="variantRow">
+                                    <c:set var="currentVariantError" value="${errorAllVariants or errorVariantIndex == variantRow.index}"/>
+                                    <c:set var="ramError" value="${currentVariantError and not empty errorFields and errorFields.contains('variantRam')}"/>
+                                    <c:set var="storageError" value="${currentVariantError and not empty errorFields and errorFields.contains('variantStorage')}"/>
+                                    <c:set var="colorError" value="${currentVariantError and not empty errorFields and errorFields.contains('variantColorName')}"/>
+                                    <c:set var="sellingPriceError" value="${currentVariantError and not empty errorFields and errorFields.contains('variantSellingPrice')}"/>
+                                    <c:set var="frontImageError" value="${currentVariantError and not empty errorFields and errorFields.contains('variantImageFile')}"/>
+                                    <c:set var="backImageError" value="${currentVariantError and not empty errorFields and errorFields.contains('variantBackImageFile')}"/>
                                     <tr class="variant-row">
                                         <td>
                                             <input type="hidden" name="variantId" value="${variant.id}">
                                             <label>RAM (GB) *
-                                                <select name="variantRam">
+                                                <select name="variantRam" class="${ramError ? 'server-invalid' : ''}"
+                                                        aria-invalid="${ramError}">
                                                     <option value="">Choose RAM</option>
                                                     <c:forEach items="${ramOptions}" var="ram">
                                                         <option value="${ram}" ${variant.ramGb == ram ? 'selected' : ''}>${ram} GB</option>
@@ -137,7 +167,8 @@
                                                 </select>
                                             </label>
                                             <label>Storage (GB) *
-                                                <select name="variantStorage">
+                                                <select name="variantStorage" class="${storageError ? 'server-invalid' : ''}"
+                                                        aria-invalid="${storageError}">
                                                     <option value="">Choose storage</option>
                                                     <c:forEach items="${storageOptions}" var="storage">
                                                         <option value="${storage}" ${variant.storageGb == storage ? 'selected' : ''}>
@@ -146,20 +177,37 @@
                                                     </c:forEach>
                                                 </select>
                                             </label>
-                                            <label>Color name *<input name="variantColorName" value="<c:out value='${variant.colorName}'/>" placeholder="Black Titanium"></label>
+                                            <label>Color name *
+                                                <input name="variantColorName" class="${colorError ? 'server-invalid' : ''}"
+                                                       aria-invalid="${colorError}"
+                                                       value="<c:out value='${variant.colorName}'/>" placeholder="Black Titanium">
+                                            </label>
                                         </td>
                                         <td>
                                             <label>Selling price *
                                                 <input type="number" name="variantSellingPrice"
+                                                       class="${sellingPriceError ? 'server-invalid' : ''}"
+                                                       aria-invalid="${sellingPriceError}"
                                                        min="1" value="${variant.sellingPrice}">
                                             </label>
                                         </td>
                                         <td>
+                                            <%-- Existing names allow Edit to keep images when no replacement file is selected. --%>
                                             <input type="hidden" name="existingVariantImage" value="<c:out value='${variant.image}'/>">
                                             <input type="hidden" name="existingVariantBackImage" value="<c:out value='${variant.backImage}'/>">
-                                            <label>Front image *<input type="file" name="variantImageFile" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"></label>
+                                            <label>Front image *
+                                                <input type="file" name="variantImageFile"
+                                                       class="${frontImageError ? 'server-invalid' : ''}"
+                                                       aria-invalid="${frontImageError}"
+                                                       accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+                                            </label>
                                             <c:if test="${not empty variant.image}"><small class="current-image"><i class="bi bi-image"></i> Current: <c:out value="${variant.image}"/></small></c:if>
-                                            <label>Back image *<input type="file" name="variantBackImageFile" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"></label>
+                                            <label>Back image *
+                                                <input type="file" name="variantBackImageFile"
+                                                       class="${backImageError ? 'server-invalid' : ''}"
+                                                       aria-invalid="${backImageError}"
+                                                       accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+                                            </label>
                                             <c:if test="${not empty variant.backImage}"><small class="current-image"><i class="bi bi-image"></i> Current: <c:out value="${variant.backImage}"/></small></c:if>
                                         </td>
                                         <td><button class="variant-remove" type="button" data-remove-variant aria-label="Remove variant">Remove</button></td>
