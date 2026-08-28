@@ -162,6 +162,7 @@ public class ProductDAO {
 
     public int countAll(String keyword, Integer brandId,
             Integer categoryId, String priceRange, boolean publicOnly) throws SQLException {
+        // Use the same filters as findAll so the pagination total matches the displayed rows.
         StringBuilder sql = new StringBuilder(
                 "SELECT COUNT(*) FROM Product p "
                 + "JOIN Brand b ON b.ID = p.BrandID "
@@ -210,6 +211,7 @@ public class ProductDAO {
     }
 
     public ProductModel findById(int id) throws SQLException {
+        // A product detail is an aggregate: load the product first, then its variants and categories.
         String sql = SELECT_PRODUCTS + "WHERE p.ID = ?";
 
         try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -233,6 +235,7 @@ public class ProductDAO {
 
     public boolean existsProductName(String name, int excludedProductId)
             throws SQLException {
+        // Exclude the current product so an unchanged name remains valid during Edit.
         String sql = "SELECT 1 FROM Product "
                 + "WHERE LOWER(TRIM(Name)) = LOWER(?) AND ID <> ? LIMIT 1";
         return exists(sql, name.trim(), excludedProductId);
@@ -254,6 +257,7 @@ public class ProductDAO {
 
     public boolean existsVariantOption(int productId, int ramGb, int storageGb,
             String colorName, int excludedVariantId) throws SQLException {
+        // One product cannot contain two variants with the same RAM, storage and color.
         String sql = "SELECT 1 FROM ProductVariant WHERE ProductID = ? "
                 + "AND RAM_GB = ? AND Storage_GB = ? "
                 + "AND LOWER(TRIM(ColorName)) = LOWER(?) AND ID <> ? LIMIT 1";
@@ -424,6 +428,7 @@ public class ProductDAO {
     }
 
     public void deactivate(int id) throws SQLException {
+        // Soft delete keeps old order references valid while hiding the product from public pages.
         String sql = "UPDATE Product SET Status = 'INACTIVE' WHERE ID = ?";
 
         try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -438,6 +443,7 @@ public class ProductDAO {
             return 0;
         }
 
+        // Update selected products in one batch; products already in this brand are ignored.
         String sql = "UPDATE Product SET BrandID = ? "
                 + "WHERE ID = ? AND BrandID <> ?";
         int movedProducts = 0;

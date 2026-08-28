@@ -12,6 +12,7 @@ import model.BrandModel;
 public class BrandDAO {
 
     public List<BrandModel> findAll(boolean activeOnly) throws SQLException {
+        // LEFT JOIN also returns brands with no products; COUNT is used by the management cards.
         String sql = "SELECT b.ID, b.Name, b.Description, b.Status, "
                 + "COUNT(p.ID) AS ProductCount "
                 + "FROM Brand b LEFT JOIN Product p ON p.BrandID = b.ID "
@@ -59,6 +60,7 @@ public class BrandDAO {
 
     public boolean existsName(String name, int excludedBrandId)
             throws SQLException {
+        // Exclude the current brand so keeping its original name is valid during Edit.
         String sql = "SELECT 1 FROM Brand "
                 + "WHERE LOWER(TRIM(Name)) = LOWER(?) AND ID <> ? LIMIT 1";
         try (Connection connection = DBContext.getConnection();
@@ -83,6 +85,7 @@ public class BrandDAO {
     }
 
     public void save(BrandModel brand) throws SQLException {
+        // ID 0 means Add; a positive ID means Edit the existing brand.
         boolean isNew = brand.getId() == 0;
         String sql = isNew
                 ? "INSERT INTO Brand(Name, Description, Status) VALUES(?, ?, ?)"
@@ -104,6 +107,7 @@ public class BrandDAO {
     }
 
     public void setActive(int id, boolean active) throws SQLException {
+        // Soft status change preserves products and historical data linked to this brand.
         String sql = "UPDATE Brand SET Status = ? WHERE ID = ?";
         try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, active ? "ACTIVE" : "INACTIVE");

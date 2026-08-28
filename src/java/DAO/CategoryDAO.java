@@ -14,6 +14,7 @@ import model.CategoryModel;
 public class CategoryDAO {
 
     public List<CategoryModel> findAll(boolean activeOnly) throws SQLException {
+        // LEFT JOIN keeps empty categories; COUNT shows how many products belong to each category.
         String sql = "SELECT c.ID, c.Name, c.Description, c.Status, "
                 + "COUNT(DISTINCT p.ID) AS ProductCount "
                 + "FROM Category c "
@@ -88,6 +89,7 @@ public class CategoryDAO {
         if (categoryIds == null || categoryIds.isEmpty()) {
             return false;
         }
+        // Build one placeholder per selected ID and require every selected category to be active.
         String placeholders = String.join(",",
                 java.util.Collections.nCopies(categoryIds.size(), "?"));
         String sql = "SELECT COUNT(*) FROM Category WHERE Status = 'ACTIVE' "
@@ -105,6 +107,7 @@ public class CategoryDAO {
     }
 
     public void save(CategoryModel category) throws SQLException {
+        // ID 0 means Add; a positive ID means Edit the existing category.
         boolean isNew = category.getId() == 0;
         String sql = isNew
                 ? "INSERT INTO Category(Name, Description, Status) VALUES(?, ?, ?)"
@@ -126,6 +129,7 @@ public class CategoryDAO {
     }
 
     public void setActive(int id, boolean active) throws SQLException {
+        // Change only the status; do not delete the category or its product relationships.
         String sql = "UPDATE Category SET Status = ? WHERE ID = ?";
         try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, active ? "ACTIVE" : "INACTIVE");
@@ -136,6 +140,7 @@ public class CategoryDAO {
 
     public boolean existsName(String name, int excludedCategoryId)
             throws SQLException {
+        // Ignore case and spaces, and exclude the current row while editing.
         String sql = "SELECT 1 FROM Category "
                 + "WHERE LOWER(TRIM(Name)) = LOWER(?) AND ID <> ? LIMIT 1";
         try (Connection connection = DBContext.getConnection();
@@ -165,6 +170,7 @@ public class CategoryDAO {
 
     public void addProducts(int categoryId, List<Integer> productIds)
             throws SQLException {
+        // Product_Category is the many-to-many link table; INSERT IGNORE prevents duplicate links.
         String sql = "INSERT IGNORE INTO Product_Category(ProductID, CategoryID) "
                 + "VALUES(?, ?)";
         try (Connection connection = DBContext.getConnection();
@@ -180,6 +186,7 @@ public class CategoryDAO {
 
     public boolean removeProduct(int categoryId, int productId)
             throws SQLException {
+        // Remove only the category assignment, not the Product or Category record itself.
         String sql = "DELETE FROM Product_Category "
                 + "WHERE CategoryID = ? AND ProductID = ?";
         try (Connection connection = DBContext.getConnection();
