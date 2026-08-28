@@ -297,6 +297,22 @@ textarea {
     box-shadow: 0 6px 14px rgba(29, 78, 216, 0.3);
 }
 
+/* Keep the Manager shortcut green on public pages as well as Manager pages. */
+.swp-layout-action-manager {
+    color: #fff;
+    border: 1px solid var(--swp-success);
+    background: linear-gradient(135deg, var(--swp-success), #047857);
+    box-shadow: 0 6px 16px rgba(5, 150, 105, 0.25);
+}
+
+.swp-layout-action-manager:hover {
+    color: #fff;
+    border-color: #047857;
+    background: linear-gradient(135deg, #047857, #065f46);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(5, 150, 105, 0.32);
+}
+
 .swp-layout-action-secondary {
     background: var(--swp-surface);
     color: var(--swp-ink);
