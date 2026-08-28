@@ -118,6 +118,17 @@ public class ManagerProductController extends HttpServlet {
                 request.getParameter("category"));
         boolean fromCategory = categoryId != null
                 && "category".equals(request.getParameter("from"));
+
+        // Category product management is available only for active categories.
+        if (fromCategory) {
+            CategoryModel selectedCategory = categoryDAO.findById(categoryId);
+            if (selectedCategory == null || !selectedCategory.isActive()) {
+                response.sendRedirect(request.getContextPath()
+                        + "/manager/categories");
+                return;
+            }
+        }
+
         String keyword = request.getParameter("q");
         String sort = request.getParameter("sort");
         String priceRange = ProductController.normalizePriceRange(

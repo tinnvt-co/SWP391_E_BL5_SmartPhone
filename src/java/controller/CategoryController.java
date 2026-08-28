@@ -126,6 +126,13 @@ public class CategoryController extends HttpServlet {
             return;
         }
 
+        // An inactive category must be activated from the list before editing.
+        if (categoryId > 0 && !category.isActive()) {
+            response.sendRedirect(request.getContextPath()
+                    + "/manager/categories");
+            return;
+        }
+
         request.setAttribute("category", category);
         request.getRequestDispatcher("/views/manager/category-form.jsp")
                 .forward(request, response);
@@ -165,8 +172,8 @@ public class CategoryController extends HttpServlet {
         }
 
         if (description != null && !description.isBlank()
-                && !isPlainText(description)) {
-            return "Description may contain letters, numbers and spaces only.";
+                && !isDescriptionText(description)) {
+            return "Description may contain letters, numbers, spaces and hyphens only.";
         }
 
         if (!"ACTIVE".equals(status) && !"INACTIVE".equals(status)) {
@@ -178,6 +185,10 @@ public class CategoryController extends HttpServlet {
 
     private boolean isPlainText(String value) {
         return value.matches("^[\\p{L}\\p{N}]+(?: [\\p{L}\\p{N}]+)*$");
+    }
+
+    private boolean isDescriptionText(String value) {
+        return value.matches("^[\\p{L}\\p{N}]+(?:[ -][\\p{L}\\p{N}]+)*$");
     }
 
     private String normalizeText(String value) {
