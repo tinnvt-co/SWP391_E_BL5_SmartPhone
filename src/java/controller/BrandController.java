@@ -152,6 +152,10 @@ public class BrandController extends HttpServlet {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
+        if (brandId > 0 && !brand.isActive()) {
+            response.sendRedirect(request.getContextPath() + "/manager/brands");
+            return;
+        }
 
         request.setAttribute("brand", brand);
         request.getRequestDispatcher("/views/manager/brand-form.jsp")
@@ -210,6 +214,10 @@ public class BrandController extends HttpServlet {
         BrandModel brand = brandId > 0 ? brandDAO.findById(brandId) : null;
         if (brand == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+        if (!brand.isActive()) {
+            response.sendRedirect(request.getContextPath() + "/manager/brands");
             return;
         }
 

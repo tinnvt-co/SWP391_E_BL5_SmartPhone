@@ -44,14 +44,16 @@
                         </div>
 
                         <div class="actions">
-                            <a class="btn subtle"
-                               href="${pageContext.request.contextPath}/manager/brands?action=products&id=${brand.id}">
-                                Products
-                            </a>
-                            <a class="btn subtle"
-                               href="${pageContext.request.contextPath}/manager/brands?action=form&id=${brand.id}">
-                                Edit
-                            </a>
+                            <c:if test="${brand.active}">
+                                <a class="btn subtle"
+                                   href="${pageContext.request.contextPath}/manager/brands?action=products&id=${brand.id}">
+                                    Products
+                                </a>
+                                <a class="btn subtle"
+                                   href="${pageContext.request.contextPath}/manager/brands?action=form&id=${brand.id}">
+                                    Edit
+                                </a>
+                            </c:if>
                             <form method="post" onsubmit="return confirmStatusChange('brand', ${!brand.active})">
                                 <input type="hidden" name="action" value="set-status">
                                 <input type="hidden" name="id" value="${brand.id}">
