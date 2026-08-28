@@ -43,14 +43,16 @@
                         </div>
 
                         <div class="actions">
-                            <a class="btn subtle"
-                               href="${pageContext.request.contextPath}/manager/products?category=${category.id}&from=category">
-                                Products
-                            </a>
-                            <a class="btn subtle"
-                               href="${pageContext.request.contextPath}/manager/categories?action=form&id=${category.id}">
-                                Edit
-                            </a>
+                            <c:if test="${category.active}">
+                                <a class="btn subtle"
+                                   href="${pageContext.request.contextPath}/manager/products?category=${category.id}&from=category">
+                                    Products
+                                </a>
+                                <a class="btn subtle"
+                                   href="${pageContext.request.contextPath}/manager/categories?action=form&id=${category.id}">
+                                    Edit
+                                </a>
+                            </c:if>
                             <form method="post" onsubmit="return confirmStatusChange('category', ${!category.active})">
                                 <input type="hidden" name="action" value="set-status">
                                 <input type="hidden" name="id" value="${category.id}">

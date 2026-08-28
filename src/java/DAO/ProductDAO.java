@@ -86,6 +86,7 @@ public class ProductDAO {
             Integer categoryId, String priceRange, String sort, boolean publicOnly,
             Collection<Integer> excludeIds, int limit, int offset)
             throws SQLException {
+        // Build one parameterized query from optional filters; placeholders prevent SQL injection.
         StringBuilder sql = new StringBuilder(SELECT_PRODUCTS);
         sql.append("WHERE 1 = 1 ");
 
@@ -317,6 +318,7 @@ public class ProductDAO {
     }
 
     public void save(ProductModel product) throws SQLException {
+        // The form uses ID 0 for Add and a positive ID for Edit.
         if (product.getId() == 0) {
             insert(product);
         } else {
@@ -330,6 +332,7 @@ public class ProductDAO {
                 + "BrandID, Status) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = DBContext.getConnection()) {
+            // Product, categories, variants and inventory must succeed or fail together.
             connection.setAutoCommit(false);
 
             try {
@@ -367,6 +370,7 @@ public class ProductDAO {
                 + "WHERE ID = ?";
 
         try (Connection connection = DBContext.getConnection()) {
+            // Keep the whole aggregate consistent if any variant/category update fails.
             connection.setAutoCommit(false);
 
             try {
@@ -519,6 +523,7 @@ public class ProductDAO {
 
     private void appendPriceFilter(StringBuilder sql, List<Object> parameters,
             String priceRange) {
+        // Price segments use the lowest active variant price of each product.
         if ("under-5m".equals(priceRange)) {
             sql.append("AND ").append(LOWEST_PRICE_SQL).append(" < ? ");
             parameters.add(5_000_000);
@@ -640,6 +645,7 @@ public class ProductDAO {
 
     private void saveCategories(Connection connection, int productId,
             List<Integer> categoryIds) throws SQLException {
+        // Replace all links because Product-Category is a many-to-many relationship.
         try (PreparedStatement statement = connection.prepareStatement(
                 "DELETE FROM Product_Category WHERE ProductID = ?")) {
             statement.setInt(1, productId);
@@ -689,6 +695,7 @@ public class ProductDAO {
             statement.setInt(2, variant.getRamGb());
             statement.setInt(3, variant.getStorageGb());
             statement.setString(4, variant.getColorName().trim());
+            // A temporary unique value is required until the database returns variantId.
             statement.setString(5, "TMP-" + UUID.randomUUID());
             statement.setInt(6, variant.getSellingPrice());
             statement.setInt(7, 0);
@@ -701,6 +708,7 @@ public class ProductDAO {
                     throw new SQLException("Cannot create product variant ID");
                 }
                 int variantId = generatedKeys.getInt(1);
+                // Final SKU is deterministic and unique: PV-{productId}-{variantId}.
                 String generatedSku = "PV-" + productId + "-" + variantId;
                 try (PreparedStatement skuStatement = connection.prepareStatement(
                         "UPDATE ProductVariant SET SKU = ? WHERE ID = ?")) {
@@ -767,6 +775,7 @@ public class ProductDAO {
 
     private void deactivateMissingVariants(Connection connection, int productId,
             List<Integer> savedVariantIds) throws SQLException {
+        // Missing variants are soft-deactivated to preserve references from old orders.
         StringBuilder sql = new StringBuilder(
                 "UPDATE ProductVariant SET Status = 'INACTIVE' WHERE ProductID = ?");
         if (!savedVariantIds.isEmpty()) {

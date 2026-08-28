@@ -72,6 +72,7 @@ public class CategoryController extends HttpServlet {
             return;
         }
 
+        // Categories are soft-deactivated so historical product relationships remain valid.
         boolean activate = "ACTIVE".equals(requestedStatus);
         categoryDAO.setActive(categoryId, activate);
         redirectToList(request, response);
@@ -81,6 +82,17 @@ public class CategoryController extends HttpServlet {
             HttpServletResponse response)
             throws SQLException, ServletException, IOException {
         CategoryModel category = readCategory(request);
+        if (category.getId() < 0) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+        if (category.getId() > 0
+                && categoryDAO.findById(category.getId()) == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        // Validate format first, then check database uniqueness before saving.
         String error = validateCategory(category,
                 request.getParameter("status"));
 
@@ -115,11 +127,24 @@ public class CategoryController extends HttpServlet {
     private void showForm(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
         int categoryId = ProductController.integer(request.getParameter("id"), 0);
+        if (categoryId < 0) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+
+        // The same JSP is reused: ID 0 = Add Category, ID > 0 = Edit Category.
         CategoryModel category = categoryId > 0
                 ? categoryDAO.findById(categoryId)
                 : new CategoryModel();
         if (category == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        // An inactive category must be activated from the list before editing.
+        if (categoryId > 0 && !category.isActive()) {
+            response.sendRedirect(request.getContextPath()
+                    + "/manager/categories");
             return;
         }
 
@@ -139,6 +164,7 @@ public class CategoryController extends HttpServlet {
     }
 
     private String validateCategory(CategoryModel category, String status) {
+        // Controller validation remains authoritative even if the form is bypassed.
         if (category.getName() == null || category.getName().isBlank()) {
             return "Category name is required.";
         }
@@ -161,8 +187,8 @@ public class CategoryController extends HttpServlet {
         }
 
         if (description != null && !description.isBlank()
-                && !isPlainText(description)) {
-            return "Description may contain letters, numbers and spaces only.";
+                && !isDescriptionText(description)) {
+            return "Description may contain letters, numbers, spaces and hyphens only.";
         }
 
         if (!"ACTIVE".equals(status) && !"INACTIVE".equals(status)) {
@@ -176,10 +202,15 @@ public class CategoryController extends HttpServlet {
         return value.matches("^[\\p{L}\\p{N}]+(?: [\\p{L}\\p{N}]+)*$");
     }
 
+    private boolean isDescriptionText(String value) {
+        return value.matches("^[\\p{L}\\p{N}]+(?:[ -][\\p{L}\\p{N}]+)*$");
+    }
+
     private String normalizeText(String value) {
         if (value == null) {
             return null;
         }
+        // Store one clean space between words to avoid visually duplicate names.
         return value.trim().replaceAll("\\s+", " ");
     }
 

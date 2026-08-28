@@ -86,6 +86,7 @@ public class BrandController extends HttpServlet {
             return;
         }
 
+        // Brands are soft-deactivated because products and old orders may still refer to them.
         boolean activate = "ACTIVE".equals(requestedStatus);
         brandDAO.setActive(brandId, activate);
         redirectToList(request, response);
@@ -95,6 +96,16 @@ public class BrandController extends HttpServlet {
             HttpServletResponse response)
             throws SQLException, ServletException, IOException {
         BrandModel brand = readBrand(request);
+        if (brand.getId() < 0) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+        if (brand.getId() > 0 && brandDAO.findById(brand.getId()) == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        // Validate user input before checking the normalized name in the database.
         String error = validateBrand(brand, request.getParameter("status"));
 
         if (error != null) {
@@ -128,6 +139,12 @@ public class BrandController extends HttpServlet {
     private void showForm(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
         int brandId = ProductController.integer(request.getParameter("id"), 0);
+        if (brandId < 0) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+
+        // The same JSP is reused: ID 0 = Add Brand, ID > 0 = Edit Brand.
         BrandModel brand = brandId > 0
                 ? brandDAO.findById(brandId)
                 : new BrandModel();
@@ -152,6 +169,7 @@ public class BrandController extends HttpServlet {
     }
 
     private String validateBrand(BrandModel brand, String status) {
+        // Server-side rules protect the application even when HTML validation is bypassed.
         if (brand.getName() == null || brand.getName().isBlank()) {
             return "Brand name is required.";
         }
@@ -207,6 +225,7 @@ public class BrandController extends HttpServlet {
         List<ProductModel> products = productDAO.findAll(keyword, brandId,
                 null, sort, false, PRODUCTS_PER_PAGE,
                 (currentPage - 1) * PRODUCTS_PER_PAGE);
+        // The move dialog must not show products that already belong to this brand.
         List<ProductModel> otherProducts = productDAO.findAll(
                 null, null, null, "newest", false);
         otherProducts.removeIf(product -> product.getBrandId() == brandId);
@@ -249,6 +268,7 @@ public class BrandController extends HttpServlet {
             return;
         }
 
+        // LinkedHashSet removes duplicate IDs while keeping the submitted order.
         LinkedHashSet<Integer> productIds = new LinkedHashSet<>();
         String[] submittedIds = request.getParameterValues("productIds");
         if (submittedIds != null) {
@@ -287,6 +307,7 @@ public class BrandController extends HttpServlet {
         if (value == null) {
             return null;
         }
+        // Normalize before validation so duplicate spaces cannot create fake new names.
         return value.trim().replaceAll("\\s+", " ");
     }
 

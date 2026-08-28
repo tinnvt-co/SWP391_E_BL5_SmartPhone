@@ -1320,6 +1320,24 @@ body.category-product-modal-open {
     box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
+.product-form .server-invalid {
+    border-color: #dc2626;
+    background: #fff7f7;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.product-form .server-invalid:focus {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.16);
+}
+
+.product-form .server-invalid-group {
+    padding: 14px;
+    border: 1px solid #dc2626;
+    border-radius: 12px;
+    background: #fffafa;
+}
+
 .product-form textarea {
     resize: vertical;
 }

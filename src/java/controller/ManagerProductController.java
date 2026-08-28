@@ -30,6 +30,7 @@ import model.ProductVariantModel;
 import validation.ProductBrandValidator;
 
 @WebServlet(name = "ManagerProductController", urlPatterns = {"/manager/products"})
+// Multipart limits protect the server: 5 MB per image and 60 MB per form request.
 @MultipartConfig(fileSizeThreshold = 1024 * 1024,
         maxFileSize = 5 * 1024 * 1024,
         maxRequestSize = 60 * 1024 * 1024)
@@ -50,6 +51,7 @@ public class ManagerProductController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        // One servlet handles the list, Add/Edit form, and category picker by action.
         String action = ProductController.value(
                 request.getParameter("action"), "list");
 
@@ -68,6 +70,7 @@ public class ManagerProductController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
+        // POST actions change data; an unknown action falls back to saving the form.
         String action = ProductController.value(
                 request.getParameter("action"), "save");
 
@@ -94,7 +97,13 @@ public class ManagerProductController extends HttpServlet {
                 request.getParameter("category"));
         int productId = ProductController.integer(
                 request.getParameter("id"), 0);
+        if (productId < 0) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
 
+        // category + no product ID means "select existing products for a category",
+        // while a product ID (or no category) means the normal Add/Edit form.
         if (categoryId != null && productId == 0) {
             showCategoryPicker(request, response);
             return;
@@ -106,17 +115,30 @@ public class ManagerProductController extends HttpServlet {
     private void handleList(HttpServletRequest request,
             HttpServletResponse response)
             throws SQLException, ServletException, IOException {
+        // Read optional filters first; null values mean that filter is not applied.
         Integer brandId = ProductController.integerOrNull(
                 request.getParameter("brand"));
         Integer categoryId = ProductController.integerOrNull(
                 request.getParameter("category"));
         boolean fromCategory = categoryId != null
                 && "category".equals(request.getParameter("from"));
+
+        // Category product management is available only for active categories.
+        if (fromCategory) {
+            CategoryModel selectedCategory = categoryDAO.findById(categoryId);
+            if (selectedCategory == null || !selectedCategory.isActive()) {
+                response.sendRedirect(request.getContextPath()
+                        + "/manager/categories");
+                return;
+            }
+        }
+
         String keyword = request.getParameter("q");
         String sort = request.getParameter("sort");
         String priceRange = ProductController.normalizePriceRange(
                 request.getParameter("priceRange"));
 
+        // Count and data queries use the same filters so pagination stays correct.
         int filteredTotal = productDAO.countAll(
                 keyword, brandId, categoryId, priceRange, false);
         int totalPages = Math.max(1,
@@ -125,6 +147,7 @@ public class ManagerProductController extends HttpServlet {
                 request.getParameter("page"), 1);
         currentPage = Math.max(1, Math.min(currentPage, totalPages));
 
+        // OFFSET skips previous pages; PAGE_SIZE limits this page to 10 products.
         List<ProductModel> products = productDAO.findAll(
                 keyword, brandId, categoryId, priceRange, sort, false,
                 PAGE_SIZE, (currentPage - 1) * PAGE_SIZE);
@@ -188,7 +211,19 @@ public class ManagerProductController extends HttpServlet {
         ProductModel product = null;
 
         try {
+            // Validation order: map form -> business rules -> database uniqueness
+            // -> brand warning -> image files -> database transaction.
             product = read(request);
+            if (product.getId() < 0) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                return;
+            }
+            if (product.getId() > 0
+                    && productDAO.findById(product.getId()) == null) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                return;
+            }
+
             String validationError = validate(product);
             if (validationError != null) {
                 forwardFormWithError(request, response, product, validationError);
@@ -201,6 +236,8 @@ public class ManagerProductController extends HttpServlet {
                 return;
             }
 
+            // A suspicious brand is a warning, not a hard error, because model names
+            // are not always sufficient to determine the real manufacturer.
             String brandWarning = brandMismatchWarning(product);
             if (brandWarning != null
                     && !"true".equals(request.getParameter(
@@ -217,6 +254,7 @@ public class ManagerProductController extends HttpServlet {
                 return;
             }
 
+            // DAO.save inserts/updates the product, categories and variants atomically.
             productDAO.save(product);
             redirect(response, request, "Product saved");
         } catch (IllegalStateException exception) {
@@ -328,6 +366,12 @@ public class ManagerProductController extends HttpServlet {
     private void showForm(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
         int productId = ProductController.integer(request.getParameter("id"), 0);
+        if (productId < 0) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+
+        // ID 0 creates an empty model for Add; ID > 0 loads the model for Edit.
         ProductModel product = productId > 0
                 ? productDAO.findById(productId)
                 : new ProductModel();
@@ -363,6 +407,7 @@ public class ManagerProductController extends HttpServlet {
     }
 
     private ProductModel read(HttpServletRequest request) {
+        // Convert all submitted form parameters into one ProductModel before validation.
         ProductModel product = new ProductModel();
         product.setId(ProductController.integer(request.getParameter("id"), 0));
         product.setName(normalizeText(request.getParameter("name")));
@@ -397,6 +442,7 @@ public class ManagerProductController extends HttpServlet {
             return;
         }
 
+        // A product may have many categories; Set prevents duplicate category IDs.
         Set<Integer> uniqueIds = new HashSet<>();
         for (String value : values) {
             int categoryId = ProductController.integer(value, 0);
@@ -414,6 +460,8 @@ public class ManagerProductController extends HttpServlet {
             return;
         }
 
+        // Variant fields are submitted as parallel arrays; the same index represents
+        // one RAM/storage/color/price/images combination.
         for (int index = 0; index < ramValues.length; index++) {
             ProductVariantModel variant = new ProductVariantModel();
             variant.setId(integerAt(request, "variantId", index));
@@ -437,6 +485,7 @@ public class ManagerProductController extends HttpServlet {
         if (index < parts.size() && parts.get(index).getSize() > 0) {
             return safeFileName(parts.get(index).getSubmittedFileName());
         }
+        // During Edit, no new upload means the current image name is kept.
         return valueAt(request, existingName, index);
     }
 
@@ -464,6 +513,8 @@ public class ManagerProductController extends HttpServlet {
     }
 
     private String validate(ProductModel product) {
+        // Server-side validation is mandatory because browser validation can be bypassed.
+        // Returning the first error keeps the form flow simple and easy to explain.
         if (product.getName() == null || product.getName().isBlank()) {
             return "Product name is required.";
         }
@@ -508,6 +559,7 @@ public class ManagerProductController extends HttpServlet {
             return "Add at least one product variant.";
         }
 
+        // These sets detect duplicates inside the same submitted form before SQL runs.
         Set<String> options = new HashSet<>();
         Set<String> frontImages = new HashSet<>();
 
@@ -575,6 +627,8 @@ public class ManagerProductController extends HttpServlet {
     }
 
     private String validateUniqueData(ProductModel product) throws SQLException {
+        // These rules require current database data, so they cannot be checked reliably
+        // by the JSP alone. The current ID is excluded when editing the same record.
         if (productDAO.existsProductName(product.getName(), product.getId())) {
             return "Product name already exists.";
         }
@@ -628,6 +682,7 @@ public class ManagerProductController extends HttpServlet {
 
     private String saveUploadedImages(HttpServletRequest request,
             ProductModel product, List<Path> uploadedFiles) {
+        // Front and back uploads are matched to variants by their row index.
         try {
             List<Part> frontParts = partsByName(request, "variantImageFile");
             List<Part> backParts = partsByName(request, "variantBackImageFile");
@@ -666,11 +721,13 @@ public class ManagerProductController extends HttpServlet {
         if (part.getSize() > 5L * 1024 * 1024) {
             return label + " must be 5 MB or smaller.";
         }
+        // Check file signatures, not only extensions, to reject renamed non-images.
         if (!validImageContent(part, fileName)) {
             return label + " must be a real JPG, JPEG, PNG or WEBP image.";
         }
 
         List<Path> directories = uploadDirectories();
+        // Validate every target before copying so a partial upload is less likely.
         for (Path directory : directories) {
             Files.createDirectories(directory);
             Path target = directory.resolve(fileName).normalize();
@@ -722,6 +779,8 @@ public class ManagerProductController extends HttpServlet {
         }
 
         List<Path> directories = new ArrayList<>();
+        // Save to the deployed folder for immediate display and to the source folder
+        // so the image remains available after the next clean/redeploy.
         Path runtimeDirectory = Paths.get(realPath).toAbsolutePath().normalize();
         directories.add(runtimeDirectory);
 
@@ -767,6 +826,7 @@ public class ManagerProductController extends HttpServlet {
     }
 
     private void deleteUploadedFiles(List<Path> files) {
+        // Roll back files written before a later validation or database failure.
         for (Path file : files) {
             try {
                 Files.deleteIfExists(file);
@@ -778,7 +838,9 @@ public class ManagerProductController extends HttpServlet {
     private void forwardFormWithError(HttpServletRequest request,
             HttpServletResponse response, ProductModel product, String error)
             throws ServletException, IOException {
+        // Forward (not redirect) preserves submitted values and the error for the JSP.
         restoreExistingImageNames(request, product);
+        exposeErrorLocation(request, error);
         request.setAttribute("error", error);
         request.setAttribute("product", product);
         request.setAttribute("selectedCategoryIds",
@@ -789,6 +851,69 @@ public class ManagerProductController extends HttpServlet {
         }
         request.getRequestDispatcher("/views/manager/product-form.jsp")
                 .forward(request, response);
+    }
+
+    private void exposeErrorLocation(HttpServletRequest request, String error) {
+        // Translate the returned error into field names so the JSP can draw red borders
+        // on the exact invalid input without duplicating business validation in JavaScript.
+        Set<String> errorFields = new HashSet<>();
+        int errorVariantIndex = -1;
+        boolean errorAllVariants = false;
+        String detail = error == null ? "" : error.toLowerCase();
+
+        if (detail.startsWith("variant ")) {
+            int colonIndex = detail.indexOf(':');
+            if (colonIndex > 8) {
+                errorVariantIndex = ProductController.integer(
+                        detail.substring(8, colonIndex).trim(), 1) - 1;
+                detail = detail.substring(colonIndex + 1).trim();
+            }
+        }
+
+        if (detail.contains("front image and back image")) {
+            errorFields.add("variantImageFile");
+            errorFields.add("variantBackImageFile");
+        } else if (detail.contains("ram, storage and color")) {
+            errorFields.add("variantRam");
+            errorFields.add("variantStorage");
+            errorFields.add("variantColorName");
+        } else if (detail.contains("front image")) {
+            errorFields.add("variantImageFile");
+        } else if (detail.contains("back image")) {
+            errorFields.add("variantBackImageFile");
+        } else if (detail.contains("each image")) {
+            errorFields.add("variantImageFile");
+            errorFields.add("variantBackImageFile");
+            errorAllVariants = true;
+        } else if (detail.contains("selling price")) {
+            errorFields.add("variantSellingPrice");
+        } else if (detail.contains("color name")) {
+            errorFields.add("variantColorName");
+        } else if (detail.contains("storage")) {
+            errorFields.add("variantStorage");
+        } else if (detail.contains("ram")) {
+            errorFields.add("variantRam");
+        } else if (detail.contains("product name")) {
+            errorFields.add("name");
+        } else if (detail.contains("description")) {
+            errorFields.add("description");
+        } else if (detail.contains("release year")) {
+            errorFields.add("releaseYear");
+        } else if (detail.contains("warranty")) {
+            errorFields.add("warrantyMonths");
+        } else if (detail.contains("brand")) {
+            errorFields.add("brandId");
+        } else if (detail.contains("categor")) {
+            errorFields.add("categoryIds");
+        } else if (detail.contains("product status")) {
+            errorFields.add("status");
+        } else if (detail.contains("product variant")) {
+            errorFields.add("variants");
+        }
+
+        request.setAttribute("errorFields", errorFields);
+        request.setAttribute("errorVariantIndex", errorVariantIndex);
+        request.setAttribute("errorAllVariants", errorAllVariants);
     }
 
     private void forwardFormWithBrandWarning(HttpServletRequest request,
@@ -822,6 +947,7 @@ public class ManagerProductController extends HttpServlet {
     }
 
     private String friendly(SQLException exception) {
+        // Convert database constraint messages into safe, understandable form errors.
         if (exception.getErrorCode() == 1062) {
             String detail = exception.getMessage() == null
                     ? "" : exception.getMessage().toLowerCase();
@@ -855,6 +981,7 @@ public class ManagerProductController extends HttpServlet {
         if (value == null) {
             return null;
         }
+        // Trim edges and collapse repeated spaces before validation and persistence.
         return value.trim().replaceAll("\\s+", " ");
     }
 
