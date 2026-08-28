@@ -29,7 +29,6 @@ public class StoreInformationFilter implements Filter {
 
         StoreInformationModel store
                 = storeDAO.getStoreInformation();
-        System.out.println("STORE = " + store);
         request.setAttribute("store", store);
 
         chain.doFilter(request, response);

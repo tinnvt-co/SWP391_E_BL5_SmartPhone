@@ -23,8 +23,10 @@ import java.util.Map;
 import java.util.Set;
 
 public class SupplierController extends HttpServlet {
-
+    
+    //Cố định số dòng 1 trang
     private static final int PAGE_SIZE = 10;
+    //Validate cố định 
     private static final int NAME_MAX_LENGTH = 150;
     private static final int ADDRESS_MAX_LENGTH = 255;
     private static final int DESCRIPTION_MAX_LENGTH = 255;
@@ -34,6 +36,13 @@ public class SupplierController extends HttpServlet {
     private final ProductDAO productDAO = new ProductDAO();
     private final BrandDAO brandDAO = new BrandDAO();
 
+    /**
+     * 
+     * @param request
+     * @param response
+     * @throws ServletException
+     * @throws IOException 
+     */
     @Override
     protected void doGet(HttpServletRequest request,
             HttpServletResponse response)
@@ -53,6 +62,14 @@ public class SupplierController extends HttpServlet {
         }
     }
 
+    /**
+     * 
+     * @param request
+     * @param response
+     * @throws SQLException
+     * @throws ServletException
+     * @throws IOException 
+     */
     private void listSuppliers(HttpServletRequest request,
             HttpServletResponse response)
             throws SQLException, ServletException, IOException {

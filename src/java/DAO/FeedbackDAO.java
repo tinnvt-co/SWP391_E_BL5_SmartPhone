@@ -423,7 +423,6 @@ public class FeedbackDAO {
      * updates (still subject to the 15-day window enforced by the caller).
      *
      * @param feedback
-     * @return
      * @throws java.sql.SQLException
      */
     public void saveCustomerFeedback(FeedbackModel feedback) throws SQLException {

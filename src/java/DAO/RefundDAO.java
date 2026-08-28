@@ -74,6 +74,9 @@ public class RefundDAO {
  /* -------------------------------------------------------------------- */
     /**
      * All refund requests submitted by a customer (history).
+     * @param userId
+     * @return 
+     * @throws java.sql.SQLException
      */
     public List<RefundModel> findByUserId(int userId) throws SQLException {
         String sql = "SELECT r.ID, r.Status, r.Description, r.Image, r.BackImage, "
@@ -112,6 +115,10 @@ public class RefundDAO {
     /**
      * Active (still waiting) refund requests for a given order id (used to lock
      * the form).
+     * @param userId
+     * @param transactionId
+     * @return 
+     * @throws java.sql.SQLException 
      */
     public boolean hasActiveForTransaction(int userId, int transactionId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM `ReturnRequest` WHERE UserID = ? AND TransactionID = ? AND Status = 'ACTIVE'";
