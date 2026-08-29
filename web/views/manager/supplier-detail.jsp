@@ -902,39 +902,26 @@
              * =========================================================
              */
             function loadSelectedVariants() {
-                /*
-                 * Nếu browser đã lưu selection
-                 * thì lấy lại.
-                 */
-                const saved =
-                        sessionStorage.getItem(storageKey);
+                const saved = sessionStorage.getItem(storageKey);
                 if (saved) {
                     try {
                         const ids = JSON.parse(saved);
                         if (Array.isArray(ids)) {
-                            selectedVariants =
-                                    new Set(ids.map(String));
+                            selectedVariants = new Set(ids.map(String));
                         }
                     } catch (error) {
-                        console.error(
-                                'Cannot restore selected variants',
-                                error
-                                );
+                        console.error('Cannot restore selected variants', error);
                     }
-                } else {
-
-                    /*
-                     * Lần đầu mở trang:
-                     * lấy những variant đã có trong database.
-                     */
-                    document
-                            .querySelectorAll('.variant-checkbox:checked')
-                            .forEach(function (checkbox) {
-                                selectedVariants.add(
-                                        checkbox.value
-                                        );
-                            });
                 }
+
+                // FIX: luôn merge thêm variant mà server vừa render là supplied,
+                // dù đã có sessionStorage hay chưa — không để cache cũ ghi đè DB.
+                document
+                        .querySelectorAll('.variant-checkbox:checked')
+                        .forEach(function (checkbox) {
+                            selectedVariants.add(checkbox.value);
+                        });
+
                 restoreCheckboxes();
                 updateSelectedCount();
             }
@@ -1180,8 +1167,7 @@
                     }
                     goToPage(page);
                 });
-                document
-                        .getElementById('jumpPageInput')
+                document.getElementById('jumpPageInput')
                         .addEventListener('keydown', function (event) {
                             if (event.key === 'Enter') {
                                 event.preventDefault();
@@ -1196,8 +1182,7 @@
              *
              * Không xóa selection khi chuyển page.
              */
-            document
-                    .querySelectorAll('[data-page-link]')
+            document.querySelectorAll('[data-page-link]')
                     .forEach(function (link) {
                         link.addEventListener(
                                 'click',
@@ -1211,8 +1196,7 @@
              * INITIALIZE
              * =========================================================
              */
-            document
-                    .querySelectorAll('.variant-checkbox')
+            document.querySelectorAll('.variant-checkbox')
                     .forEach(function (checkbox) {
                         checkbox.addEventListener(
                                 'change',

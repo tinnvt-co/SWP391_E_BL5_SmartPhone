@@ -292,7 +292,7 @@ public class SupplierController extends HttpServlet {
                 continue;
             }
 
-            for (var variant : product.getVariants()) {
+            for (var  variant : product.getVariants()) {
 
                 Map<String, Object> row = new LinkedHashMap<>();
 
@@ -306,7 +306,7 @@ public class SupplierController extends HttpServlet {
                 row.put("sku", variant.getSku());
                 row.put("stock", variant.getStock());
                 row.put("supplied", suppliedIds.contains(variant.getId()));
-
+                
                 allVariantRows.add(row);
             }
         }
