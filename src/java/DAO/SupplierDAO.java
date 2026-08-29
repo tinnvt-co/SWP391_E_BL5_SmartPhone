@@ -57,19 +57,15 @@ public class SupplierDAO {
                         + "FROM Supplier s "
                         + "WHERE 1 = 1 ");
 
-        List<Object> parameters
-                = new ArrayList<>();
+        List<Object> parameters = new ArrayList<>();
 
-        if (keyword != null
-                && !keyword.trim().isEmpty()) {
+        if (keyword != null&& !keyword.trim().isEmpty()) {
 
-            sql.append(
-                    "AND (s.Name LIKE ? "
+            sql.append("AND (s.Name LIKE ? "
                     + "OR s.Phone LIKE ? "
                     + "OR s.Address LIKE ?) ");
 
-            String k
-                    = "%" + keyword.trim() + "%";
+            String k = "%" + keyword.trim() + "%";
 
             parameters.add(k);
             parameters.add(k);
@@ -95,21 +91,19 @@ public class SupplierDAO {
 
         List<SupplierModel> suppliers
                 = new ArrayList<>();
-
+        
+        // Lấy cơ sở dữ liệu thông qua DBContext và lưu kết nối vào connection,
+        // tạo preparedStatement để chuẩn bị câu lệnh
+        //statement.executeQuery để chạy lệnh query và trả về kết quả
         try (Connection connection
                 = DBContext.getConnection(); PreparedStatement statement
                 = connection.prepareStatement(
                         sql.toString())) {
 
-            for (int i = 0;
-                    i < parameters.size();
-                    i++) {
-
-                statement.setObject(
-                        i + 1,
-                        parameters.get(i));
+            for (int i = 0; i < parameters.size(); i++) {
+                statement.setObject(i + 1,parameters.get(i));
             }
-
+            
             try (ResultSet rs
                     = statement.executeQuery()) {
 
@@ -138,28 +132,20 @@ public class SupplierDAO {
                 + "s.Description, s.Note, "
                 + "s.Created_at, s.Updated_at, s.Status, "
                 + "(SELECT COUNT(*) "
-                + " FROM Supplier_ProductVariant spv "
-                + " WHERE spv.SupplierID = s.ID) AS ProductVariantCount "
+                + "FROM Supplier_ProductVariant spv "
+                + "WHERE spv.SupplierID = s.ID) AS ProductVariantCount "
                 + "FROM Supplier s "
                 + "WHERE s.ID = ?";
 
         try (Connection connection = DBContext.getConnection(); PreparedStatement statement
                 = connection.prepareStatement(sql)) {
-
             statement.setInt(1, id);
-
             try (ResultSet rs = statement.executeQuery()) {
-
                 if (!rs.next()) {
                     return null;
                 }
-
                 SupplierModel supplier = mapSupplier(rs);
-
-                supplier.setProductVariantIds(
-                        findProductVariantIds(id)
-                );
-
+                supplier.setProductVariantIds(findProductVariantIds(id));
                 return supplier;
             }
         }
@@ -330,9 +316,7 @@ public class SupplierDAO {
 
         try (Connection connection = DBContext.getConnection(); PreparedStatement statement
                 = connection.prepareStatement(sql)) {
-
             statement.setInt(1, id);
-
             return statement.executeUpdate() > 0;
         }
     }
@@ -344,30 +328,22 @@ public class SupplierDAO {
      * @return
      * @throws java.sql.SQLException
      */
-    public List<Integer> findProductVariantIds(
-            int supplierId) throws SQLException {
-
+    public List<Integer> findProductVariantIds(int supplierId) throws SQLException {
         String sql = "SELECT ProductVariantID "
                 + "FROM Supplier_ProductVariant "
                 + "WHERE SupplierID = ? "
                 + "ORDER BY ProductVariantID";
 
         List<Integer> variantIds = new ArrayList<>();
-
-        try (Connection connection = DBContext.getConnection(); PreparedStatement statement
-                = connection.prepareStatement(sql)) {
-
+        try (Connection connection = DBContext.getConnection(); 
+                PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, supplierId);
-
             try (ResultSet rs = statement.executeQuery()) {
-
                 while (rs.next()) {
-                    variantIds.add(
-                            rs.getInt("ProductVariantID"));
+                    variantIds.add(rs.getInt("ProductVariantID"));
                 }
             }
         }
-
         return variantIds;
     }
 
@@ -380,28 +356,20 @@ public class SupplierDAO {
      */
     public List<Integer> findSuppliersByProductVariant(
             int productVariantId) throws SQLException {
-
         String sql = "SELECT SupplierID "
                 + "FROM Supplier_ProductVariant "
                 + "WHERE ProductVariantID = ? "
                 + "ORDER BY SupplierID";
-
         List<Integer> supplierIds = new ArrayList<>();
-
-        try (Connection connection = DBContext.getConnection(); PreparedStatement statement
-                = connection.prepareStatement(sql)) {
-
+        try (Connection connection = DBContext.getConnection(); 
+                PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, productVariantId);
-
             try (ResultSet rs = statement.executeQuery()) {
-
                 while (rs.next()) {
-                    supplierIds.add(
-                            rs.getInt("SupplierID"));
+                    supplierIds.add(rs.getInt("SupplierID"));
                 }
             }
         }
-
         return supplierIds;
     }
 
@@ -417,17 +385,14 @@ public class SupplierDAO {
             int supplierId,
             int productVariantId)
             throws SQLException {
-
         String sql = "INSERT INTO Supplier_ProductVariant "
                 + "(SupplierID, ProductVariantID) "
                 + "VALUES (?, ?)";
 
-        try (Connection connection = DBContext.getConnection(); PreparedStatement statement
-                = connection.prepareStatement(sql)) {
-
+        try (Connection connection = DBContext.getConnection(); 
+                PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, supplierId);
             statement.setInt(2, productVariantId);
-
             return statement.executeUpdate() > 0;
         }
     }
@@ -451,10 +416,8 @@ public class SupplierDAO {
 
         try (Connection connection = DBContext.getConnection(); PreparedStatement statement
                 = connection.prepareStatement(sql)) {
-
             statement.setInt(1, supplierId);
             statement.setInt(2, productVariantId);
-
             return statement.executeUpdate() > 0;
         }
     }
@@ -482,11 +445,8 @@ public class SupplierDAO {
         }
 
         try (Connection connection = DBContext.getConnection()) {
-
             connection.setAutoCommit(false);
-
             try {
-
                 deleteSupplierProductVariants(
                         connection,
                         supplierId);
@@ -632,47 +592,23 @@ public class SupplierDAO {
      */
     private SupplierModel mapSupplier(
             ResultSet rs) throws SQLException {
-
-        SupplierModel supplier
-                = new SupplierModel();
-
-        supplier.setId(
-                rs.getInt("ID"));
-
-        supplier.setName(
-                rs.getString("Name"));
-
-        supplier.setAddress(
-                rs.getString("Address"));
-
-        supplier.setPhone(
-                rs.getString("Phone"));
-
-        supplier.setDescription(
-                rs.getString("Description"));
-
-        supplier.setNote(
-                rs.getString("Note"));
-
-        supplier.setStatus(
-                rs.getString("Status"));
-
-        Timestamp createdAt
-                = rs.getTimestamp("Created_at");
-
-        Timestamp updatedAt
-                = rs.getTimestamp("Updated_at");
-
+        SupplierModel supplier= new SupplierModel();
+        supplier.setId(rs.getInt("ID"));
+        supplier.setName(rs.getString("Name"));
+        supplier.setAddress(rs.getString("Address"));
+        supplier.setPhone(rs.getString("Phone"));
+        supplier.setDescription(rs.getString("Description"));
+        supplier.setNote(rs.getString("Note"));
+        supplier.setStatus(rs.getString("Status"));
+        Timestamp createdAt = rs.getTimestamp("Created_at");
+        Timestamp updatedAt = rs.getTimestamp("Updated_at");
         supplier.setCreatedAt(createdAt);
         supplier.setUpdatedAt(updatedAt);
-
         try {
-            supplier.setProductVariantCount(
-                    rs.getInt("ProductVariantCount"));
+            supplier.setProductVariantCount( rs.getInt("ProductVariantCount"));
         } catch (SQLException ignored) {
             // Query does not contain ProductVariantCount.
         }
-
         return supplier;
     }
 
@@ -729,8 +665,7 @@ public class SupplierDAO {
                         parameters.get(i));
             }
 
-            try (ResultSet rs
-                    = statement.executeQuery()) {
+            try (ResultSet rs = statement.executeQuery()) {
 
                 if (rs.next()) {
                     return rs.getInt(1);

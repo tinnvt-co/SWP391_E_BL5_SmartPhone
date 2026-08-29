@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class SupplierController extends HttpServlet {
-    
+
     //Cố định số dòng 1 trang
     private static final int PAGE_SIZE = 10;
     //Validate cố định 
@@ -37,11 +37,11 @@ public class SupplierController extends HttpServlet {
     private final BrandDAO brandDAO = new BrandDAO();
 
     /**
-     * 
+     *
      * @param request
      * @param response
      * @throws ServletException
-     * @throws IOException 
+     * @throws IOException
      */
     @Override
     protected void doGet(HttpServletRequest request,
@@ -63,12 +63,12 @@ public class SupplierController extends HttpServlet {
     }
 
     /**
-     * 
+     *
      * @param request
      * @param response
      * @throws SQLException
      * @throws ServletException
-     * @throws IOException 
+     * @throws IOException
      */
     private void listSuppliers(HttpServletRequest request,
             HttpServletResponse response)
@@ -101,7 +101,7 @@ public class SupplierController extends HttpServlet {
                         totalSuppliers / (double) PAGE_SIZE
                 )
         );
-        
+
         //tích hợp validate số trang mà người dùng yêu cầu
         int currentPage = Math.min(
                 Math.max(1, requestedPage),
@@ -203,9 +203,7 @@ public class SupplierController extends HttpServlet {
         SupplierModel supplier;
 
         if (supplierId > 0) {
-
             supplier = supplierDAO.findById(supplierId);
-
             if (supplier == null) {
                 response.sendError(
                         HttpServletResponse.SC_NOT_FOUND,
@@ -217,9 +215,7 @@ public class SupplierController extends HttpServlet {
         } else {
 
             supplier = new SupplierModel();
-
             supplier.setStatus("ACTIVE");
-
             supplier.setProductVariantIds(new ArrayList<>());
         }
 
@@ -257,26 +253,23 @@ public class SupplierController extends HttpServlet {
         );
 
         // FIX: dropdown lọc theo tên sản phẩm mới, param "product" = ProductID.
-        Integer selectedProductId = parseIntegerOrNull(
-                request.getParameter("product")
+        Integer selectedProductId = parseIntegerOrNull(request.getParameter("product")
         );
 
-        String suppliedFilter
-                = request.getParameter("supplied");
+        String suppliedFilter = request.getParameter("supplied");
 
         int requestedPage = parseInt(
                 request.getParameter("page"),
                 1
         );
 
-        List<ProductModel> allProducts
-                = productDAO.findAll(
-                        keyword,
-                        brandId,
-                        null,
-                        "newest",
-                        true
-                );
+        List<ProductModel> allProducts = productDAO.findAll(
+                keyword,
+                brandId,
+                null,
+                "newest",
+                true
+        );
 
         // áp dụng thêm filter theo Product cụ thể (dropdown mới).
         if (selectedProductId != null) {
@@ -285,10 +278,8 @@ public class SupplierController extends HttpServlet {
             );
         }
 
-        Set<Integer> suppliedIds
-                = new HashSet<>(
-                        supplier.getProductVariantIds()
-                );
+        Set<Integer> suppliedIds = new HashSet<>(supplier.getProductVariantIds()
+        );
 
         // làm phẳng Product + Variant thành 1 list các "dòng variant", mỗi
         // dòng tự mang theo tên product/brand để hiển thị (vì không còn group
@@ -338,9 +329,7 @@ public class SupplierController extends HttpServlet {
             );
         }
 
-        int totalVariants
-                = allVariantRows.size();
-
+        int totalVariants = allVariantRows.size();
         int totalPages = Math.max(
                 1,
                 (int) Math.ceil(
@@ -353,14 +342,11 @@ public class SupplierController extends HttpServlet {
                 totalPages
         );
 
-        int from
-                = (currentPage - 1) * PAGE_SIZE;
-
-        int to
-                = Math.min(
-                        from + PAGE_SIZE,
-                        totalVariants
-                );
+        int from = (currentPage - 1) * PAGE_SIZE;
+        int to = Math.min(
+                from + PAGE_SIZE,
+                totalVariants
+        );
 
         List<Map<String, Object>> pageRows
                 = from < to
@@ -467,60 +453,33 @@ public class SupplierController extends HttpServlet {
                 0
         );
 
-        SupplierModel supplier
-                = new SupplierModel();
+        SupplierModel supplier = new SupplierModel();
 
         supplier.setId(supplierId);
-
-        supplier.setName(
-                value(request.getParameter("name"))
-        );
-
-        supplier.setAddress(
-                value(request.getParameter("address"))
-        );
-
-        supplier.setPhone(
-                value(request.getParameter("phone"))
-        );
-
-        supplier.setDescription(
-                value(request.getParameter("description"))
-        );
-
-        supplier.setNote(
-                value(request.getParameter("note"))
-        );
-
-        supplier.setStatus(
-                value(
-                        request.getParameter("status"),
-                        "ACTIVE"
-                )
+        supplier.setName(value(request.getParameter("name")));
+        supplier.setAddress(value(request.getParameter("address")));
+        supplier.setPhone(value(request.getParameter("phone")));
+        supplier.setDescription(value(request.getParameter("description")));
+        supplier.setNote(value(request.getParameter("note")));
+        supplier.setStatus(value(
+                request.getParameter("status"),
+                "ACTIVE"
+        )
         );
 
         //Các checkbox có: name="productVariantIds" nên request.getParameterValues() sẽ trả về toàn bộ variant được check.
         String rawVariantIds = request.getParameter("productVariantIds");
-
         List<Integer> productVariantIds = new ArrayList<>();
-
         if (rawVariantIds != null && !rawVariantIds.isBlank()) {
-
             for (String rawId : rawVariantIds.split(",")) {
-
                 int variantId = parseInt(rawId.trim(), 0);
-
-                if (variantId > 0
-                        && !productVariantIds.contains(variantId)) {
-
+                if (variantId > 0 && !productVariantIds.contains(variantId)) {
                     productVariantIds.add(variantId);
                 }
             }
         }
 
-        supplier.setProductVariantIds(
-                productVariantIds
-        );
+        supplier.setProductVariantIds(productVariantIds);
 
         List<String> errors = validateSupplier(supplier);
 
@@ -533,8 +492,7 @@ public class SupplierController extends HttpServlet {
                 = request.getSession();
 
         if (supplierId == 0) {
-            int newId
-                    = supplierDAO.create(supplier);
+            int newId = supplierDAO.create(supplier);
 
             supplierDAO.updateProductVariants(
                     newId,
@@ -553,19 +511,16 @@ public class SupplierController extends HttpServlet {
             );
 
         } else {
-
             boolean updated
                     = supplierDAO.update(supplier);
 
             if (!updated) {
-
                 session.setAttribute(
                         "msgErr",
                         "Supplier not found."
                 );
 
             } else {
-
                 supplierDAO.updateProductVariants(
                         supplierId,
                         productVariantIds
