@@ -890,6 +890,12 @@
             const storageKey =
                     'supplier-selected-variants-' + supplierId;
 
+            const initialSuppliedVariantIds = [
+            <c:forEach var="vid" items="${supplier.productVariantIds}" varStatus="st">
+            '${vid}'<c:if test="${!st.last}">,</c:if>
+            </c:forEach>
+            ];
+
             /*
              * Set chứa toàn bộ ProductVariantID
              * mà user đã chọn.
@@ -903,27 +909,38 @@
              */
             function loadSelectedVariants() {
                 const saved = sessionStorage.getItem(storageKey);
+
                 if (saved) {
+                    /*
+                     * Đã có phiên làm việc trước đó (user đang tick/untick dở dang
+                     * qua nhiều trang) -> dùng lại đúng những gì user đã chọn.
+                     */
                     try {
                         const ids = JSON.parse(saved);
                         if (Array.isArray(ids)) {
                             selectedVariants = new Set(ids.map(String));
+                        } else {
+                            selectedVariants = new Set(initialSuppliedVariantIds);
                         }
                     } catch (error) {
                         console.error('Cannot restore selected variants', error);
+                        selectedVariants = new Set(initialSuppliedVariantIds);
                     }
+                } else {
+                    /*
+                     * FIX: Lần đầu vào trang (chưa có sessionStorage) -> PHẢI khởi
+                     * tạo bằng TOÀN BỘ variant đã supplied thật trong DATABASE
+                     * (initialSuppliedVariantIds), không phải chỉ những checkbox
+                     * đang :checked trên trang/filter hiện tại. Nếu chỉ đọc DOM,
+                     * mỗi lần đổi trang sẽ làm mất/nhầm dữ liệu supplied ở các
+                     * trang chưa từng xem, và khi Save sẽ xóa nhầm chúng khỏi DB.
+                     */
+                    selectedVariants = new Set(initialSuppliedVariantIds);
                 }
-
-                // FIX: luôn merge thêm variant mà server vừa render là supplied,
-                // dù đã có sessionStorage hay chưa — không để cache cũ ghi đè DB.
-                document
-                        .querySelectorAll('.variant-checkbox:checked')
-                        .forEach(function (checkbox) {
-                            selectedVariants.add(checkbox.value);
-                        });
 
                 restoreCheckboxes();
                 updateSelectedCount();
+                saveSelectedVariants();
             }
 
             /*
