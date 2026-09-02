@@ -48,6 +48,7 @@ public class SupplierController extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
+        //Nếu có action = detail thì gọi show detail, không thì gọi hàm hiển thị trang list
         try {
             String action = request.getParameter("action");
             if ("detail".equals(action)) {
@@ -55,6 +56,7 @@ public class SupplierController extends HttpServlet {
             } else {
                 listSuppliers(request, response);
             }
+            //Nếu lỗi SQL thì bắt và redirect vể trang list
         } catch (SQLException e) {
             HttpSession session = request.getSession();
             session.setAttribute("msgErr", "Cannot load suppliers. Please try again.");
@@ -90,17 +92,11 @@ public class SupplierController extends HttpServlet {
         int requestedPage = integer(
                 request.getParameter("page"), 1);
 
-        int totalSuppliers = supplierDAO.countAll(
-                keyword,
-                status
-        );
+        //count all để tính phân trang
+        int totalSuppliers = supplierDAO.countAll(keyword, status);
 
-        int totalPages = Math.max(
-                1,
-                (int) Math.ceil(
-                        totalSuppliers / (double) PAGE_SIZE
-                )
-        );
+        //tổng trang bằng số lượng tổng supplier chia cho kích cỡ trang, nếu ít hơn 10 thì số trang là 1
+        int totalPages = Math.max(1, (int) Math.ceil(totalSuppliers / (double) PAGE_SIZE));
 
         //tích hợp validate số trang mà người dùng yêu cầu
         int currentPage = Math.min(
@@ -108,26 +104,21 @@ public class SupplierController extends HttpServlet {
                 totalPages
         );
 
+        //Tính offset để cắt bớt số dòng trong DB
         int offset = (currentPage - 1) * PAGE_SIZE;
 
-        List<SupplierModel> suppliers
-                = supplierDAO.findAll(
-                        keyword,
-                        status,
-                        PAGE_SIZE,
-                        offset
-                );
-
-        int startPage = Math.max(
-                1,
-                currentPage - 2
+        //Lấy ra danh sách đã lọc
+        List<SupplierModel> suppliers = supplierDAO.findAll(
+                keyword,
+                status,
+                PAGE_SIZE,
+                offset
         );
 
-        int endPage = Math.min(
-                totalPages,
-                currentPage + 2
-        );
-
+        //chỉ hiển thị 2 trang trước và sau trang hiện tại còn lại hiện ... ở jsp
+        int startPage = Math.max(1, currentPage - 2);
+        int endPage = Math.min(totalPages, currentPage + 2);
+        //Chỉ định sản phẩm hiển thị đầu tiền và cuối cùng
         int startItem = totalSuppliers == 0
                 ? 0
                 : offset + 1;
@@ -141,40 +132,13 @@ public class SupplierController extends HttpServlet {
         request.setAttribute("keyword", keyword);
         request.setAttribute("status", status);
 
-        request.setAttribute(
-                "currentPage",
-                currentPage
-        );
-
-        request.setAttribute(
-                "totalPages",
-                totalPages
-        );
-
-        request.setAttribute(
-                "startPage",
-                startPage
-        );
-
-        request.setAttribute(
-                "endPage",
-                endPage
-        );
-
-        request.setAttribute(
-                "totalSuppliers",
-                totalSuppliers
-        );
-
-        request.setAttribute(
-                "startItem",
-                startItem
-        );
-
-        request.setAttribute(
-                "endItem",
-                endItem
-        );
+        request.setAttribute("currentPage", currentPage);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("startPage", startPage);
+        request.setAttribute("endPage", endPage);
+        request.setAttribute("totalSuppliers", totalSuppliers);
+        request.setAttribute("startItem", startItem);
+        request.setAttribute("endItem", endItem);
 
         //Dùng khi đưa keyword vào URL. Nếu keyword có &, ?, khoảng trắng thì nên encode trước khi truyền sang JSP.
         request.setAttribute(
@@ -195,13 +159,12 @@ public class SupplierController extends HttpServlet {
             HttpServletResponse response)
             throws SQLException, ServletException, IOException {
 
-        int supplierId = parseInt(
-                request.getParameter("id"),
-                0
-        );
+        //Kiểm tra supplier id có đúng là số không, không thì id = 0
+        int supplierId = parseInt(request.getParameter("id"), 0);
 
         SupplierModel supplier;
-
+        
+        //Nếu có id thì lấy ra không có thì tạo mới
         if (supplierId > 0) {
             supplier = supplierDAO.findById(supplierId);
             if (supplier == null) {
@@ -213,7 +176,6 @@ public class SupplierController extends HttpServlet {
             }
 
         } else {
-
             supplier = new SupplierModel();
             supplier.setStatus("ACTIVE");
             supplier.setProductVariantIds(new ArrayList<>());
@@ -221,40 +183,24 @@ public class SupplierController extends HttpServlet {
 
         loadProductVariants(request, supplier);
 
-        List<BrandModel> brands
-                = brandDAO.findAll(true);
+        List<BrandModel> brands = brandDAO.findAll(true);
 
-        request.setAttribute(
-                "supplier",
-                supplier
-        );
-
-        request.setAttribute(
-                "brands",
-                brands
-        );
+        request.setAttribute("supplier", supplier);
+        request.setAttribute("brands", brands);
 
         request.getRequestDispatcher(
                 "/views/manager/supplier-detail.jsp"
         ).forward(request, response);
     }
 
-    private void loadProductVariants(
-            HttpServletRequest request,
-            SupplierModel supplier)
+    private void loadProductVariants(HttpServletRequest request,SupplierModel supplier)
             throws SQLException {
 
-        String keyword = normalizeKeyword(
-                request.getParameter("keyword")
-        );
+        String keyword = normalizeKeyword(request.getParameter("keyword"));
+        Integer brandId = parseIntegerOrNull( request.getParameter("brand"));
 
-        Integer brandId = parseIntegerOrNull(
-                request.getParameter("brand")
-        );
-
-        // FIX: dropdown lọc theo tên sản phẩm mới, param "product" = ProductID.
-        Integer selectedProductId = parseIntegerOrNull(request.getParameter("product")
-        );
+        //dropdown lọc theo tên sản phẩm mới, param "product" = ProductID.
+        Integer selectedProductId = parseIntegerOrNull(request.getParameter("product"));
 
         String suppliedFilter = request.getParameter("supplied");
 
@@ -262,7 +208,8 @@ public class SupplierController extends HttpServlet {
                 request.getParameter("page"),
                 1
         );
-
+        
+        //Lấy danh sách sản phẩn lọc theo từ khóa và hãng
         List<ProductModel> allProducts = productDAO.findAll(
                 keyword,
                 brandId,
@@ -292,7 +239,7 @@ public class SupplierController extends HttpServlet {
                 continue;
             }
 
-            for (var  variant : product.getVariants()) {
+            for (var variant : product.getVariants()) {
 
                 Map<String, Object> row = new LinkedHashMap<>();
 
@@ -306,7 +253,7 @@ public class SupplierController extends HttpServlet {
                 row.put("sku", variant.getSku());
                 row.put("stock", variant.getStock());
                 row.put("supplied", suppliedIds.contains(variant.getId()));
-                
+
                 allVariantRows.add(row);
             }
         }

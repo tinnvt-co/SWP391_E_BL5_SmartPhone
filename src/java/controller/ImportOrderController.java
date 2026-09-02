@@ -169,8 +169,7 @@ public class ImportOrderController extends HttpServlet {
         // ================================
         // LOAD ALL DATA
         // ================================
-        List<SupplierModel> suppliers
-                = supplierDAO.findAll();
+        List<SupplierModel> suppliers = supplierDAO.findAll(null, "ACTIVE", Integer.MAX_VALUE, 0);
 
         List<ProductModel> products
                 = productDAO.findAll(
