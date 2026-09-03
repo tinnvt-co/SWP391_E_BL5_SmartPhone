@@ -991,16 +991,13 @@
              */
 
             function restoreCheckboxes() {
-                document
-                        .querySelectorAll('.variant-checkbox')
+                document.querySelectorAll('.variant-checkbox')
                         .forEach(function (checkbox) {
                             checkbox.checked =
                                     selectedVariants.has(
                                             checkbox.value
                                             );
-                            updateVariantRow(
-                                    checkbox
-                                    );
+                            updateVariantRow(checkbox);
                         });
             }
 
@@ -1037,8 +1034,7 @@
              */
 
             function updateVariantRow(checkbox) {
-                const row =
-                        checkbox.closest('.variant-row');
+                const row = checkbox.closest('.variant-row');
                 if (!row) {
                     return;
                 }
@@ -1084,8 +1080,7 @@
              * rồi gửi lên Controller.
              */
 
-            document
-                    .getElementById('supplierForm')
+            document.getElementById('supplierForm')
                     .addEventListener(
                             'submit',
                             function () {

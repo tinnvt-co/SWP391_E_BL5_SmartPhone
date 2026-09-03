@@ -93,13 +93,11 @@ public class FeedbackController extends HttpServlet {
                 return;
             }
 
-            List<Map<String, Object>> items
-                    = feedbackDAO.findReviewableItems(user.getId(), orderId);
+            List<Map<String, Object>> items = feedbackDAO.findReviewableItems(user.getId(), orderId);
 
             request.setAttribute("order", order);
             request.setAttribute("items", items);
-            request.setAttribute("lineItemCount",
-                    feedbackDAO.countTransactionItems(orderId)
+            request.setAttribute("lineItemCount",feedbackDAO.countTransactionItems(orderId)
             );
             request.setAttribute(
                     "focusVariantId",
@@ -135,8 +133,7 @@ public class FeedbackController extends HttpServlet {
         int rating = parseInt(request.getParameter("rating"));
 
         //Validate
-        String content = trimToNull(
-                request.getParameter("content")
+        String content = trimToNull(request.getParameter("content")
         );
 
         if (orderId <= 0 || variantId <= 0) {
