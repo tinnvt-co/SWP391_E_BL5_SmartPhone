@@ -13,6 +13,7 @@
         <c:set var="activePage" value="manager" scope="request"/>
         <%@ include file="/views/common/header.jsp" %>
 
+        <%-- Trang hiển thị danh sách brand do BrandController đưa vào request. --%>
         <main class="page-shell">
             <div class="page-heading">
                 <div>
@@ -28,10 +29,12 @@
                 </div>
             </div>
 
+            <%-- Thông báo xuất hiện sau redirect Save hoặc đổi trạng thái thành công. --%>
             <c:if test="${not empty param.message}">
                 <div class="alert success">Brand saved successfully.</div>
             </c:if>
 
+            <%-- Mỗi brand tạo một card; brand INACTIVE được thêm class muted. --%>
             <section class="entity-grid brand-style">
                 <c:forEach items="${brands}" var="brand">
                     <article class="entity-card ${!brand.active ? 'muted' : ''}">
@@ -44,6 +47,7 @@
                         </div>
 
                         <div class="actions">
+                            <%-- Chỉ brand ACTIVE mới hiển thị nút Products và Edit. --%>
                             <c:if test="${brand.active}">
                                 <a class="btn subtle"
                                    href="${pageContext.request.contextPath}/manager/brands?action=products&id=${brand.id}">
@@ -54,6 +58,7 @@
                                     Edit
                                 </a>
                             </c:if>
+                            <%-- POST action set-status; status mới phụ thuộc trạng thái hiện tại. --%>
                             <form method="post" onsubmit="return confirmStatusChange('brand', ${!brand.active})">
                                 <input type="hidden" name="action" value="set-status">
                                 <input type="hidden" name="id" value="${brand.id}">

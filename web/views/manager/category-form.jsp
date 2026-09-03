@@ -13,6 +13,7 @@
         <c:set var="activePage" value="manager" scope="request"/>
         <%@ include file="/views/common/header.jsp" %>
 
+        <%-- Một form dùng chung: category.id = 0 là Add, ID dương là Edit. --%>
         <main class="page-shell form-small">
             <div class="page-heading">
                 <div>
@@ -25,10 +26,12 @@
                 </div>
             </div>
 
+            <%-- Controller forward lại cùng CategoryModel để giữ dữ liệu khi validate lỗi. --%>
             <c:if test="${not empty error}">
                 <div class="alert error"><c:out value="${error}"/></div>
             </c:if>
 
+            <%-- novalidate tắt kiểm tra mặc định của trình duyệt; Controller chịu trách nhiệm validate. --%>
             <form method="post" class="entity-form" novalidate
                   action="${pageContext.request.contextPath}/manager/categories">
                 <input type="hidden" name="action" value="save">

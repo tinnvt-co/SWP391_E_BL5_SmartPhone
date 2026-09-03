@@ -15,6 +15,7 @@ public class CategoryController extends HttpServlet {
 
     private final CategoryDAO categoryDAO = new CategoryDAO();
 
+    // Nhận GET và điều hướng đến danh sách category hoặc form Add/Edit.
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -31,6 +32,7 @@ public class CategoryController extends HttpServlet {
         }
     }
 
+    // Nhận POST để Save category hoặc thay đổi trạng thái ACTIVE/INACTIVE.
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -54,6 +56,7 @@ public class CategoryController extends HttpServlet {
         }
     }
 
+    // Đọc trạng thái yêu cầu, kiểm tra category tồn tại rồi cập nhật trạng thái qua DAO.
     private void handleSetStatus(HttpServletRequest request,
             HttpServletResponse response, String action)
             throws SQLException, IOException {
@@ -72,12 +75,13 @@ public class CategoryController extends HttpServlet {
             return;
         }
 
-        // Categories are soft-deactivated so historical product relationships remain valid.
+        // Category được xóa mềm để các quan hệ product trong lịch sử vẫn hợp lệ.
         boolean activate = "ACTIVE".equals(requestedStatus);
         categoryDAO.setActive(categoryId, activate);
         redirectToList(request, response);
     }
 
+    // Đọc Category Form, validate dữ liệu/trùng tên rồi gọi DAO lưu Add hoặc Edit.
     private void handleSave(HttpServletRequest request,
             HttpServletResponse response)
             throws SQLException, ServletException, IOException {
@@ -92,7 +96,7 @@ public class CategoryController extends HttpServlet {
             return;
         }
 
-        // Validate format first, then check database uniqueness before saving.
+        // Kiểm tra định dạng trước, sau đó kiểm tra trùng trong database rồi mới lưu.
         String error = validateCategory(category,
                 request.getParameter("status"));
 
@@ -111,12 +115,14 @@ public class CategoryController extends HttpServlet {
         redirectToList(request, response);
     }
 
+    // Redirect về Category Management và đính kèm thông báo thành công.
     private void redirectToList(HttpServletRequest request,
             HttpServletResponse response) throws IOException {
         response.sendRedirect(request.getContextPath()
                 + "/manager/categories?message=Saved");
     }
 
+    // Lấy toàn bộ category kèm số product rồi forward sang trang danh sách.
     private void showList(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
         request.setAttribute("categories", categoryDAO.findAll(false));
@@ -124,6 +130,7 @@ public class CategoryController extends HttpServlet {
                 .forward(request, response);
     }
 
+    // Tạo category rỗng khi Add hoặc tải category theo ID khi Edit.
     private void showForm(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
         int categoryId = ProductController.integer(request.getParameter("id"), 0);
@@ -132,7 +139,7 @@ public class CategoryController extends HttpServlet {
             return;
         }
 
-        // The same JSP is reused: ID 0 = Add Category, ID > 0 = Edit Category.
+        // Dùng chung một JSP: ID bằng 0 là Add Category, ID lớn hơn 0 là Edit Category.
         CategoryModel category = categoryId > 0
                 ? categoryDAO.findById(categoryId)
                 : new CategoryModel();
@@ -141,7 +148,7 @@ public class CategoryController extends HttpServlet {
             return;
         }
 
-        // An inactive category must be activated from the list before editing.
+            // Category INACTIVE phải được Activate từ danh sách trước khi Edit.
         if (categoryId > 0 && !category.isActive()) {
             response.sendRedirect(request.getContextPath()
                     + "/manager/categories");
@@ -153,6 +160,7 @@ public class CategoryController extends HttpServlet {
                 .forward(request, response);
     }
 
+    // Chuyển các tham số từ Category Form thành CategoryModel đã chuẩn hóa.
     private CategoryModel readCategory(HttpServletRequest request) {
         CategoryModel category = new CategoryModel();
         category.setId(ProductController.integer(request.getParameter("id"), 0));
@@ -163,8 +171,9 @@ public class CategoryController extends HttpServlet {
         return category;
     }
 
+    // Kiểm tra tên, mô tả và status; trả lỗi đầu tiên hoặc null nếu hợp lệ.
     private String validateCategory(CategoryModel category, String status) {
-        // Controller validation remains authoritative even if the form is bypassed.
+        // Validation của Controller vẫn là lớp quyết định ngay cả khi form bị vượt qua.
         if (category.getName() == null || category.getName().isBlank()) {
             return "Category name is required.";
         }
@@ -198,22 +207,26 @@ public class CategoryController extends HttpServlet {
         return null;
     }
 
+    // Kiểm tra tên chỉ gồm chữ, số và khoảng trắng đơn giữa các từ.
     private boolean isPlainText(String value) {
         return value.matches("^[\\p{L}\\p{N}]+(?: [\\p{L}\\p{N}]+)*$");
     }
 
+    // Kiểm tra mô tả chỉ chứa các ký tự văn bản và dấu câu được cho phép.
     private boolean isDescriptionText(String value) {
         return value.matches("^[\\p{L}\\p{N}]+(?:[ -][\\p{L}\\p{N}]+)*$");
     }
 
+    // Cắt khoảng trắng hai đầu và gộp khoảng trắng lặp trước khi validate/lưu.
     private String normalizeText(String value) {
         if (value == null) {
             return null;
         }
-        // Store one clean space between words to avoid visually duplicate names.
+        // Chỉ giữ một khoảng trắng giữa các từ để tránh tên nhìn giống nhau nhưng dữ liệu khác nhau.
         return value.trim().replaceAll("\\s+", " ");
     }
 
+    // Giữ lại dữ liệu đã nhập, đặt thông báo lỗi và forward lại Category Form.
     private void showFormError(HttpServletRequest request,
             HttpServletResponse response, CategoryModel category, String error)
             throws ServletException, IOException {

@@ -11,8 +11,9 @@ import model.BrandModel;
 
 public class BrandDAO {
 
+    // Lấy danh sách brand kèm số sản phẩm; activeOnly=true thì chỉ lấy brand ACTIVE.
     public List<BrandModel> findAll(boolean activeOnly) throws SQLException {
-        // LEFT JOIN also returns brands with no products; COUNT is used by the management cards.
+        // LEFT JOIN vẫn lấy brand chưa có product; COUNT dùng để hiển thị số lượng trên card.
         String sql = "SELECT b.ID, b.Name, b.Description, b.Status, "
                 + "COUNT(p.ID) AS ProductCount "
                 + "FROM Brand b LEFT JOIN Product p ON p.BrandID = b.ID "
@@ -36,6 +37,7 @@ public class BrandDAO {
         return brands;
     }
 
+    // Tìm một brand theo ID để kiểm tra tồn tại hoặc nạp dữ liệu cho trang Edit/Products.
     public BrandModel findById(int id) throws SQLException {
         String sql = "SELECT ID, Name, Description, Status "
                 + "FROM Brand WHERE ID = ?";
@@ -58,9 +60,10 @@ public class BrandDAO {
         }
     }
 
+    // Kiểm tra trùng tên brand; bỏ qua brand hiện tại khi Edit.
     public boolean existsName(String name, int excludedBrandId)
             throws SQLException {
-        // Exclude the current brand so keeping its original name is valid during Edit.
+        // Loại brand hiện tại để giữ nguyên tên cũ vẫn hợp lệ khi Edit.
         String sql = "SELECT 1 FROM Brand "
                 + "WHERE LOWER(TRIM(Name)) = LOWER(?) AND ID <> ? LIMIT 1";
         try (Connection connection = DBContext.getConnection();
@@ -73,6 +76,7 @@ public class BrandDAO {
         }
     }
 
+    // Kiểm tra brand theo ID có đang ở trạng thái ACTIVE hay không.
     public boolean isActive(int id) throws SQLException {
         String sql = "SELECT 1 FROM Brand WHERE ID = ? AND Status = 'ACTIVE'";
         try (Connection connection = DBContext.getConnection();
@@ -84,8 +88,9 @@ public class BrandDAO {
         }
     }
 
+    // Lưu Brand: ID = 0 thì INSERT mới, ID > 0 thì UPDATE brand hiện có.
     public void save(BrandModel brand) throws SQLException {
-        // ID 0 means Add; a positive ID means Edit the existing brand.
+        // ID bằng 0 là Add; ID dương là Edit brand đang tồn tại.
         boolean isNew = brand.getId() == 0;
         String sql = isNew
                 ? "INSERT INTO Brand(Name, Description, Status) VALUES(?, ?, ?)"
@@ -102,12 +107,14 @@ public class BrandDAO {
         }
     }
 
+    // Đưa brand về trạng thái INACTIVE bằng cách gọi chung hàm setActive().
     public void deactivate(int id) throws SQLException {
         setActive(id, false);
     }
 
+    // Đổi trạng thái brand thành ACTIVE hoặc INACTIVE mà không xóa dữ liệu liên quan.
     public void setActive(int id, boolean active) throws SQLException {
-        // Soft status change preserves products and historical data linked to this brand.
+        // Đổi trạng thái mềm giúp giữ product và dữ liệu lịch sử liên kết với brand.
         String sql = "UPDATE Brand SET Status = ? WHERE ID = ?";
         try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, active ? "ACTIVE" : "INACTIVE");

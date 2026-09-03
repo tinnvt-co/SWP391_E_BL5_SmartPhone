@@ -13,8 +13,9 @@ import model.CategoryModel;
 
 public class CategoryDAO {
 
+    // Lấy danh sách category kèm số sản phẩm; activeOnly=true thì chỉ lấy category ACTIVE.
     public List<CategoryModel> findAll(boolean activeOnly) throws SQLException {
-        // LEFT JOIN keeps empty categories; COUNT shows how many products belong to each category.
+        // LEFT JOIN vẫn lấy category rỗng; COUNT đếm số product thuộc từng category.
         String sql = "SELECT c.ID, c.Name, c.Description, c.Status, "
                 + "COUNT(DISTINCT p.ID) AS ProductCount "
                 + "FROM Category c "
@@ -40,6 +41,7 @@ public class CategoryDAO {
         return categories;
     }
 
+    // Tìm một category theo ID để kiểm tra tồn tại hoặc nạp dữ liệu cho trang Edit/Products.
     public CategoryModel findById(int id) throws SQLException {
         String sql = "SELECT ID, Name, Description, Status "
                 + "FROM Category WHERE ID = ?";
@@ -62,6 +64,7 @@ public class CategoryDAO {
         }
     }
 
+    // Tìm category ACTIVE theo đúng tên, dùng khi cần xác định category từ tên public.
     public CategoryModel findActiveByName(String name) throws SQLException {
         String sql = "SELECT ID, Name, Description, Status "
                 + "FROM Category WHERE LOWER(Name) = LOWER(?) "
@@ -85,11 +88,12 @@ public class CategoryDAO {
         }
     }
 
+    // Kiểm tra tất cả category được chọn trong Product Form có tồn tại và đều ACTIVE hay không.
     public boolean areAllActive(List<Integer> categoryIds) throws SQLException {
         if (categoryIds == null || categoryIds.isEmpty()) {
             return false;
         }
-        // Build one placeholder per selected ID and require every selected category to be active.
+        // Tạo một dấu ? cho mỗi ID và yêu cầu mọi category được chọn đều ACTIVE.
         String placeholders = String.join(",",
                 java.util.Collections.nCopies(categoryIds.size(), "?"));
         String sql = "SELECT COUNT(*) FROM Category WHERE Status = 'ACTIVE' "
@@ -106,8 +110,9 @@ public class CategoryDAO {
         }
     }
 
+    // Lưu Category: ID = 0 thì INSERT mới, ID > 0 thì UPDATE category hiện có.
     public void save(CategoryModel category) throws SQLException {
-        // ID 0 means Add; a positive ID means Edit the existing category.
+        // ID bằng 0 là Add; ID dương là Edit category đang tồn tại.
         boolean isNew = category.getId() == 0;
         String sql = isNew
                 ? "INSERT INTO Category(Name, Description, Status) VALUES(?, ?, ?)"
@@ -124,12 +129,14 @@ public class CategoryDAO {
         }
     }
 
+    // Đưa category về trạng thái INACTIVE bằng cách gọi chung hàm setActive().
     public void deactivate(int id) throws SQLException {
         setActive(id, false);
     }
 
+    // Đổi trạng thái category thành ACTIVE hoặc INACTIVE mà không xóa dữ liệu.
     public void setActive(int id, boolean active) throws SQLException {
-        // Change only the status; do not delete the category or its product relationships.
+        // Chỉ đổi trạng thái, không xóa category hoặc các quan hệ product của nó.
         String sql = "UPDATE Category SET Status = ? WHERE ID = ?";
         try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, active ? "ACTIVE" : "INACTIVE");
@@ -138,9 +145,10 @@ public class CategoryDAO {
         }
     }
 
+    // Kiểm tra trùng tên category; bỏ qua category hiện tại khi Edit.
     public boolean existsName(String name, int excludedCategoryId)
             throws SQLException {
-        // Ignore case and spaces, and exclude the current row while editing.
+        // Không phân biệt hoa thường/khoảng trắng và loại dòng hiện tại khi Edit.
         String sql = "SELECT 1 FROM Category "
                 + "WHERE LOWER(TRIM(Name)) = LOWER(?) AND ID <> ? LIMIT 1";
         try (Connection connection = DBContext.getConnection();
@@ -153,6 +161,7 @@ public class CategoryDAO {
         }
     }
 
+    // Lấy ID các sản phẩm đã thuộc category; dùng để loại chúng khỏi popup Add Products.
     public Set<Integer> findProductIds(int categoryId) throws SQLException {
         String sql = "SELECT ProductID FROM Product_Category WHERE CategoryID = ?";
         Set<Integer> productIds = new LinkedHashSet<>();
@@ -168,9 +177,10 @@ public class CategoryDAO {
         return productIds;
     }
 
+    // Thêm nhiều quan hệ Product-Category vào bảng trung gian Product_Category bằng batch.
     public void addProducts(int categoryId, List<Integer> productIds)
             throws SQLException {
-        // Product_Category is the many-to-many link table; INSERT IGNORE prevents duplicate links.
+        // Product_Category là bảng liên kết nhiều-nhiều; INSERT IGNORE ngăn liên kết trùng.
         String sql = "INSERT IGNORE INTO Product_Category(ProductID, CategoryID) "
                 + "VALUES(?, ?)";
         try (Connection connection = DBContext.getConnection();
@@ -184,9 +194,10 @@ public class CategoryDAO {
         }
     }
 
+    // Gỡ một sản phẩm khỏi category; chỉ xóa quan hệ, không xóa Product hay Category.
     public boolean removeProduct(int categoryId, int productId)
             throws SQLException {
-        // Remove only the category assignment, not the Product or Category record itself.
+        // Chỉ gỡ quan hệ category, không xóa bản ghi Product hoặc Category.
         String sql = "DELETE FROM Product_Category "
                 + "WHERE CategoryID = ? AND ProductID = ?";
         try (Connection connection = DBContext.getConnection();

@@ -1,4 +1,5 @@
 ﻿
+// Điều khiển nút tăng/giảm số lượng, luôn giữ giá trị từ 1 đến tồn kho của variant.
         document.querySelectorAll('[data-qty]').forEach(function (button) {
     button.addEventListener('click', function () {
         var input = document.getElementById('qty');
@@ -10,6 +11,7 @@
     });
 });
 
+// Bắt click chung để xử lý Add to Cart, Wishlist và mở Product Detail từ product card.
 document.addEventListener('click', function (event) {
     var cartButton = event.target.closest('[data-cart-button]');
     if (cartButton) {
@@ -74,10 +76,12 @@ document.addEventListener('click', function (event) {
     window.location.href = card.dataset.detailUrl;
 });
 
+// Hiển thị hộp xác nhận trước khi chuyển Product/Category/Brand sang INACTIVE.
 function confirmDeactivate(type) {
     return window.confirm('Deactivate this ' + type + '? It will no longer appear on public screens.');
 }
 
+// Chọn nội dung xác nhận phù hợp với thao tác Activate hoặc Deactivate.
 function confirmStatusChange(type, activate) {
     if (activate) {
         return window.confirm('Activate this ' + type + '? It will appear on public screens again.');
@@ -85,6 +89,7 @@ function confirmStatusChange(type, activate) {
     return confirmDeactivate(type);
 }
 
+// Xử lý bộ lọc brand và validate từ khóa của form danh sách product public.
 var catalogForm = document.getElementById('catalogForm');
 if (catalogForm) {
     var searchInput = document.getElementById('productSearch');
@@ -128,6 +133,7 @@ document.addEventListener('click', function (event) {
         }
     });
 });
+// Khởi tạo popup cập nhật trạng thái đơn hàng; phần này được dùng ở trang quản lý order.
 (function () {
     var STEP_LABELS = ['CONFIRMED', 'PROCESSING', 'SHIPPING', 'DELIVERED'];
     var STEP_DESCS = ['Confirmed', 'Processing', 'Shipping', 'Delivered'];
@@ -232,12 +238,15 @@ document.addEventListener('click', function (event) {
         });
     }
 })();
+
+// Khởi tạo bộ chọn variant cho từng product card hoặc trang Product Detail.
 (function () {
     document.querySelectorAll('[data-variant-picker]').forEach(function (picker) {
         var selectedMemory = (picker.querySelector('[data-memory].active') || {}).dataset?.memory;
         var colorSelect = picker.querySelector('[data-color-select]');
         var selectedColor = colorSelect ? colorSelect.value : undefined;
         var variants = Array.from(picker.querySelectorAll('[data-variant]'));
+        // Chỉ cho chọn những màu thật sự tồn tại với dung lượng bộ nhớ đang chọn.
         function updateColorOptions() {
             if (!colorSelect)
                 return;
@@ -247,6 +256,7 @@ document.addEventListener('click', function (event) {
                 });
             });
         }
+        // Tìm variant khớp memory/color rồi cập nhật giá, ảnh, tồn kho và variantId trên DOM.
         function chooseVariant() {
             updateColorOptions();
             var variant = variants.find(function (item) {
@@ -309,6 +319,7 @@ document.addEventListener('click', function (event) {
                 wishlistButton.dataset.variantId = variant.dataset.variantId || '';
             }
         }
+        // Khi memory hoặc color đổi, chọn lại variant tương ứng và cập nhật giao diện.
         picker.querySelectorAll('[data-memory]').forEach(function (button) {
             button.addEventListener('click', function () {
                 selectedMemory = button.dataset.memory;
@@ -323,6 +334,7 @@ document.addEventListener('click', function (event) {
                 selectedColor = colorSelect.value;
                 chooseVariant();
             });
+        // Chuyển ảnh chính giữa mặt trước và mặt sau của variant đang chọn.
         picker.querySelectorAll('[data-gallery-view]').forEach(function (button) {
             button.addEventListener('click', function () {
                 var image = picker.querySelector('[data-variant-image]');
@@ -336,6 +348,7 @@ document.addEventListener('click', function (event) {
                     caption.textContent = button.dataset.galleryView === 'back' ? 'Back view' : 'Front view';
             });
         });
+        // Chọn variant mặc định ngay khi trang vừa tải.
         chooseVariant();
     });
 })();

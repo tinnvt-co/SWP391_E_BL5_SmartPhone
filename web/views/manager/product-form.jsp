@@ -13,6 +13,7 @@
         <c:set var="activePage" value="manager" scope="request"/>
         <%@ include file="/views/common/header.jsp" %>
 
+        <%-- Một JSP dùng chung: product.id = 0 là Add, product.id > 0 là Edit. --%>
         <main class="page-shell product-form-page">
             <div class="page-heading">
                 <div>
@@ -25,6 +26,7 @@
                 </div>
             </div>
 
+            <%-- Controller forward lại form với error/brandWarning khi validate chưa đạt. --%>
             <c:if test="${not empty error}">
                 <div class="alert error">
                     <c:out value="${error}"/>
@@ -36,6 +38,7 @@
                 </div>
             </c:if>
 
+            <%-- Các c:set ánh xạ errorFields thành class đỏ cho đúng field bị lỗi. --%>
             <c:set var="nameError" value="${not empty errorFields and errorFields.contains('name')}"/>
             <c:set var="brandError" value="${not empty errorFields and errorFields.contains('brandId')}"/>
             <c:set var="categoriesError" value="${not empty errorFields and errorFields.contains('categoryIds')}"/>
@@ -45,10 +48,11 @@
             <c:set var="descriptionError" value="${not empty errorFields and errorFields.contains('description')}"/>
             <c:set var="variantsError" value="${not empty errorFields and errorFields.contains('variants')}"/>
 
-            <%-- multipart/form-data is required because every variant may upload two image files. --%>
+            <%-- Bắt buộc dùng multipart/form-data vì mỗi variant có thể tải lên hai file ảnh. --%>
+            <%-- Form POST multipart gửi thông tin product, nhiều variant và file ảnh về Controller. --%>
             <form class="entity-form product-form" method="post" enctype="multipart/form-data"
                   action="${pageContext.request.contextPath}/manager/products" novalidate>
-                <%-- The same form handles Add and Edit; id=0 means Add, id>0 means Edit. --%>
+                <%-- Dùng chung form cho Add và Edit; ID bằng 0 là Add, ID lớn hơn 0 là Edit. --%>
                 <input type="hidden" name="action" value="save">
                 <input type="hidden" name="id" value="${product.id}">
                 <input type="hidden" name="confirmBrandMismatch"
@@ -126,6 +130,7 @@
                     </label>
                 </div>
 
+                <%-- data-variant-editor là điểm móc để JS quản lý thêm/xóa dòng variant trong DOM. --%>
                 <section class="variant-editor ${variantsError ? 'server-invalid-group' : ''}" data-variant-editor>
                     <div class="variant-editor-heading">
                         <div>
@@ -145,7 +150,8 @@
                                 </tr>
                             </thead>
                             <tbody data-variant-rows>
-                                <%-- Each row submits parallel field arrays read by the Controller at the same index. --%>
+                                <%-- Mỗi dòng gửi các mảng field song song; Controller đọc dữ liệu theo cùng index. --%>
+                                <%-- Edit hoặc form lỗi: render lại các variant có sẵn và giữ nguyên dữ liệu đã nhập. --%>
                                 <c:forEach items="${product.variants}" var="variant" varStatus="variantRow">
                                     <c:set var="currentVariantError" value="${errorAllVariants or errorVariantIndex == variantRow.index}"/>
                                     <c:set var="ramError" value="${currentVariantError and not empty errorFields and errorFields.contains('variantRam')}"/>
@@ -192,7 +198,7 @@
                                             </label>
                                         </td>
                                         <td>
-                                            <%-- Existing names allow Edit to keep images when no replacement file is selected. --%>
+                                            <%-- Tên ảnh cũ giúp Edit giữ ảnh hiện tại khi người dùng không chọn file thay thế. --%>
                                             <input type="hidden" name="existingVariantImage" value="<c:out value='${variant.image}'/>">
                                             <input type="hidden" name="existingVariantBackImage" value="<c:out value='${variant.backImage}'/>">
                                             <label>Front image *
@@ -229,6 +235,7 @@
                 </div>
             </form>
         </main>
+        <%-- Mẫu inert không submit; JS clone mẫu sạch rồi chèn bản sao vào tbody trong form. --%>
         <template id="variantRowTemplate">
             <tr class="variant-row">
                 <td>
@@ -265,6 +272,7 @@
                 <td><button class="variant-remove" type="button" data-remove-variant aria-label="Remove variant">Remove</button></td>
             </tr>
         </template>
+        <%-- Đặt script sau form/template để các phần tử cần tìm đã tồn tại trong DOM. --%>
         <script src="${pageContext.request.contextPath}/assets/js/manager-product-form.js?v=20260824-variant-ui"></script>
         <%@ include file="/views/common/footer.jsp" %>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

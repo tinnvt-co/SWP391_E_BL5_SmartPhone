@@ -13,6 +13,7 @@
     <body>
         <c:set var="activePage" value="products" scope="request"/>
         <%@ include file="/views/common/header.jsp" %>
+        <%-- Trang public nhận product, brand, category và dữ liệu phân trang từ ProductController. --%>
         <main class="page-shell catalog-page">
             <div class="page-heading catalog-heading">
                 <div>
@@ -23,6 +24,7 @@
                     <p>${totalProducts} products found</p>
                 </div>
             </div>
+            <%-- Form GET gửi tìm kiếm/bộ lọc/sort trên URL; thay đổi select sẽ submit lại Controller. --%>
             <form id="catalogForm" class="catalog-toolbar" method="get"
                   action="${pageContext.request.contextPath}/products" novalidate>
                 <input type="hidden" id="brandFilter" name="brand" value="${selectedBrand}">
@@ -114,6 +116,7 @@
                 </div>
             </form>
 
+            <%-- Hiển thị lỗi tìm kiếm và kết quả thao tác wishlist. --%>
             <c:if test="${not empty validationError}">
                 <div class="catalog-error"><c:out value="${validationError}"/></div>
             </c:if>
@@ -124,6 +127,7 @@
                 <div class="alert alert-danger"><c:out value="${param.wishlistError}"/></div>
             </c:if>
 
+            <%-- Mỗi ProductModel của trang hiện tại được render thành một product card. --%>
             <section class="product-grid">
                 <c:forEach items="${products}" var="p">
                     <article class="product-card" data-variant-picker
@@ -158,6 +162,7 @@
                                 </a>
                             </h3>
 
+                            <%-- Các option memory/color và data-variant giúp store.js đổi giá/ảnh theo variant. --%>
                             <c:if test="${not empty p.variants}">
                                 <div class="memory-options">
                                     <c:forEach items="${p.memoryOptions}" var="memory"
@@ -239,6 +244,7 @@
                 </c:forEach>
             </section>
 
+            <%-- Liên kết phân trang giữ nguyên brand/category/priceRange/keyword/sort hiện tại. --%>
             <c:if test="${totalPages > 1}">
                 <nav class="catalog-pagination" aria-label="Product pagination">
                     <c:url var="previousPageUrl" value="/products">
@@ -313,6 +319,7 @@
             </c:if>
         </main>
         <%@ include file="/views/common/footer.jsp" %>
+        <%-- store.js chạy sau khi các product card và data-variant đã có trong DOM. --%>
         <script src="${pageContext.request.contextPath}/assets/js/store.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     </body>

@@ -32,6 +32,7 @@ public class ProductController extends HttpServlet {
     private final CategoryDAO categoryDAO = new CategoryDAO();
     private final FeedbackDAO feedbackDAO = new FeedbackDAO();
 
+    // Nhận GET ở public và điều hướng đến danh sách product hoặc trang chi tiết.
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -48,6 +49,7 @@ public class ProductController extends HttpServlet {
         }
     }
 
+    // Chuẩn hóa bộ lọc, validate tìm kiếm, tính phân trang và forward sang product-list.jsp.
     private void showList(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
         Integer brandId = integerOrNull(request.getParameter("brand"));
@@ -114,6 +116,7 @@ public class ProductController extends HttpServlet {
                 .forward(request, response);
     }
 
+    // Tải product ACTIVE theo ID cùng feedback rồi forward sang product-detail.jsp.
     private void showDetail(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
         int productId = integer(request.getParameter("id"), 0);
@@ -137,6 +140,7 @@ public class ProductController extends HttpServlet {
                 .forward(request, response);
     }
 
+    // Chuyển chuỗi thành int; nếu null/sai định dạng thì trả về fallback.
     static int integer(String input, int fallback) {
         try {
             return Integer.parseInt(input);
@@ -145,6 +149,7 @@ public class ProductController extends HttpServlet {
         }
     }
 
+    // Chuyển chuỗi thành số thực; nếu sai định dạng thì trả về fallback.
     static double parseDecimal(String input, double fallback) {
         try {
             return Double.parseDouble(input);
@@ -153,15 +158,18 @@ public class ProductController extends HttpServlet {
         }
     }
 
+    // Chuyển ID dương thành Integer; giá trị không hợp lệ hoặc <= 0 thì trả null để bỏ lọc.
     static Integer integerOrNull(String input) {
         int result = integer(input, 0);
         return result > 0 ? result : null;
     }
 
+    // Lấy chuỗi đầu vào; nếu null/rỗng thì dùng giá trị mặc định.
     static String value(String input, String fallback) {
         return input == null || input.isBlank() ? fallback : input;
     }
 
+    // Cắt khoảng trắng và gộp khoảng trắng lặp trong từ khóa tìm kiếm.
     private String normalizeKeyword(String input) {
         if (input == null) {
             return "";
@@ -169,6 +177,7 @@ public class ProductController extends HttpServlet {
         return input.trim().replaceAll("\\s+", " ");
     }
 
+    // Chỉ nhận sort nằm trong whitelist; giá trị khác tự chuyển về newest.
     private String normalizeSort(String input) {
         if (input == null || input.isBlank()) {
             return "newest";
@@ -176,6 +185,7 @@ public class ProductController extends HttpServlet {
         return VALID_SORTS.contains(input) ? input : "newest";
     }
 
+    // Chỉ nhận khoảng giá nằm trong whitelist; giá trị khác được xem là All prices.
     static String normalizePriceRange(String input) {
         if (input == null || input.isBlank()) {
             return "";
@@ -183,6 +193,7 @@ public class ProductController extends HttpServlet {
         return VALID_PRICE_RANGES.contains(input) ? input : "";
     }
 
+    // Giới hạn độ dài và chặn ký tự điều khiển trong từ khóa trước khi gọi DAO.
     private String validateSearch(String keyword) {
         if (keyword.length() > MAX_SEARCH_LENGTH) {
             return "Search keyword must not exceed 100 characters.";

@@ -15,10 +15,12 @@ public class HomeController extends HttpServlet {
     private final ProductDAO productDAO = new ProductDAO();
     private final DAO.VoucherDAO voucherDAO = new DAO.VoucherDAO();
 
+    // Nạp sản phẩm nổi bật, category ACTIVE và số liệu tồn kho cho trang Home public.
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
+            // Dữ liệu Product/Category này được home.jsp dùng cho product cards và category carousel.
             request.setAttribute("featuredProducts", productDAO.findFeaturedProducts(8));
             request.setAttribute("categories", productDAO.findActiveCategories());
             request.setAttribute("activeProductCount", productDAO.countActiveProducts());

@@ -14,6 +14,7 @@
         <c:set var="activePage" value="manager" scope="request"/>
         <%@ include file="/views/common/header.jsp" %>
 
+        <%-- Trang product của một brand, gồm danh sách hiện tại và popup Move Products. --%>
         <main class="page-shell">
             <div class="page-heading">
                 <div>
@@ -30,6 +31,7 @@
                 </div>
             </div>
 
+            <%-- Hiển thị kết quả redirect và khóa Move khi brand đang INACTIVE. --%>
             <c:if test="${not empty param.message}">
                 <div class="alert success"><c:out value="${param.message}"/></div>
             </c:if>
@@ -37,6 +39,7 @@
                 <div class="alert error">Activate this brand before moving products to it.</div>
             </c:if>
 
+            <%-- GET gửi keyword/sort/page để BrandController lọc và phân trang phía server. --%>
             <section class="table-panel brand-products-panel">
                 <form class="search-row brand-products-search" method="get">
                     <input type="hidden" name="action" value="products">
@@ -65,6 +68,7 @@
                             </tr>
                         </thead>
                         <tbody>
+                            <%-- Render các product hiện đang thuộc brand ở trang hiện tại. --%>
                             <c:forEach items="${products}" var="product" varStatus="row">
                                 <tr>
                                     <td class="mono">${pageStart + row.index}</td>
@@ -109,6 +113,7 @@
                 </c:if>
             </section>
 
+            <%-- Popup đã render sẵn các product thuộc brand khác; JS chỉ lọc, phân trang và mở/đóng. --%>
             <div class="category-product-modal brand-product-modal" data-brand-product-modal hidden>
                 <div class="category-product-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="brandProductModalTitle">
                     <div class="category-product-modal-header">
@@ -126,6 +131,7 @@
                         <i class="bi bi-search"></i>
                         <input type="search" data-brand-product-search placeholder="Search product name or current brand...">
                     </div>
+                    <%-- POST brandId cùng productIds được chọn để Controller chuyển brand. --%>
                     <form method="post" data-brand-product-form action="${pageContext.request.contextPath}/manager/brands">
                         <input type="hidden" name="action" value="move-products">
                         <input type="hidden" name="brandId" value="${selectedBrand.id}">
@@ -133,6 +139,7 @@
                             <table>
                                 <thead><tr><th class="selection-cell">Select</th><th>No.</th><th>Product name</th><th>Current brand</th><th>Categories</th><th>Status</th></tr></thead>
                                 <tbody>
+                                    <%-- movableProducts không chứa product vốn đã thuộc brand đang xem. --%>
                                     <c:forEach items="${movableProducts}" var="product" varStatus="row">
                                         <tr data-brand-product-row data-search-text="<c:out value='${product.name} ${product.brandName}'/>">
                                             <td class="selection-cell"><input type="checkbox" name="productIds" value="${product.id}" aria-label="Select product"></td>
@@ -163,6 +170,7 @@
             </div>
         </main>
 
+        <%-- JS modal được đặt cuối trang để các data-* đã tồn tại trong DOM. --%>
         <script src="${pageContext.request.contextPath}/assets/js/store.js"></script>
         <script src="${pageContext.request.contextPath}/assets/js/manager-brand-product-modal.js"></script>
         <%@ include file="/views/common/footer.jsp" %>

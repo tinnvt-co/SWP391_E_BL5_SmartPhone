@@ -1,10 +1,12 @@
 (function () {
+    // Tìm popup Move Products và nút mở; không có thì dừng để tránh lỗi ở trang khác.
     const modal = document.querySelector('[data-brand-product-modal]');
     const openButton = document.querySelector('[data-open-brand-product-modal]');
     if (!modal || !openButton) {
         return;
     }
 
+    // Lấy các dòng product cùng thành phần tìm kiếm, phân trang, form và tổng kết lựa chọn.
     const rows = Array.from(modal.querySelectorAll('[data-brand-product-row]'));
     const search = modal.querySelector('[data-brand-product-search]');
     const emptyRow = modal.querySelector('[data-brand-product-empty]');
@@ -17,6 +19,7 @@
     const pageSize = 10;
     let currentPage = 1;
 
+    // Trả về những dòng có tên/SKU/brand chứa từ khóa đang nhập.
     function matchingRows() {
         const keyword = search.value.trim().toLocaleLowerCase();
         return rows.filter(function (row) {
@@ -24,6 +27,7 @@
         });
     }
 
+    // Phân trang danh sách đã lọc, ẩn/hiện dòng và cập nhật thông tin lựa chọn.
     function render() {
         const matches = matchingRows();
         const totalPages = Math.max(1, Math.ceil(matches.length / pageSize));
@@ -49,6 +53,7 @@
         selectionLabel.textContent = selected + ' product(s) selected';
     }
 
+    // Hiện popup, khóa cuộn trang nền, focus ô search rồi hiển thị trang hiện tại.
     function openModal() {
         modal.hidden = false;
         document.body.classList.add('category-product-modal-open');
@@ -56,11 +61,13 @@
         render();
     }
 
+    // Ẩn popup và cho phép trang nền cuộn lại.
     function closeModal() {
         modal.hidden = true;
         document.body.classList.remove('category-product-modal-open');
     }
 
+    // Gắn các sự kiện mở/đóng, tìm kiếm, phân trang và cập nhật checkbox.
     openButton.addEventListener('click', openModal);
     modal.querySelectorAll('[data-close-brand-product-modal]').forEach(function (button) {
         button.addEventListener('click', closeModal);
@@ -71,6 +78,7 @@
     rows.forEach(function (row) {
         row.querySelector('input[type="checkbox"]').addEventListener('change', render);
     });
+    // Chặn submit nếu chưa chọn product và yêu cầu xác nhận trước khi chuyển brand.
     form.addEventListener('submit', function (event) {
         const selected = rows.filter(function (row) {
             return row.querySelector('input[type="checkbox"]').checked;
@@ -84,6 +92,7 @@
             event.preventDefault();
         }
     });
+    // Đóng popup khi bấm vùng nền hoặc nhấn Escape.
     modal.addEventListener('click', function (event) {
         if (event.target === modal) { closeModal(); }
     });

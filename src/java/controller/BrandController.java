@@ -23,6 +23,7 @@ public class BrandController extends HttpServlet {
     private final ProductDAO productDAO = new ProductDAO();
     private static final int PRODUCTS_PER_PAGE = 10;
 
+    // Nhận GET và điều hướng đến danh sách, form Add/Edit hoặc trang Products của brand.
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -40,6 +41,7 @@ public class BrandController extends HttpServlet {
         }
     }
 
+    // Nhận POST để Save, đổi trạng thái hoặc chuyển các product sang brand.
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -68,6 +70,7 @@ public class BrandController extends HttpServlet {
         }
     }
 
+    // Đọc trạng thái yêu cầu, kiểm tra brand tồn tại rồi cập nhật qua DAO.
     private void handleSetStatus(HttpServletRequest request,
             HttpServletResponse response, String action)
             throws SQLException, IOException {
@@ -86,12 +89,13 @@ public class BrandController extends HttpServlet {
             return;
         }
 
-        // Brands are soft-deactivated because products and old orders may still refer to them.
+        // Brand được xóa mềm vì product và đơn hàng cũ vẫn có thể tham chiếu đến nó.
         boolean activate = "ACTIVE".equals(requestedStatus);
         brandDAO.setActive(brandId, activate);
         redirectToList(request, response);
     }
 
+    // Đọc Brand Form, validate dữ liệu/trùng tên rồi gọi DAO lưu Add hoặc Edit.
     private void handleSave(HttpServletRequest request,
             HttpServletResponse response)
             throws SQLException, ServletException, IOException {
@@ -105,7 +109,7 @@ public class BrandController extends HttpServlet {
             return;
         }
 
-        // Validate user input before checking the normalized name in the database.
+        // Validate dữ liệu người dùng trước khi kiểm tra tên đã chuẩn hóa trong database.
         String error = validateBrand(brand, request.getParameter("status"));
 
         if (error != null) {
@@ -123,12 +127,14 @@ public class BrandController extends HttpServlet {
         redirectToList(request, response);
     }
 
+    // Redirect về Brand Management và đính kèm thông báo thành công.
     private void redirectToList(HttpServletRequest request,
             HttpServletResponse response) throws IOException {
         response.sendRedirect(request.getContextPath()
                 + "/manager/brands?message=Saved");
     }
 
+    // Lấy toàn bộ brand kèm số product rồi forward sang trang danh sách.
     private void showList(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
         request.setAttribute("brands", brandDAO.findAll(false));
@@ -136,6 +142,7 @@ public class BrandController extends HttpServlet {
                 .forward(request, response);
     }
 
+    // Tạo brand rỗng khi Add hoặc tải brand theo ID khi Edit.
     private void showForm(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
         int brandId = ProductController.integer(request.getParameter("id"), 0);
@@ -144,7 +151,7 @@ public class BrandController extends HttpServlet {
             return;
         }
 
-        // The same JSP is reused: ID 0 = Add Brand, ID > 0 = Edit Brand.
+        // Dùng chung một JSP: ID bằng 0 là Add Brand, ID lớn hơn 0 là Edit Brand.
         BrandModel brand = brandId > 0
                 ? brandDAO.findById(brandId)
                 : new BrandModel();
@@ -162,6 +169,7 @@ public class BrandController extends HttpServlet {
                 .forward(request, response);
     }
 
+    // Chuyển các tham số từ Brand Form thành BrandModel đã chuẩn hóa.
     private BrandModel readBrand(HttpServletRequest request) {
         BrandModel brand = new BrandModel();
         brand.setId(ProductController.integer(request.getParameter("id"), 0));
@@ -172,8 +180,9 @@ public class BrandController extends HttpServlet {
         return brand;
     }
 
+    // Kiểm tra tên, mô tả và status; trả lỗi đầu tiên hoặc null nếu hợp lệ.
     private String validateBrand(BrandModel brand, String status) {
-        // Server-side rules protect the application even when HTML validation is bypassed.
+        // Quy tắc phía server vẫn bảo vệ hệ thống khi validation HTML bị vượt qua.
         if (brand.getName() == null || brand.getName().isBlank()) {
             return "Brand name is required.";
         }
@@ -207,6 +216,7 @@ public class BrandController extends HttpServlet {
         return null;
     }
 
+    // Hiển thị product của brand, phân trang và chuẩn bị product brand khác cho popup Move.
     private void showProducts(HttpServletRequest request,
             HttpServletResponse response)
             throws SQLException, ServletException, IOException {
@@ -233,7 +243,7 @@ public class BrandController extends HttpServlet {
         List<ProductModel> products = productDAO.findAll(keyword, brandId,
                 null, sort, false, PRODUCTS_PER_PAGE,
                 (currentPage - 1) * PRODUCTS_PER_PAGE);
-        // The move dialog must not show products that already belong to this brand.
+        // Popup Move không được hiển thị product vốn đã thuộc brand hiện tại.
         List<ProductModel> otherProducts = productDAO.findAll(
                 null, null, null, "newest", false);
         otherProducts.removeIf(product -> product.getBrandId() == brandId);
@@ -254,6 +264,7 @@ public class BrandController extends HttpServlet {
                 .forward(request, response);
     }
 
+    // Chỉ chấp nhận các giá trị sort hợp lệ, sai hoặc trống thì dùng newest.
     private String normalizeProductSort(String sort) {
         if ("price-asc".equals(sort) || "price-desc".equals(sort)) {
             return sort;
@@ -261,6 +272,7 @@ public class BrandController extends HttpServlet {
         return "newest";
     }
 
+    // Đọc productIds được chọn, loại ID sai/trùng rồi chuyển chúng sang brand hiện tại.
     private void moveProducts(HttpServletRequest request,
             HttpServletResponse response) throws SQLException, IOException {
         int brandId = ProductController.integer(
@@ -276,7 +288,7 @@ public class BrandController extends HttpServlet {
             return;
         }
 
-        // LinkedHashSet removes duplicate IDs while keeping the submitted order.
+        // LinkedHashSet loại ID trùng nhưng vẫn giữ thứ tự được gửi từ form.
         LinkedHashSet<Integer> productIds = new LinkedHashSet<>();
         String[] submittedIds = request.getParameterValues("productIds");
         if (submittedIds != null) {
@@ -298,6 +310,7 @@ public class BrandController extends HttpServlet {
                 movedProducts + " product(s) moved to " + brand.getName() + ".");
     }
 
+    // Redirect về trang Products của brand và mang theo thông báo kết quả.
     private void redirectToProducts(HttpServletRequest request,
             HttpServletResponse response, int brandId, String message)
             throws IOException {
@@ -307,18 +320,21 @@ public class BrandController extends HttpServlet {
                         StandardCharsets.UTF_8));
     }
 
+    // Kiểm tra tên brand chỉ gồm chữ, số và khoảng trắng đơn giữa các từ.
     private boolean isPlainText(String value) {
         return value.matches("^[\\p{L}\\p{N}]+(?: [\\p{L}\\p{N}]+)*$");
     }
 
+    // Cắt khoảng trắng hai đầu và gộp khoảng trắng lặp trước khi validate/lưu.
     private String normalizeText(String value) {
         if (value == null) {
             return null;
         }
-        // Normalize before validation so duplicate spaces cannot create fake new names.
+        // Chuẩn hóa trước khi validate để khoảng trắng lặp không tạo ra tên mới giả.
         return value.trim().replaceAll("\\s+", " ");
     }
 
+    // Giữ lại dữ liệu đã nhập, đặt thông báo lỗi và forward lại Brand Form.
     private void showFormError(HttpServletRequest request,
             HttpServletResponse response, BrandModel brand, String error)
             throws ServletException, IOException {

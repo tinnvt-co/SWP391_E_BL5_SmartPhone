@@ -174,6 +174,7 @@
                 </section>
             </c:if>
 
+            <%-- HomeController truyền category ACTIVE; mỗi card dẫn tới /products?category={id}. --%>
             <section class="section-band section-soft" id="categories">
                 <div class="container">
                     <div class="section-header">
@@ -182,6 +183,7 @@
                             <p>Quick paths into the current catalog.</p>
                         </div>
                     </div>
+                    <%-- Các data-* là điểm móc để home-category-carousel.js điều khiển cuộn ngang. --%>
                     <div class="category-carousel" data-category-carousel>
                         <button class="category-arrow previous" type="button"
                                 data-category-previous aria-label="Previous categories">

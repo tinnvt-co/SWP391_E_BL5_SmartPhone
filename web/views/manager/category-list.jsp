@@ -13,6 +13,7 @@
         <c:set var="activePage" value="manager" scope="request"/>
         <%@ include file="/views/common/header.jsp" %>
 
+        <%-- Trang hiển thị danh sách category do CategoryController đưa vào request. --%>
         <main class="page-shell">
             <div class="page-heading">
                 <div>
@@ -28,10 +29,12 @@
                 </div>
             </div>
 
+            <%-- Thông báo xuất hiện sau redirect Save hoặc đổi trạng thái thành công. --%>
             <c:if test="${not empty param.message}">
                 <div class="alert success">Category saved successfully.</div>
             </c:if>
 
+            <%-- Mỗi category tạo một card; category INACTIVE được thêm class muted. --%>
             <section class="entity-grid list-style">
                 <c:forEach items="${categories}" var="category">
                     <article class="entity-card ${!category.active ? 'muted' : ''}">
@@ -43,6 +46,7 @@
                         </div>
 
                         <div class="actions">
+                            <%-- Chỉ category ACTIVE mới được mở Products và Edit. --%>
                             <c:if test="${category.active}">
                                 <a class="btn subtle"
                                    href="${pageContext.request.contextPath}/manager/products?category=${category.id}&from=category">
@@ -53,6 +57,7 @@
                                     Edit
                                 </a>
                             </c:if>
+                            <%-- POST action set-status; status mới phụ thuộc trạng thái hiện tại. --%>
                             <form method="post" onsubmit="return confirmStatusChange('category', ${!category.active})">
                                 <input type="hidden" name="action" value="set-status">
                                 <input type="hidden" name="id" value="${category.id}">

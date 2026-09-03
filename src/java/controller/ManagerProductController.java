@@ -30,7 +30,7 @@ import model.ProductVariantModel;
 import validation.ProductBrandValidator;
 
 @WebServlet(name = "ManagerProductController", urlPatterns = {"/manager/products"})
-// Multipart limits protect the server: 5 MB per image and 60 MB per form request.
+// Giới hạn multipart bảo vệ server: tối đa 5 MB mỗi ảnh và 60 MB mỗi request form.
 @MultipartConfig(fileSizeThreshold = 1024 * 1024,
         maxFileSize = 5 * 1024 * 1024,
         maxRequestSize = 60 * 1024 * 1024)
@@ -48,17 +48,17 @@ public class ManagerProductController extends HttpServlet {
     private final BrandDAO brandDAO = new BrandDAO();
     private final CategoryDAO categoryDAO = new CategoryDAO();
 
+    // Nhận GET và điều hướng đến danh sách hoặc form Add/Edit product.
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // One servlet handles the list, Add/Edit form, and category picker by action.
+        // Một servlet xử lý danh sách và form Add/Edit dựa trên action.
         String action = ProductController.value(
                 request.getParameter("action"), "list");
 
         try {
             switch (action) {
-                case "form" -> handleForm(request, response);
-                case "category-picker" -> showCategoryPicker(request, response);
+                case "form" -> showForm(request, response);
                 default -> handleList(request, response);
             }
         } catch (SQLException exception) {
@@ -66,11 +66,12 @@ public class ManagerProductController extends HttpServlet {
         }
     }
 
+    // Nhận POST thay đổi dữ liệu: Save, Deactivate và thêm/gỡ product khỏi category.
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
-        // POST actions change data; an unknown action falls back to saving the form.
+        // Action POST làm thay đổi dữ liệu; action không xác định sẽ mặc định Save form.
         String action = ProductController.value(
                 request.getParameter("action"), "save");
 
@@ -90,32 +91,11 @@ public class ManagerProductController extends HttpServlet {
         }
     }
 
-    private void handleForm(HttpServletRequest request,
-            HttpServletResponse response)
-            throws SQLException, ServletException, IOException {
-        Integer categoryId = ProductController.integerOrNull(
-                request.getParameter("category"));
-        int productId = ProductController.integer(
-                request.getParameter("id"), 0);
-        if (productId < 0) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-            return;
-        }
-
-        // category + no product ID means "select existing products for a category",
-        // while a product ID (or no category) means the normal Add/Edit form.
-        if (categoryId != null && productId == 0) {
-            showCategoryPicker(request, response);
-            return;
-        }
-
-        showForm(request, response);
-    }
-
+    // Đọc bộ lọc, tính phân trang, lấy product và chuẩn bị dữ liệu popup Category Products.
     private void handleList(HttpServletRequest request,
             HttpServletResponse response)
             throws SQLException, ServletException, IOException {
-        // Read optional filters first; null values mean that filter is not applied.
+        // Đọc các bộ lọc tùy chọn; giá trị null nghĩa là không áp dụng bộ lọc đó.
         Integer brandId = ProductController.integerOrNull(
                 request.getParameter("brand"));
         Integer categoryId = ProductController.integerOrNull(
@@ -123,7 +103,7 @@ public class ManagerProductController extends HttpServlet {
         boolean fromCategory = categoryId != null
                 && "category".equals(request.getParameter("from"));
 
-        // Category product management is available only for active categories.
+        // Chỉ category ACTIVE mới được phép quản lý danh sách product.
         if (fromCategory) {
             CategoryModel selectedCategory = categoryDAO.findById(categoryId);
             if (selectedCategory == null || !selectedCategory.isActive()) {
@@ -138,7 +118,7 @@ public class ManagerProductController extends HttpServlet {
         String priceRange = ProductController.normalizePriceRange(
                 request.getParameter("priceRange"));
 
-        // Count and data queries use the same filters so pagination stays correct.
+        // Câu đếm và câu lấy dữ liệu dùng cùng bộ lọc để phân trang luôn chính xác.
         int filteredTotal = productDAO.countAll(
                 keyword, brandId, categoryId, priceRange, false);
         int totalPages = Math.max(1,
@@ -147,7 +127,7 @@ public class ManagerProductController extends HttpServlet {
                 request.getParameter("page"), 1);
         currentPage = Math.max(1, Math.min(currentPage, totalPages));
 
-        // OFFSET skips previous pages; PAGE_SIZE limits this page to 10 products.
+        // OFFSET bỏ qua các trang trước; PAGE_SIZE giới hạn trang hiện tại còn 10 product.
         List<ProductModel> products = productDAO.findAll(
                 keyword, brandId, categoryId, priceRange, sort, false,
                 PAGE_SIZE, (currentPage - 1) * PAGE_SIZE);
@@ -176,6 +156,7 @@ public class ManagerProductController extends HttpServlet {
                 .forward(request, response);
     }
 
+    // Nạp tên category và các product chưa thuộc category để hiển thị trong popup.
     private void loadSelectedCategory(HttpServletRequest request,
             Integer categoryId, boolean fromCategory) throws SQLException {
         if (categoryId == null) {
@@ -197,6 +178,7 @@ public class ManagerProductController extends HttpServlet {
         }
     }
 
+    // Xóa mềm product bằng cách chuyển trạng thái sang INACTIVE.
     private void handleDeactivate(HttpServletRequest request,
             HttpServletResponse response) throws SQLException, IOException {
         int productId = ProductController.integer(
@@ -205,14 +187,15 @@ public class ManagerProductController extends HttpServlet {
         redirect(response, request, "Product deactivated");
     }
 
+    // Điều phối luồng Save: đọc form, validate, kiểm tra trùng, lưu ảnh rồi gọi DAO.
     private void handleSave(HttpServletRequest request,
             HttpServletResponse response) throws ServletException, IOException {
         List<Path> uploadedFiles = new ArrayList<>();
         ProductModel product = null;
 
         try {
-            // Validation order: map form -> business rules -> database uniqueness
-            // -> brand warning -> image files -> database transaction.
+            // Thứ tự kiểm tra: đọc form -> luật nghiệp vụ -> dữ liệu duy nhất trong database
+            // -> cảnh báo brand -> file ảnh -> transaction database.
             product = read(request);
             if (product.getId() < 0) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST);
@@ -236,8 +219,8 @@ public class ManagerProductController extends HttpServlet {
                 return;
             }
 
-            // A suspicious brand is a warning, not a hard error, because model names
-            // are not always sufficient to determine the real manufacturer.
+            // Brand đáng ngờ chỉ tạo cảnh báo, không phải lỗi bắt buộc, vì tên model
+            // không phải lúc nào cũng đủ để xác định chính xác nhà sản xuất.
             String brandWarning = brandMismatchWarning(product);
             if (brandWarning != null
                     && !"true".equals(request.getParameter(
@@ -254,7 +237,7 @@ public class ManagerProductController extends HttpServlet {
                 return;
             }
 
-            // DAO.save inserts/updates the product, categories and variants atomically.
+            // DAO.save thêm/cập nhật product, category và variant trong một transaction.
             productDAO.save(product);
             redirect(response, request, "Product saved");
         } catch (IllegalStateException exception) {
@@ -273,47 +256,7 @@ public class ManagerProductController extends HttpServlet {
         }
     }
 
-    private void showCategoryPicker(HttpServletRequest request,
-            HttpServletResponse response)
-            throws SQLException, ServletException, IOException {
-        int categoryId = ProductController.integer(
-                request.getParameter("category"), 0);
-        CategoryModel category = categoryId > 0
-                ? categoryDAO.findById(categoryId) : null;
-        if (category == null) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND);
-            return;
-        }
-
-        String keyword = request.getParameter("q");
-        Set<Integer> assignedIds = categoryDAO.findProductIds(categoryId);
-        List<ProductModel> allAvailableProducts = productDAO.findAll(
-                keyword, null, null, "newest", false, assignedIds);
-
-        int filteredTotal = allAvailableProducts.size();
-        int totalPages = Math.max(1,
-                (int) Math.ceil((double) filteredTotal / PAGE_SIZE));
-        int currentPage = ProductController.integer(
-                request.getParameter("page"), 1);
-        currentPage = Math.max(1, Math.min(currentPage, totalPages));
-        int fromIndex = (currentPage - 1) * PAGE_SIZE;
-        int toIndex = Math.min(fromIndex + PAGE_SIZE, filteredTotal);
-        List<ProductModel> availableProducts = new ArrayList<>(
-                allAvailableProducts.subList(fromIndex, toIndex));
-
-        request.setAttribute("category", category);
-        request.setAttribute("keyword", keyword);
-        request.setAttribute("availableProducts", availableProducts);
-        request.setAttribute("filteredTotal", filteredTotal);
-        request.setAttribute("currentPage", currentPage);
-        request.setAttribute("totalPages", totalPages);
-        request.setAttribute("pageStart", filteredTotal == 0 ? 0 : fromIndex + 1);
-        request.setAttribute("pageEnd", toIndex);
-        request.getRequestDispatcher(
-                "/views/manager/category-product-picker.jsp")
-                .forward(request, response);
-    }
-
+    // Đọc các product được chọn, loại ID sai/trùng rồi thêm quan hệ Product-Category.
     private void addProductsToCategory(HttpServletRequest request,
             HttpServletResponse response) throws SQLException, IOException {
         int categoryId = ProductController.integer(
@@ -336,7 +279,7 @@ public class ManagerProductController extends HttpServlet {
         }
 
         if (productIds.isEmpty()) {
-            redirectToCategoryPicker(response, request, categoryId,
+            redirectToCategoryProductsWithError(response, request, categoryId,
                     "Please select at least one product.");
             return;
         }
@@ -346,6 +289,7 @@ public class ManagerProductController extends HttpServlet {
                 productIds.size() + " product(s) added to category.");
     }
 
+    // Gỡ một product khỏi category nhưng không xóa bản ghi Product.
     private void removeProductFromCategory(HttpServletRequest request,
             HttpServletResponse response) throws SQLException, IOException {
         int categoryId = ProductController.integer(
@@ -363,6 +307,7 @@ public class ManagerProductController extends HttpServlet {
                         : "Product was not in this category.");
     }
 
+    // Tạo model rỗng khi Add hoặc tải product cũ khi Edit rồi forward sang Product Form.
     private void showForm(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
         int productId = ProductController.integer(request.getParameter("id"), 0);
@@ -371,7 +316,7 @@ public class ManagerProductController extends HttpServlet {
             return;
         }
 
-        // ID 0 creates an empty model for Add; ID > 0 loads the model for Edit.
+        // ID bằng 0 tạo model rỗng cho Add; ID lớn hơn 0 tải model cũ cho Edit.
         ProductModel product = productId > 0
                 ? productDAO.findById(productId)
                 : new ProductModel();
@@ -398,6 +343,7 @@ public class ManagerProductController extends HttpServlet {
                 .forward(request, response);
     }
 
+    // Nạp danh sách brand và category ACTIVE cho các ô lựa chọn trong Product Form.
     private void loadChoices(HttpServletRequest request) throws SQLException {
         request.setAttribute("brands", brandDAO.findAll(true));
         request.setAttribute("categories", categoryDAO.findAll(true));
@@ -406,8 +352,9 @@ public class ManagerProductController extends HttpServlet {
         request.setAttribute("maxReleaseYear", Year.now().getValue());
     }
 
+    // Chuyển toàn bộ tham số request thành ProductModel trước khi validate và lưu.
     private ProductModel read(HttpServletRequest request) {
-        // Convert all submitted form parameters into one ProductModel before validation.
+        // Chuyển toàn bộ tham số form thành một ProductModel trước khi validate.
         ProductModel product = new ProductModel();
         product.setId(ProductController.integer(request.getParameter("id"), 0));
         product.setName(normalizeText(request.getParameter("name")));
@@ -436,13 +383,14 @@ public class ManagerProductController extends HttpServlet {
         return product;
     }
 
+    // Đọc mảng categoryIds từ form và gắn các ID hợp lệ vào product.
     private void readCategories(HttpServletRequest request, ProductModel product) {
         String[] values = request.getParameterValues("categoryIds");
         if (values == null) {
             return;
         }
 
-        // A product may have many categories; Set prevents duplicate category IDs.
+        // Một product có thể có nhiều category; Set ngăn category ID bị trùng.
         Set<Integer> uniqueIds = new HashSet<>();
         for (String value : values) {
             int categoryId = ProductController.integer(value, 0);
@@ -454,14 +402,15 @@ public class ManagerProductController extends HttpServlet {
         }
     }
 
+    // Ghép các mảng variant cùng index thành từng ProductVariantModel.
     private void readVariants(HttpServletRequest request, ProductModel product) {
         String[] ramValues = request.getParameterValues("variantRam");
         if (ramValues == null) {
             return;
         }
 
-        // Variant fields are submitted as parallel arrays; the same index represents
-        // one RAM/storage/color/price/images combination.
+        // Các trường variant được gửi thành những mảng song song; cùng một index đại diện
+        // cho một tổ hợp RAM/bộ nhớ/màu/giá/ảnh.
         for (int index = 0; index < ramValues.length; index++) {
             ProductVariantModel variant = new ProductVariantModel();
             variant.setId(integerAt(request, "variantId", index));
@@ -479,16 +428,18 @@ public class ManagerProductController extends HttpServlet {
         }
     }
 
+    // Lấy tên file upload ở một dòng; nếu chưa chọn file mới thì giữ tên ảnh hiện tại.
     private String uploadedNameAt(HttpServletRequest request, String partName,
             String existingName, int index) {
         List<Part> parts = partsByName(request, partName);
         if (index < parts.size() && parts.get(index).getSize() > 0) {
             return safeFileName(parts.get(index).getSubmittedFileName());
         }
-        // During Edit, no new upload means the current image name is kept.
+        // Khi Edit, không chọn ảnh mới nghĩa là giữ lại tên ảnh hiện tại.
         return valueAt(request, existingName, index);
     }
 
+    // Gom tất cả multipart Part có cùng name để xử lý ảnh theo từng dòng variant.
     private List<Part> partsByName(HttpServletRequest request, String name) {
         List<Part> result = new ArrayList<>();
         try {
@@ -503,18 +454,21 @@ public class ManagerProductController extends HttpServlet {
         return result;
     }
 
+    // Lấy phần tử tại index trong mảng request và chuyển thành int, sai định dạng thì trả 0.
     private int integerAt(HttpServletRequest request, String name, int index) {
         return ProductController.integer(valueAt(request, name, index), 0);
     }
 
+    // Lấy an toàn một giá trị theo index trong mảng tham số request.
     private String valueAt(HttpServletRequest request, String name, int index) {
         String[] values = request.getParameterValues(name);
         return values != null && index < values.length ? values[index] : "";
     }
 
+    // Kiểm tra toàn bộ dữ liệu Product và từng variant; trả lỗi đầu tiên hoặc null nếu hợp lệ.
     private String validate(ProductModel product) {
-        // Server-side validation is mandatory because browser validation can be bypassed.
-        // Returning the first error keeps the form flow simple and easy to explain.
+        // Validation phía server là bắt buộc vì validation trình duyệt có thể bị vượt qua.
+        // Trả về lỗi đầu tiên giúp luồng form đơn giản và dễ giải thích.
         if (product.getName() == null || product.getName().isBlank()) {
             return "Product name is required.";
         }
@@ -559,7 +513,7 @@ public class ManagerProductController extends HttpServlet {
             return "Add at least one product variant.";
         }
 
-        // These sets detect duplicates inside the same submitted form before SQL runs.
+        // Các Set phát hiện dữ liệu trùng ngay trong form trước khi chạy SQL.
         Set<String> options = new HashSet<>();
         Set<String> frontImages = new HashSet<>();
 
@@ -615,6 +569,7 @@ public class ManagerProductController extends HttpServlet {
         return null;
     }
 
+    // Kiểm tra tên ảnh bắt buộc và phần mở rộng JPG, JPEG, PNG hoặc WEBP.
     private String validateImage(String row, String imageName, String view) {
         if (imageName == null || imageName.isBlank()) {
             return row + view + " image file name is required.";
@@ -626,9 +581,10 @@ public class ManagerProductController extends HttpServlet {
         return null;
     }
 
+    // Hỏi DAO để kiểm tra tên product, SKU, ảnh trước và tổ hợp variant có bị trùng trong DB không.
     private String validateUniqueData(ProductModel product) throws SQLException {
-        // These rules require current database data, so they cannot be checked reliably
-        // by the JSP alone. The current ID is excluded when editing the same record.
+        // Các quy tắc này cần dữ liệu hiện tại trong database nên JSP không thể tự kiểm tra chính xác.
+        // Khi Edit phải loại ID hiện tại để bản ghi không bị coi là trùng với chính nó.
         if (productDAO.existsProductName(product.getName(), product.getId())) {
             return "Product name already exists.";
         }
@@ -655,6 +611,7 @@ public class ManagerProductController extends HttpServlet {
         return null;
     }
 
+    // Cảnh báo khi tên product có dấu hiệu thuộc brand khác với brand đang chọn.
     private String brandMismatchWarning(ProductModel product)
             throws SQLException {
         BrandModel selectedBrand = brandDAO.findById(product.getBrandId());
@@ -680,9 +637,10 @@ public class ManagerProductController extends HttpServlet {
                 + ". Check the information or choose Save anyway.";
     }
 
+    // Ghép các file front/back theo từng variant và lưu chúng; trả lỗi nếu một ảnh không hợp lệ.
     private String saveUploadedImages(HttpServletRequest request,
             ProductModel product, List<Path> uploadedFiles) {
-        // Front and back uploads are matched to variants by their row index.
+        // Ảnh trước và ảnh sau được ghép với variant dựa trên index của dòng.
         try {
             List<Part> frontParts = partsByName(request, "variantImageFile");
             List<Part> backParts = partsByName(request, "variantBackImageFile");
@@ -708,10 +666,12 @@ public class ManagerProductController extends HttpServlet {
         }
     }
 
+    // Lấy Part theo index; trả null nếu dòng hiện tại không có file tương ứng.
     private Part partAt(List<Part> parts, int index) {
         return index < parts.size() ? parts.get(index) : null;
     }
 
+    // Validate dung lượng/nội dung/trùng tên rồi sao chép một ảnh vào các thư mục chạy ứng dụng.
     private String saveImagePart(Part part, String fileName, String label,
             List<Path> uploadedFiles) throws IOException {
         if (part == null || part.getSize() == 0) {
@@ -721,13 +681,13 @@ public class ManagerProductController extends HttpServlet {
         if (part.getSize() > 5L * 1024 * 1024) {
             return label + " must be 5 MB or smaller.";
         }
-        // Check file signatures, not only extensions, to reject renamed non-images.
+        // Kiểm tra chữ ký file, không chỉ đuôi file, để loại file giả ảnh do đổi tên.
         if (!validImageContent(part, fileName)) {
             return label + " must be a real JPG, JPEG, PNG or WEBP image.";
         }
 
         List<Path> directories = uploadDirectories();
-        // Validate every target before copying so a partial upload is less likely.
+        // Kiểm tra mọi đường dẫn đích trước khi sao chép để hạn chế upload dở dang.
         for (Path directory : directories) {
             Files.createDirectories(directory);
             Path target = directory.resolve(fileName).normalize();
@@ -749,6 +709,7 @@ public class ManagerProductController extends HttpServlet {
         return null;
     }
 
+    // Đọc magic bytes của file để xác nhận nội dung thật đúng định dạng, không chỉ dựa vào đuôi tên.
     private boolean validImageContent(Part part, String fileName) throws IOException {
         String lowerName = fileName.toLowerCase();
         byte[] header = new byte[12];
@@ -772,6 +733,7 @@ public class ManagerProductController extends HttpServlet {
                 && header[10] == 'B' && header[11] == 'P';
     }
 
+    // Xác định các thư mục ảnh cần đồng bộ giữa source và thư mục ứng dụng đang deploy.
     private List<Path> uploadDirectories() throws IOException {
         String realPath = getServletContext().getRealPath(IMAGE_FOLDER);
         if (realPath == null) {
@@ -779,8 +741,8 @@ public class ManagerProductController extends HttpServlet {
         }
 
         List<Path> directories = new ArrayList<>();
-        // Save to the deployed folder for immediate display and to the source folder
-        // so the image remains available after the next clean/redeploy.
+        // Lưu vào thư mục deploy để hiển thị ngay và thư mục source để ảnh vẫn còn
+        // sau lần clean/deploy tiếp theo.
         Path runtimeDirectory = Paths.get(realPath).toAbsolutePath().normalize();
         directories.add(runtimeDirectory);
 
@@ -802,6 +764,7 @@ public class ManagerProductController extends HttpServlet {
         return directories;
     }
 
+    // Kiểm tra ảnh cũ còn tồn tại trong tài nguyên của ứng dụng hay không.
     private boolean imageExists(String fileName) {
         if (fileName == null || fileName.isBlank()) {
             return false;
@@ -814,6 +777,7 @@ public class ManagerProductController extends HttpServlet {
         }
     }
 
+    // Loại phần đường dẫn khỏi tên file upload để ngăn ghi file ra ngoài thư mục cho phép.
     private String safeFileName(String submittedName) {
         if (submittedName == null || submittedName.isBlank()) {
             return "";
@@ -825,8 +789,9 @@ public class ManagerProductController extends HttpServlet {
         }
     }
 
+    // Xóa các ảnh vừa lưu nếu bước Save sau đó thất bại để tránh file rác.
     private void deleteUploadedFiles(List<Path> files) {
-        // Roll back files written before a later validation or database failure.
+        // Xóa hoàn tác các file đã ghi nếu validation sau đó hoặc database bị lỗi.
         for (Path file : files) {
             try {
                 Files.deleteIfExists(file);
@@ -835,10 +800,11 @@ public class ManagerProductController extends HttpServlet {
         }
     }
 
+    // Khôi phục dữ liệu form, đánh dấu vị trí lỗi và forward lại Product Form.
     private void forwardFormWithError(HttpServletRequest request,
             HttpServletResponse response, ProductModel product, String error)
             throws ServletException, IOException {
-        // Forward (not redirect) preserves submitted values and the error for the JSP.
+        // Dùng forward thay vì redirect để giữ dữ liệu đã nhập và lỗi cho JSP.
         restoreExistingImageNames(request, product);
         exposeErrorLocation(request, error);
         request.setAttribute("error", error);
@@ -853,9 +819,10 @@ public class ManagerProductController extends HttpServlet {
                 .forward(request, response);
     }
 
+    // Chuyển nội dung lỗi thành tên field/index variant để JSP tô đỏ đúng ô.
     private void exposeErrorLocation(HttpServletRequest request, String error) {
-        // Translate the returned error into field names so the JSP can draw red borders
-        // on the exact invalid input without duplicating business validation in JavaScript.
+        // Chuyển lỗi thành tên field để JSP tô viền đỏ đúng ô nhập sai
+        // mà không phải lặp lại validation nghiệp vụ trong JavaScript.
         Set<String> errorFields = new HashSet<>();
         int errorVariantIndex = -1;
         boolean errorAllVariants = false;
@@ -916,6 +883,7 @@ public class ManagerProductController extends HttpServlet {
         request.setAttribute("errorAllVariants", errorAllVariants);
     }
 
+    // Forward lại form với cảnh báo brand và yêu cầu người dùng xác nhận trước khi Save.
     private void forwardFormWithBrandWarning(HttpServletRequest request,
             HttpServletResponse response, ProductModel product, String warning)
             throws ServletException, IOException {
@@ -933,6 +901,7 @@ public class ManagerProductController extends HttpServlet {
                 .forward(request, response);
     }
 
+    // Khôi phục tên ảnh cũ vào model vì trình duyệt không gửi lại nội dung file input.
     private void restoreExistingImageNames(HttpServletRequest request,
             ProductModel product) {
         try {
@@ -946,8 +915,9 @@ public class ManagerProductController extends HttpServlet {
         }
     }
 
+    // Chuyển lỗi ràng buộc SQL thành thông báo an toàn và dễ hiểu cho người dùng.
     private String friendly(SQLException exception) {
-        // Convert database constraint messages into safe, understandable form errors.
+        // Chuyển thông báo ràng buộc database thành lỗi form an toàn và dễ hiểu.
         if (exception.getErrorCode() == 1062) {
             String detail = exception.getMessage() == null
                     ? "" : exception.getMessage().toLowerCase();
@@ -970,6 +940,7 @@ public class ManagerProductController extends HttpServlet {
         return "Database error: " + exception.getMessage();
     }
 
+    // Redirect về Product Management và gắn thông báo thành công trên URL.
     private void redirect(HttpServletResponse response, HttpServletRequest request,
             String message) throws IOException {
         String encodedMessage = URLEncoder.encode(message, StandardCharsets.UTF_8);
@@ -977,18 +948,21 @@ public class ManagerProductController extends HttpServlet {
                 + "/manager/products?message=" + encodedMessage);
     }
 
+    // Cắt khoảng trắng hai đầu và gộp nhiều khoảng trắng liên tiếp thành một.
     private String normalizeText(String value) {
         if (value == null) {
             return null;
         }
-        // Trim edges and collapse repeated spaces before validation and persistence.
+        // Cắt khoảng trắng hai đầu và gộp khoảng trắng lặp trước khi validate và lưu.
         return value.trim().replaceAll("\\s+", " ");
     }
 
+    // Cắt khoảng trắng hai đầu nhưng vẫn giữ null nếu đầu vào là null.
     private String trim(String value) {
         return value == null ? null : value.trim();
     }
 
+    // Redirect về danh sách product của category sau khi thêm hoặc gỡ quan hệ thành công.
     private void redirectToCategoryProducts(HttpServletResponse response,
             HttpServletRequest request, int categoryId, String message)
             throws IOException {
@@ -998,12 +972,13 @@ public class ManagerProductController extends HttpServlet {
                 + "&from=category&message=" + encodedMessage);
     }
 
-    private void redirectToCategoryPicker(HttpServletResponse response,
+    // Redirect về danh sách product của category và mang theo thông báo lỗi.
+    private void redirectToCategoryProductsWithError(HttpServletResponse response,
             HttpServletRequest request, int categoryId, String error)
             throws IOException {
         String encodedError = URLEncoder.encode(error, StandardCharsets.UTF_8);
         response.sendRedirect(request.getContextPath()
-                + "/manager/products?action=category-picker&category="
-                + categoryId + "&error=" + encodedError);
+                + "/manager/products?category=" + categoryId
+                + "&from=category&error=" + encodedError);
     }
 }

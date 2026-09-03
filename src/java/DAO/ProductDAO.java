@@ -55,12 +55,14 @@ public class ProductDAO {
             = "(SELECT MIN(pvf.Selling_price) FROM ProductVariant pvf "
             + "WHERE pvf.ProductID = p.ID AND pvf.Status = 'ACTIVE')";
 
+    // Lấy toàn bộ sản phẩm theo từ khóa/brand/category và thứ tự, không phân trang.
     public List<ProductModel> findAll(String keyword, Integer brandId,
             Integer categoryId, String sort, boolean publicOnly) throws SQLException {
         return findAll(keyword, brandId, categoryId, null, sort,
                 publicOnly, null, 0, 0);
     }
 
+    // Lấy một trang sản phẩm; limit là số dòng mỗi trang, offset là số dòng cần bỏ qua.
     public List<ProductModel> findAll(String keyword, Integer brandId,
             Integer categoryId, String sort, boolean publicOnly, int limit, int offset)
             throws SQLException {
@@ -68,6 +70,7 @@ public class ProductDAO {
                 publicOnly, null, limit, offset);
     }
 
+    // Lấy sản phẩm nhưng loại các ID trong excludeIds; dùng cho popup Category để không hiện sản phẩm đã được gán.
     public List<ProductModel> findAll(String keyword, Integer brandId,
             Integer categoryId, String sort, boolean publicOnly,
             Collection<Integer> excludeIds) throws SQLException {
@@ -75,6 +78,7 @@ public class ProductDAO {
                 publicOnly, excludeIds, 0, 0);
     }
 
+    // Lấy một trang sản phẩm có đầy đủ bộ lọc, gồm cả khoảng giá và thứ tự sắp xếp.
     public List<ProductModel> findAll(String keyword, Integer brandId,
             Integer categoryId, String priceRange, String sort, boolean publicOnly,
             int limit, int offset) throws SQLException {
@@ -82,11 +86,12 @@ public class ProductDAO {
                 publicOnly, null, limit, offset);
     }
 
+    // Hàm chung tạo câu SQL động, gắn tham số an toàn, tải variant/category rồi trả về danh sách sản phẩm.
     private List<ProductModel> findAll(String keyword, Integer brandId,
             Integer categoryId, String priceRange, String sort, boolean publicOnly,
             Collection<Integer> excludeIds, int limit, int offset)
             throws SQLException {
-        // Build one parameterized query from optional filters; placeholders prevent SQL injection.
+        // Tạo câu SQL có tham số từ các bộ lọc tùy chọn; dấu ? giúp ngăn SQL injection.
         StringBuilder sql = new StringBuilder(SELECT_PRODUCTS);
         sql.append("WHERE 1 = 1 ");
 
@@ -155,14 +160,16 @@ public class ProductDAO {
         }
     }
 
+    // Đếm sản phẩm khớp bộ lọc để tính tổng số trang khi không dùng bộ lọc khoảng giá.
     public int countAll(String keyword, Integer brandId,
             Integer categoryId, boolean publicOnly) throws SQLException {
         return countAll(keyword, brandId, categoryId, null, publicOnly);
     }
 
+    // Đếm tổng sản phẩm khớp tất cả bộ lọc; Controller dùng kết quả này để tính totalPages.
     public int countAll(String keyword, Integer brandId,
             Integer categoryId, String priceRange, boolean publicOnly) throws SQLException {
-        // Use the same filters as findAll so the pagination total matches the displayed rows.
+        // Dùng cùng bộ lọc với findAll để tổng phân trang khớp với các dòng đang hiển thị.
         StringBuilder sql = new StringBuilder(
                 "SELECT COUNT(*) FROM Product p "
                 + "JOIN Brand b ON b.ID = p.BrandID "
@@ -210,8 +217,9 @@ public class ProductDAO {
         }
     }
 
+    // Tìm một sản phẩm theo ID và tải kèm danh sách variant cùng category để xem hoặc Edit.
     public ProductModel findById(int id) throws SQLException {
-        // A product detail is an aggregate: load the product first, then its variants and categories.
+        // Chi tiết product là dữ liệu tổng hợp: tải product trước, sau đó tải variant và category.
         String sql = SELECT_PRODUCTS + "WHERE p.ID = ?";
 
         try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -233,14 +241,16 @@ public class ProductDAO {
         }
     }
 
+    // Kiểm tra tên sản phẩm đã tồn tại chưa; bỏ qua chính sản phẩm hiện tại khi Edit.
     public boolean existsProductName(String name, int excludedProductId)
             throws SQLException {
-        // Exclude the current product so an unchanged name remains valid during Edit.
+        // Loại product hiện tại để tên không đổi vẫn hợp lệ khi Edit.
         String sql = "SELECT 1 FROM Product "
                 + "WHERE LOWER(TRIM(Name)) = LOWER(?) AND ID <> ? LIMIT 1";
         return exists(sql, name.trim(), excludedProductId);
     }
 
+    // Kiểm tra SKU đã thuộc variant khác chưa; dùng cho validate dữ liệu duy nhất.
     public boolean existsVariantSku(String sku, int excludedVariantId)
             throws SQLException {
         String sql = "SELECT 1 FROM ProductVariant "
@@ -248,6 +258,7 @@ public class ProductDAO {
         return exists(sql, sku.trim(), excludedVariantId);
     }
 
+    // Kiểm tra tên ảnh mặt trước đã được variant khác sử dụng chưa.
     public boolean existsFrontImage(String image, int excludedVariantId)
             throws SQLException {
         String sql = "SELECT 1 FROM ProductVariant "
@@ -255,9 +266,10 @@ public class ProductDAO {
         return exists(sql, image.trim(), excludedVariantId);
     }
 
+    // Kiểm tra trong cùng sản phẩm đã có tổ hợp RAM, bộ nhớ và màu này chưa.
     public boolean existsVariantOption(int productId, int ramGb, int storageGb,
             String colorName, int excludedVariantId) throws SQLException {
-        // One product cannot contain two variants with the same RAM, storage and color.
+        // Một product không được có hai variant trùng RAM, bộ nhớ và màu.
         String sql = "SELECT 1 FROM ProductVariant WHERE ProductID = ? "
                 + "AND RAM_GB = ? AND Storage_GB = ? "
                 + "AND LOWER(TRIM(ColorName)) = LOWER(?) AND ID <> ? LIMIT 1";
@@ -274,6 +286,7 @@ public class ProductDAO {
         }
     }
 
+    // Hàm dùng chung thực thi câu SELECT tồn tại với một giá trị và ID cần loại trừ.
     private boolean exists(String sql, String value, int excludedId)
             throws SQLException {
         try (Connection connection = DBContext.getConnection();
@@ -286,17 +299,20 @@ public class ProductDAO {
         }
     }
 
+    // Lấy tối đa limit sản phẩm ACTIVE mới nhất để hiển thị ở khu vực sản phẩm nổi bật.
     public List<ProductModel> findFeaturedProducts(int limit) throws SQLException {
         List<ProductModel> products = findAll(null, null, null, "newest", true);
         return products.size() <= limit
                 ? products : new ArrayList<>(products.subList(0, limit));
     }
 
+    // Lấy danh sách sản phẩm cho trang public, chỉ gồm product/brand ACTIVE và hỗ trợ tìm kiếm, sắp xếp.
     public List<ProductModel> findPublicProducts(String keyword, String sort)
             throws SQLException {
         return findAll(keyword, null, null, sort, true);
     }
 
+    // Lấy category ACTIVE kèm số sản phẩm ACTIVE để hiển thị tại trang public.
     public List<CategoryModel> findActiveCategories() throws SQLException {
         String sql = "SELECT c.ID, c.Name, c.Description, c.Status, "
                 + "COUNT(DISTINCT p.ID) AS ProductCount FROM Category c "
@@ -321,8 +337,9 @@ public class ProductDAO {
         }
     }
 
+    // Lưu Product: ID = 0 thì INSERT mới, ID > 0 thì UPDATE sản phẩm hiện có.
     public void save(ProductModel product) throws SQLException {
-        // The form uses ID 0 for Add and a positive ID for Edit.
+        // Form dùng ID bằng 0 cho Add và ID dương cho Edit.
         if (product.getId() == 0) {
             insert(product);
         } else {
@@ -330,13 +347,14 @@ public class ProductDAO {
         }
     }
 
+    // Thêm Product, category, variant và inventory trong cùng transaction.
     private void insert(ProductModel product) throws SQLException {
         String sql = "INSERT INTO Product "
                 + "(Name, Description, Release_Year, Rating, warranty_months, "
                 + "BrandID, Status) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = DBContext.getConnection()) {
-            // Product, categories, variants and inventory must succeed or fail together.
+            // Product, category, variant và inventory phải cùng thành công hoặc cùng thất bại.
             connection.setAutoCommit(false);
 
             try {
@@ -368,13 +386,14 @@ public class ProductDAO {
         }
     }
 
+    // Cập nhật Product cùng category/variant; rollback toàn bộ nếu một bước thất bại.
     private void update(ProductModel product) throws SQLException {
         String sql = "UPDATE Product SET Name = ?, Description = ?, Release_Year = ?, "
                 + "warranty_months = ?, BrandID = ?, Status = ? "
                 + "WHERE ID = ?";
 
         try (Connection connection = DBContext.getConnection()) {
-            // Keep the whole aggregate consistent if any variant/category update fails.
+            // Giữ dữ liệu đồng bộ bằng cách rollback nếu cập nhật variant/category thất bại.
             connection.setAutoCommit(false);
 
             try {
@@ -427,8 +446,9 @@ public class ProductDAO {
         }
     }
 
+    // Xóa mềm sản phẩm bằng cách đổi Status thành INACTIVE, không xóa bản ghi khỏi database.
     public void deactivate(int id) throws SQLException {
-        // Soft delete keeps old order references valid while hiding the product from public pages.
+        // Xóa mềm giúp giữ tham chiếu đơn hàng cũ và ẩn product khỏi trang public.
         String sql = "UPDATE Product SET Status = 'INACTIVE' WHERE ID = ?";
 
         try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -437,13 +457,14 @@ public class ProductDAO {
         }
     }
 
+    // Chuyển nhiều sản phẩm được chọn sang một brand và trả về số sản phẩm đã chuyển thành công.
     public int moveProductsToBrand(int brandId, Collection<Integer> productIds)
             throws SQLException {
         if (productIds == null || productIds.isEmpty()) {
             return 0;
         }
 
-        // Update selected products in one batch; products already in this brand are ignored.
+        // Cập nhật các product đã chọn theo batch; bỏ qua product vốn đã thuộc brand này.
         String sql = "UPDATE Product SET BrandID = ? "
                 + "WHERE ID = ? AND BrandID <> ?";
         int movedProducts = 0;
@@ -478,15 +499,18 @@ public class ProductDAO {
         return movedProducts;
     }
 
+    // Đếm tổng số sản phẩm ACTIVE để hiển thị thống kê trên dashboard.
     public int countActive() throws SQLException {
         String sql = "SELECT COUNT(*) FROM Product WHERE Status = 'ACTIVE'";
         return count(sql);
     }
 
+    // Tên hàm dễ hiểu cho dashboard; dùng lại kết quả của countActive().
     public int countActiveProducts() throws SQLException {
         return countActive();
     }
 
+    // Đếm sản phẩm ACTIVE còn tồn kho ở ít nhất một variant ACTIVE.
     public int countAvailableProducts() throws SQLException {
         String sql = "SELECT COUNT(*) FROM Product p WHERE p.Status = 'ACTIVE' "
                 + "AND COALESCE((SELECT SUM(i.Amount) FROM ProductVariant pv "
@@ -495,6 +519,7 @@ public class ProductDAO {
         return count(sql);
     }
 
+    // Đếm sản phẩm có tổng tồn kho của các variant ACTIVE bằng 0.
     public int countOutOfStock() throws SQLException {
         String sql = "SELECT COUNT(*) FROM Product p "
                 + "WHERE COALESCE((SELECT SUM(i.Amount) FROM ProductVariant pv "
@@ -503,6 +528,7 @@ public class ProductDAO {
         return count(sql);
     }
 
+    // Thực thi một câu SELECT COUNT(*) đơn giản và trả về số lượng.
     private int count(String sql) throws SQLException {
         try (Connection connection = DBContext.getConnection(); PreparedStatement statement = connection.prepareStatement(sql); ResultSet resultSet = statement.executeQuery()) {
             resultSet.next();
@@ -510,6 +536,7 @@ public class ProductDAO {
         }
     }
 
+    // Gắn các thuộc tính ProductModel vào PreparedStatement của câu INSERT Product.
     private void setProductParameters(PreparedStatement statement,
             ProductModel product) throws SQLException {
         statement.setString(1, product.getName());
@@ -527,9 +554,10 @@ public class ProductDAO {
         statement.setString(7, product.getStatus());
     }
 
+    // Thêm điều kiện khoảng giá dựa trên giá thấp nhất của variant ACTIVE vào SQL động.
     private void appendPriceFilter(StringBuilder sql, List<Object> parameters,
             String priceRange) {
-        // Price segments use the lowest active variant price of each product.
+        // Khoảng giá sử dụng giá thấp nhất trong các variant ACTIVE của từng product.
         if ("under-5m".equals(priceRange)) {
             sql.append("AND ").append(LOWEST_PRICE_SQL).append(" < ? ");
             parameters.add(5_000_000);
@@ -549,6 +577,7 @@ public class ProductDAO {
         }
     }
 
+    // Chuyển giá trị sort đã cho phép thành mệnh đề ORDER BY tương ứng.
     private String getOrderBy(String sort) {
         if ("price-asc".equals(sort)) {
             return "ORDER BY Selling_price ASC, p.ID DESC";
@@ -561,12 +590,14 @@ public class ProductDAO {
         return "ORDER BY p.Created_at DESC, p.ID DESC";
     }
 
+    // Escape ký tự đặc biệt của LIKE để từ khóa được tìm như dữ liệu thông thường.
     private String escapeLike(String value) {
         return value.replace("\\", "\\\\")
                 .replace("%", "\\%")
                 .replace("_", "\\_");
     }
 
+    // Tải toàn bộ variant của danh sách product và gắn đúng variant vào từng ProductModel.
     private void loadVariants(Connection connection, List<ProductModel> products)
             throws SQLException {
         if (products.isEmpty()) {
@@ -606,6 +637,7 @@ public class ProductDAO {
         }
     }
 
+    // Tải quan hệ Product_Category và gắn danh sách category vào từng ProductModel.
     private void loadCategories(Connection connection, List<ProductModel> products)
             throws SQLException {
         if (products.isEmpty()) {
@@ -649,9 +681,10 @@ public class ProductDAO {
         }
     }
 
+    // Thay toàn bộ quan hệ category của product theo danh sách categoryIds từ form.
     private void saveCategories(Connection connection, int productId,
             List<Integer> categoryIds) throws SQLException {
-        // Replace all links because Product-Category is a many-to-many relationship.
+        // Thay toàn bộ liên kết vì Product-Category là quan hệ nhiều-nhiều.
         try (PreparedStatement statement = connection.prepareStatement(
                 "DELETE FROM Product_Category WHERE ProductID = ?")) {
             statement.setInt(1, productId);
@@ -671,6 +704,7 @@ public class ProductDAO {
         }
     }
 
+    // Chuyển một dòng ResultSet của ProductVariant thành ProductVariantModel.
     private ProductVariantModel mapVariant(ResultSet resultSet)
             throws SQLException {
         ProductVariantModel variant = new ProductVariantModel();
@@ -688,6 +722,7 @@ public class ProductDAO {
         return variant;
     }
 
+    // Thêm variant mới, nhận ID tự tăng rồi tạo SKU cuối cùng theo ProductID-VariantID.
     private int insertVariant(Connection connection, int productId,
             ProductVariantModel variant) throws SQLException {
         String sql = "INSERT INTO ProductVariant "
@@ -701,7 +736,7 @@ public class ProductDAO {
             statement.setInt(2, variant.getRamGb());
             statement.setInt(3, variant.getStorageGb());
             statement.setString(4, variant.getColorName().trim());
-            // A temporary unique value is required until the database returns variantId.
+            // Cần giá trị tạm duy nhất trong lúc chờ database trả về variantId.
             statement.setString(5, "TMP-" + UUID.randomUUID());
             statement.setInt(6, variant.getSellingPrice());
             statement.setInt(7, 0);
@@ -714,7 +749,7 @@ public class ProductDAO {
                     throw new SQLException("Cannot create product variant ID");
                 }
                 int variantId = generatedKeys.getInt(1);
-                // Final SKU is deterministic and unique: PV-{productId}-{variantId}.
+                // SKU cuối cùng được tạo cố định và duy nhất: PV-{productId}-{variantId}.
                 String generatedSku = "PV-" + productId + "-" + variantId;
                 try (PreparedStatement skuStatement = connection.prepareStatement(
                         "UPDATE ProductVariant SET SKU = ? WHERE ID = ?")) {
@@ -728,6 +763,7 @@ public class ProductDAO {
         }
     }
 
+    // Cập nhật thông số, giá, ảnh và trạng thái của một variant đang tồn tại.
     private void updateVariant(Connection connection, int productId,
             ProductVariantModel variant) throws SQLException {
         String sql = "UPDATE ProductVariant SET RAM_GB = ?, Storage_GB = ?, "
@@ -749,6 +785,7 @@ public class ProductDAO {
         }
     }
 
+    // Tìm variant cũ có cùng RAM/storage/color để tái sử dụng thay vì INSERT trùng.
     private int findVariantIdByOption(Connection connection, int productId,
             ProductVariantModel variant) throws SQLException {
         String sql = "SELECT ID FROM ProductVariant WHERE ProductID = ? "
@@ -765,6 +802,7 @@ public class ProductDAO {
         }
     }
 
+    // Tạo bản ghi Inventory ban đầu cho variant mới nếu chưa tồn tại.
     private void saveInventory(Connection connection, int variantId, int stock)
             throws SQLException {
         String sql = "INSERT INTO Inventory "
@@ -779,9 +817,10 @@ public class ProductDAO {
         }
     }
 
+    // Chuyển variant bị bỏ khỏi form Edit sang INACTIVE để giữ tham chiếu lịch sử.
     private void deactivateMissingVariants(Connection connection, int productId,
             List<Integer> savedVariantIds) throws SQLException {
-        // Missing variants are soft-deactivated to preserve references from old orders.
+        // Variant bị bỏ khỏi form được xóa mềm để giữ tham chiếu từ đơn hàng cũ.
         StringBuilder sql = new StringBuilder(
                 "UPDATE ProductVariant SET Status = 'INACTIVE' WHERE ProductID = ?");
         if (!savedVariantIds.isEmpty()) {
@@ -800,6 +839,7 @@ public class ProductDAO {
         }
     }
 
+    // Chuyển một dòng ResultSet tổng hợp thành ProductModel cơ bản trước khi nạp quan hệ.
     private ProductModel mapProduct(ResultSet resultSet) throws SQLException {
         ProductModel product = new ProductModel();
         product.setId(resultSet.getInt("ID"));

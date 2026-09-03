@@ -12,7 +12,9 @@
     <body>
         <c:set var="activePage" value="products" scope="request"/>
         <%@ include file="/views/common/header.jsp" %>
+        <%-- ProductController đã tải product ACTIVE, variants và feedback trước khi forward tới đây. --%>
         <main class="page-shell detail-page" data-variant-picker><a class="product-detail-back" href="${pageContext.request.contextPath}/products"><i class="bi bi-arrow-left"></i> Back to products</a><c:if test="${param.wishlistStatus == 'added'}"><div class="alert alert-success">Product added to wishlist.</div></c:if><c:if test="${not empty param.wishlistError}"><div class="alert alert-danger"><c:out value="${param.wishlistError}"/></div></c:if><section class="detail-hero">
+                <%-- Gallery mặc định dùng ảnh variant đầu tiên; store.js đổi ảnh trước/sau khi chọn option. --%>
                 <div class="gallery"><div class="main-photo"><img id="mainProductImage" data-variant-image src="${pageContext.request.contextPath}${product.imageUrl}" alt="${product.name}" onerror="this.src='${pageContext.request.contextPath}/assets/images/product-placeholder.svg'"><c:if test="${product.hasDiscount()}"><span class="detail-discount-badge">-${product.discountPercent}%</span></c:if></div><div class="thumb-row"><button type="button" class="thumb active" data-gallery-view="front" data-gallery-image="${pageContext.request.contextPath}${product.variants[0].imageUrl}" aria-label="View front image"><img data-front-thumb src="${pageContext.request.contextPath}${product.variants[0].imageUrl}" alt="Front view"></button><button type="button" class="thumb" data-gallery-view="back" data-gallery-image="${pageContext.request.contextPath}${product.variants[0].backImageUrl}" aria-label="View back image"><img data-back-thumb src="${pageContext.request.contextPath}${product.variants[0].backImageUrl}" alt="Back view"></button></div><div class="gallery-caption" data-gallery-caption>Front view</div></div>
                 <div class="detail-summary"><span class="brand-tag"><c:out value="${product.brandName}"/></span><h1><c:out value="${product.name}"/></h1><div class="detail-rating">
                         <c:set var="ratingForDisplay" value="${empty avgRating ? 0 : avgRating}"/>
@@ -28,15 +30,19 @@
                         </c:if>
                         <b data-stock-label class="stock ${product.stock==0?'danger':''}">${product.stock>0?'In stock ('.concat(product.stock).concat(')'):'Out of stock'}</b>
                     </div>
+                    <%-- Giá mặc định lấy variant đầu; JavaScript cập nhật khi memory hoặc color thay đổi. --%>
                     <c:set var="detailFinalPrice" value="${(not empty product.variants ? (product.variants[0].sellingPrice - (product.variants[0].sellingPrice * product.discount / 100)) : product.finalPrice)}"/><c:set var="detailOriginalPrice" value="${(not empty product.variants ? product.variants[0].sellingPrice : product.sellingPrice)}"/><div class="detail-price" data-variant-price><fmt:formatNumber value="${detailFinalPrice}" pattern="#,##0"/>₫</div><c:if test="${product.discount>0}"><del><fmt:formatNumber value="${detailOriginalPrice}" pattern="#,##0"/>₫</del><span class="discount-note">-${product.discountPercent}%</span></c:if>
+                    <%-- Vùng hidden lưu dữ liệu mọi variant trong data-* để store.js tìm đúng tổ hợp đã chọn. --%>
                     <c:if test="${not empty product.variants}"><div class="option-block"><label>MEMORY</label><div class="memory-options"><c:forEach items="${product.memoryOptions}" var="m" varStatus="loop"><button type="button" class="memory-option ${loop.first?'active':''}" data-memory="${m.memoryKey}">${m.memoryLabel}</button></c:forEach></div></div><div class="option-block"><label for="productColor">COLOR</label><select id="productColor" class="color-select detail-color-select" data-color-select><c:forEach items="${product.colorOptions}" var="color"><option value="<c:out value='${color.colorName}'/>"><c:out value="${color.colorName}"/></option></c:forEach></select></div><div hidden><c:forEach items="${product.variants}" var="v"><c:set var="vFinal" value="${v.sellingPrice - (v.sellingPrice * product.discount / 100)}"/><span data-variant data-variant-id="${v.id}" data-memory="${v.memoryKey}" data-color="<c:out value='${v.colorName}'/>" data-price="${vFinal}" data-original-price="${v.sellingPrice}" data-image="${pageContext.request.contextPath}${v.imageUrl}" data-front-image="${pageContext.request.contextPath}${v.imageUrl}" data-back-image="${pageContext.request.contextPath}${v.backImageUrl}" data-stock="${v.stock}"></span></c:forEach></div></c:if>
                     <div class="purchase-row"><div class="quantity"><button type="button" data-qty="minus">−</button><input id="qty" value="1" readonly><button type="button" data-qty="plus" data-max="${product.stock}">+</button></div><c:if test="${currentRole ne 'Admin' and currentRole ne 'ADMIN' and currentRole ne 'Shipper' and currentRole ne 'SHIPPER' and currentRole ne 'Staff' and currentRole ne 'STAFF' and currentRole ne 'Manager' and currentRole ne 'MANAGER'}"><button class="btn primary wide" data-cart-button ${product.stock==0?'disabled':''}>Add to Cart</button><button class="heart square" type="button" data-wishlist-button aria-label="Add to wishlist">♡</button></c:if></div>
                     <div class="shipping">✓ <strong>Free shipping</strong> · Official warranty ${product.warrantyMonths} months</div>
                 </div></section>
+            <%-- Thông tin chung của product, không thay đổi theo variant đang chọn. --%>
             <section class="spec-section"><div class="tabs"><button class="active">Product Information</button></div><div class="spec-grid">
                     <div class="spec"><span>Brand</span><b><c:out value="${product.brandName}"/></b></div><div class="spec"><span>Categories</span><b><c:out value="${product.categoryNames}"/></b></div><div class="spec"><span>Release year</span><b>${product.releaseYear}</b></div><c:if test="${countForDisplay > 0}"><div class="spec"><span>Rating</span><b><fmt:formatNumber value="${ratingForDisplay}" pattern="#.#" maxFractionDigits="1"/>/5</b></div></c:if><div class="spec"><span>Stock</span><b>${product.stock} units</b></div><div class="spec"><span>Warranty</span><b>${product.warrantyMonths} months</b></div>
                 </div><c:if test="${not empty product.description}"><p class="description"><c:out value="${product.description}"/></p></c:if></section>
 
+                <%-- Reviews và replies do FeedbackDAO tải, JSP chỉ lặp để hiển thị. --%>
                 <section class="reviews-section" id="reviews-section">
                     <div class="container">
                         <h2>Customer reviews</h2>
@@ -122,6 +128,7 @@
         <script>
             var APP_CONTEXT_PATH = '${pageContext.request.contextPath}';
         </script>
+        <%-- store.js đọc data-variant sau khi DOM đã tạo để xử lý lựa chọn và giỏ hàng. --%>
         <script src="${pageContext.request.contextPath}/assets/js/store.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     </body>

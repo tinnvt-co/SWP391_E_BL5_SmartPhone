@@ -14,15 +14,12 @@
         <c:set var="activePage" value="manager" scope="request"/>
         <%@ include file="/views/common/header.jsp" %>
 
+        <%-- Trang dùng chung cho Product Management và danh sách product của một category. --%>
         <main class="page-shell">
             <c:url var="addProductUrl" value="/manager/products">
                 <c:param name="action" value="form"/>
             </c:url>
-            <c:url var="addCategoryProductsUrl" value="/manager/products">
-                <c:param name="action" value="category-picker"/>
-                <c:param name="category" value="${selectedCategory}"/>
-            </c:url>
-
+            <%-- fromCategory quyết định tiêu đề, nút quay lại và nút Add Product/Add Products. --%>
             <div class="page-heading">
                 <div>
                     <c:choose>
@@ -68,10 +65,15 @@
                 </div>
             </div>
 
+            <%-- Hiển thị thông báo sau khi Controller redirect thành công. --%>
             <c:if test="${not empty param.message}">
                 <div class="alert success"><c:out value="${param.message}"/></div>
             </c:if>
+            <c:if test="${not empty param.error}">
+                <div class="alert error"><c:out value="${param.error}"/></div>
+            </c:if>
 
+            <%-- Form GET giữ các bộ lọc trên URL để Controller tìm kiếm, sắp xếp và phân trang. --%>
             <section class="table-panel">
                 <form class="search-row" method="get">
                     <c:if test="${fromCategory}">
@@ -148,6 +150,7 @@
                                 </c:when>
 
                                 <c:otherwise>
+                                    <%-- Controller truyền products của trang hiện tại; mỗi phần tử tạo một dòng. --%>
                                     <c:forEach items="${products}" var="product" varStatus="row">
                                         <c:url var="editProductUrl" value="/manager/products">
                                             <c:param name="action" value="form"/>
@@ -207,6 +210,7 @@
                     </table>
                 </div>
 
+                <%-- Các c:url giữ lại bộ lọc khi người dùng chuyển trang. --%>
                 <c:if test="${filteredTotal > 0}">
                     <c:url var="firstPageUrl" value="/manager/products">
                         <c:param name="page" value="1"/>
@@ -308,6 +312,7 @@
                 </c:if>
             </section>
 
+            <%-- Popup đã được render sẵn nhưng hidden; JavaScript chỉ mở, tìm kiếm và phân trang DOM. --%>
             <c:if test="${fromCategory}">
                 <div class="category-product-modal" data-category-product-modal hidden>
                     <div class="category-product-modal-dialog" role="dialog"
@@ -329,6 +334,7 @@
                                    placeholder="Search product name...">
                         </div>
 
+                        <%-- Submit categoryId và các productIds được chọn về ManagerProductController. --%>
                         <form method="post" data-category-product-form
                               action="${pageContext.request.contextPath}/manager/products">
                             <input type="hidden" name="action" value="add-category-products">
@@ -347,6 +353,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        <%-- Danh sách này đã loại product đang thuộc category bằng ProductDAO NOT IN. --%>
                                         <c:forEach items="${availableCategoryProducts}" var="availableProduct" varStatus="availableRow">
                                             <tr data-category-product-row
                                                 data-product-name="<c:out value='${availableProduct.name}'/>">
@@ -404,6 +411,7 @@
             </c:if>
         </main>
 
+        <%-- JS modal gắn sự kiện vào các data-* phía trên sau khi DOM đã được tạo. --%>
         <script src="${pageContext.request.contextPath}/assets/js/store.js"></script>
         <script src="${pageContext.request.contextPath}/assets/js/manager-category-modal.js"></script>
         <%@ include file="/views/common/footer.jsp" %>
