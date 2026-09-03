@@ -474,7 +474,7 @@
                             <div class="search-box">
                                 <i class="bi bi-search"></i>
                                 <input type="text" id="supplierSearchInput" class="form-control-custom"
-                                       placeholder="Search supplier by name...">
+                                       maxlength="20" placeholder="Search supplier by name...">
                             </div>
 
                             <div class="form-group">
@@ -526,7 +526,7 @@
                             <div class="search-box">
                                 <i class="bi bi-search"></i>
                                 <input type="text" id="productSearchInput" class="form-control-custom"
-                                       placeholder="Search product by name...">
+                                       maxlength="20" placeholder="Search product by name...">
                             </div>
                             <span class="filter-empty-hint" id="variantFilterEmptyHint">
                                 No product matches the current supplier / search filter.

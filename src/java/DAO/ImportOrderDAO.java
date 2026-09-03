@@ -257,7 +257,8 @@ public class ImportOrderDAO {
         }
 
         try (Connection connection = DBContext.getConnection()) {
-
+            
+            //Tắt auto commit để nếu lỗi có thể rollback
             connection.setAutoCommit(false);
 
             try {
@@ -289,7 +290,7 @@ public class ImportOrderDAO {
                 return transactionId;
 
             } catch (SQLException e) {
-
+                //Nếu lỗi thì rollback
                 connection.rollback();
                 throw e;
 
@@ -398,10 +399,7 @@ public class ImportOrderDAO {
 
             try {
 
-                String currentStatus
-                        = getImportStatus(
-                                connection,
-                                transactionId);
+                String currentStatus = getImportStatus(connection,transactionId);
 
                 if (currentStatus == null) {
                     throw new SQLException(

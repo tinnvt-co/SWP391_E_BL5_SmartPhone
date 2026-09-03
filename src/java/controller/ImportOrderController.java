@@ -46,9 +46,7 @@ public class ImportOrderController extends HttpServlet {
 
         try {
             //check action
-            String action = value(
-                    request.getParameter("action"),
-                    "list");
+            String action = value(request.getParameter("action"), "list");
 
             switch (action) {
                 case "create" ->
@@ -118,6 +116,7 @@ public class ImportOrderController extends HttpServlet {
         String status = trim(request.getParameter("status"));
         String sort = trim(request.getParameter("sort"));
 
+        //keyword phải ít hơn 100 ký tự
         if (keyword.length() > 100) {
             keyword = "";
             request.setAttribute(
@@ -126,33 +125,29 @@ public class ImportOrderController extends HttpServlet {
         }
 
         //lấy import order
-        request.setAttribute(
-                "importOrders",
+        request.setAttribute("importOrders",
                 importOrderDAO.findImportOrders(
                         keyword,
                         status,
                         sort));
 
-        request.setAttribute(
-                "keyword",
-                keyword);
-
-        request.setAttribute(
-                "selectedStatus",
-                status);
-
-        request.setAttribute(
-                "selectedSort",
-                sort);
+        request.setAttribute("keyword", keyword);
+        request.setAttribute("selectedStatus", status);
+        request.setAttribute("selectedSort", sort);
 
         request.getRequestDispatcher(
                 "/views/manager/import-list.jsp")
                 .forward(request, response);
     }
 
-    /* =========================================================
-       CREATE FORM
-       ========================================================= */
+    /**
+     *
+     * @param request
+     * @param response
+     * @throws SQLException
+     * @throws ServletException
+     * @throws IOException
+     */
     private void showCreate(
             HttpServletRequest request,
             HttpServletResponse response)
@@ -193,37 +188,27 @@ public class ImportOrderController extends HttpServlet {
         // supplier dropdown, without a page
         // reload — see import-detail.jsp.
         // ================================
-        Map<Integer, List<Integer>> variantSupplierMap
-                = new HashMap<>();
+        Map<Integer, List<Integer>> variantSupplierMap = new HashMap<>();
 
         for (SupplierModel supplier : suppliers) {
 
-            List<Integer> suppliedVariantIdsForMap
-                    = supplierDAO.findProductVariantIds(
-                            supplier.getId());
+            List<Integer> suppliedVariantIdsForMap = supplierDAO.findProductVariantIds( supplier.getId());
 
             for (Integer vId : suppliedVariantIdsForMap) {
                 variantSupplierMap
-                        .computeIfAbsent(
-                                vId,
-                                k -> new ArrayList<>())
+                        .computeIfAbsent(vId, k -> new ArrayList<>())
                         .add(supplier.getId());
             }
         }
-
+        
+        //Phần này import-list không dùng
         // ================================
         // FILTER BY SUPPLIER
         // Supplier -> Product Variants
         // ================================
         if (supplierId > 0) {
-
-            List<Integer> suppliedVariantIds
-                    = supplierDAO.findProductVariantIds(
-                            supplierId);
-
-            products = filterProductsByVariants(
-                    products,
-                    suppliedVariantIds);
+            List<Integer> suppliedVariantIds = supplierDAO.findProductVariantIds(supplierId);
+            products = filterProductsByVariants(products,suppliedVariantIds);
         }
 
         // ================================
@@ -231,42 +216,19 @@ public class ImportOrderController extends HttpServlet {
         // Product Variant -> Suppliers
         // ================================
         if (variantId > 0) {
-
-            List<Integer> supplierIds
-                    = supplierDAO.findSuppliersByProductVariant(
-                            variantId);
-
-            suppliers = filterSuppliersByIds(
-                    suppliers,
-                    supplierIds);
+            List<Integer> supplierIds = supplierDAO.findSuppliersByProductVariant(variantId);
+            suppliers = filterSuppliersByIds(suppliers,supplierIds);
         }
 
         // ================================
         // JSP ATTRIBUTES
         // ================================
-        request.setAttribute(
-                "suppliers",
-                suppliers);
-
-        request.setAttribute(
-                "products",
-                products);
-
-        request.setAttribute(
-                "variantSupplierMap",
-                variantSupplierMap);
-
-        request.setAttribute(
-                "selectedSupplierId",
-                supplierId);
-
-        request.setAttribute(
-                "selectedVariantId",
-                variantId);
-
-        request.setAttribute(
-                "mode",
-                "create");
+        request.setAttribute("suppliers",suppliers);
+        request.setAttribute("products",products);
+        request.setAttribute("variantSupplierMap",variantSupplierMap);
+        request.setAttribute("selectedSupplierId",supplierId);
+        request.setAttribute("selectedVariantId",variantId);
+        request.setAttribute("mode","create");
 
         request.getRequestDispatcher(
                 "/views/manager/import-detail.jsp")
@@ -382,10 +344,8 @@ public class ImportOrderController extends HttpServlet {
         }
 
         //check số lượng dự liệu khác nhau giữa các field
-        if (variantIds.length
-                != quantities.length
-                || variantIds.length
-                != unitPrices.length) {
+        if (variantIds.length != quantities.length
+                || variantIds.length != unitPrices.length) {
 
             redirect(
                     request,
@@ -407,7 +367,8 @@ public class ImportOrderController extends HttpServlet {
         List<OrderItemModel> items = new ArrayList<>();
 
         BigDecimal totalPrice = BigDecimal.ZERO;
-
+        
+        //Duyệt danh sách sản phẩm mà fe gửi về
         for (int i = 0; i < variantIds.length; i++) {
             //kiểm tra id và quanlity
             int variantId = integer(variantIds[i], 0);
@@ -445,8 +406,7 @@ public class ImportOrderController extends HttpServlet {
                 return;
             }
 
-            if (unitPrice.compareTo(
-                    BigDecimal.ZERO) <= 0) {
+            if (unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
 
                 redirect(
                         request,
@@ -456,8 +416,7 @@ public class ImportOrderController extends HttpServlet {
                 return;
             }
 
-            OrderItemModel item
-                    = new OrderItemModel();
+            OrderItemModel item = new OrderItemModel();
 
             item.setVariantId(variantId);
             item.setAmount(quantity);
@@ -537,8 +496,7 @@ public class ImportOrderController extends HttpServlet {
             return;
         }
 
-        OrderModel order
-                = importOrderDAO.findImportOrderDetail(id);
+        OrderModel order = importOrderDAO.findImportOrderDetail(id);
 
         if (order == null) {
             redirect(
@@ -549,9 +507,7 @@ public class ImportOrderController extends HttpServlet {
             return;
         }
 
-        if (!"ORDER".equalsIgnoreCase(
-                order.getStatus())) {
-
+        if (!"ORDER".equalsIgnoreCase(order.getStatus())) {
             redirect(
                     request,
                     response,
@@ -592,12 +548,8 @@ public class ImportOrderController extends HttpServlet {
             List<SupplierModel> suppliers,
             List<Integer> supplierIds) {
 
-        Set<Integer> ids
-                = new HashSet<>(supplierIds);
-
-        List<SupplierModel> result
-                = new ArrayList<>();
-
+        Set<Integer> ids = new HashSet<>(supplierIds);
+        List<SupplierModel> result = new ArrayList<>();
         for (SupplierModel supplier : suppliers) {
             if (ids.contains(supplier.getId())) {
                 result.add(supplier);
@@ -611,41 +563,30 @@ public class ImportOrderController extends HttpServlet {
             List<ProductModel> products,
             List<Integer> variantIds) {
 
-        Set<Integer> ids
-                = new HashSet<>(variantIds);
-
-        List<ProductModel> result
-                = new ArrayList<>();
+        Set<Integer> ids = new HashSet<>(variantIds);
+        List<ProductModel> result = new ArrayList<>();
 
         for (ProductModel product : products) {
-
-            List<ProductVariantModel> variants
-                    = product.getVariants();
+            List<ProductVariantModel> variants = product.getVariants();
 
             if (variants == null) {
                 continue;
             }
 
-            List<ProductVariantModel> filteredVariants
-                    = new ArrayList<>();
+            List<ProductVariantModel> filteredVariants = new ArrayList<>();
 
-            for (ProductVariantModel variant
-                    : variants) {
-
+            for (ProductVariantModel variant : variants) {
                 if (ids.contains(variant.getId())) {
                     filteredVariants.add(variant);
                 }
             }
 
             if (!filteredVariants.isEmpty()) {
-
                 /*
                  * Không làm mất ProductModel.
                  * Chỉ giữ lại variant mà supplier cung cấp.
                  */
-                product.setVariants(
-                        filteredVariants);
-
+                product.setVariants(filteredVariants);
                 result.add(product);
             }
         }

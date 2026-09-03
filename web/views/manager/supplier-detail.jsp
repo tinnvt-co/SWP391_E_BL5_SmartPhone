@@ -921,7 +921,7 @@
 
             const initialSuppliedVariantIds = [
             <c:forEach var="vid" items="${supplier.productVariantIds}" varStatus="st">
-            '${vid}'<c:if test="${!st.last}">,</c:if>
+                '${vid}'<c:if test="${!st.last}">,</c:if>
             </c:forEach>
             ];
 
@@ -979,11 +979,8 @@
              */
 
             function saveSelectedVariants() {
-                sessionStorage.setItem(
-                        storageKey,
-                        JSON.stringify(
-                                Array.from(selectedVariants)
-                                )
+                sessionStorage.setItem(storageKey,
+                        JSON.stringify(Array.from(selectedVariants))
                         );
             }
 
