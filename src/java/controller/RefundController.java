@@ -320,6 +320,7 @@ public class RefundController extends HttpServlet {
         }
 
         String webRoot = request.getServletContext().getRealPath("/");
+        System.out.println("webRoot = " + webRoot);
         if (webRoot == null) {
             throw new ServletException("Cannot resolve web root for upload.");
         }
