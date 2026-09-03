@@ -462,7 +462,31 @@
                     </a>
                 </div>
             </div>
+            <c:if test="${not empty sessionScope.msgErr}">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <c:out value="${sessionScope.msgErr}"/>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <c:remove var="msgErr" scope="session"/>
+            </c:if>
 
+            <c:if test="${not empty requestScope.msgErr}">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <c:out value="${requestScope.msgErr}"/>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </c:if>
+
+            <c:if test="${not empty sessionScope.msgOk}">
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    <c:out value="${sessionScope.msgOk}"/>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <c:remove var="msgOk" scope="session"/>
+            </c:if>
             <!-- ============================================= -->
             <!-- SUPPLIER FORM + SUMMARY -->
             <!-- ============================================= -->
@@ -889,6 +913,11 @@
             const supplierId = '${supplier.id}';
             const storageKey =
                     'supplier-selected-variants-' + supplierId;
+            
+            //Xóa session khi tạo xong
+            if (supplierId !== '0') {
+                sessionStorage.removeItem('supplier-selected-variants-0');
+            }
 
             const initialSuppliedVariantIds = [
             <c:forEach var="vid" items="${supplier.productVariantIds}" varStatus="st">

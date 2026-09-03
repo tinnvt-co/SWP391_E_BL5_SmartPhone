@@ -195,7 +195,8 @@ public class SupplierController extends HttpServlet {
 
     private void loadProductVariants(HttpServletRequest request,SupplierModel supplier)
             throws SQLException {
-
+        
+        //Đọc filter từ query string
         String keyword = normalizeKeyword(request.getParameter("keyword"));
         Integer brandId = parseIntegerOrNull( request.getParameter("brand"));
 
@@ -218,27 +219,29 @@ public class SupplierController extends HttpServlet {
                 true
         );
 
-        // áp dụng thêm filter theo Product cụ thể (dropdown mới).
+        //lọc theo sản phẩm cụ thể, lọc bằng lamda
         if (selectedProductId != null) {
             allProducts.removeIf(
                     product -> product.getId() != selectedProductId
             );
         }
-
-        Set<Integer> suppliedIds = new HashSet<>(supplier.getProductVariantIds()
-        );
+        
+        //Xây dựng tập hợp variant đã supplied
+        Set<Integer> suppliedIds = new HashSet<>(supplier.getProductVariantIds());
 
         // làm phẳng Product + Variant thành 1 list các "dòng variant", mỗi
         // dòng tự mang theo tên product/brand để hiển thị (vì không còn group
         // theo product-card nữa). Dùng Map thay vì tạo model mới cho gọn.
         List<Map<String, Object>> allVariantRows = new ArrayList<>();
-
+        
+        //Lấy danh sách sản phẩm
         for (ProductModel product : allProducts) {
 
             if (product.getVariants() == null) {
                 continue;
             }
-
+            
+            //Lấy danh sách biến thể của sản phẩm đấy và lưu vào map
             for (var variant : product.getVariants()) {
 
                 Map<String, Object> row = new LinkedHashMap<>();
@@ -266,22 +269,19 @@ public class SupplierController extends HttpServlet {
      * not      -> variant supplier chưa cung cấp
          */
         if ("supplied".equals(suppliedFilter)) {
-            allVariantRows.removeIf(
-                    row -> !(Boolean) row.get("supplied")
-            );
+            allVariantRows.removeIf(row -> !(Boolean) row.get("supplied"));
 
         } else if ("not".equals(suppliedFilter)) {
-            allVariantRows.removeIf(
-                    row -> (Boolean) row.get("supplied")
-            );
+            allVariantRows.removeIf(row -> (Boolean) row.get("supplied"));
         }
-
+        
+        //Tính số lượng sp mà nhà cc đang cc
         int totalVariants = allVariantRows.size();
+        
+        //Tính phân trang
         int totalPages = Math.max(
                 1,
-                (int) Math.ceil(
-                        totalVariants / (double) PAGE_SIZE
-                )
+                (int) Math.ceil(totalVariants / (double) PAGE_SIZE)
         );
 
         int currentPage = Math.min(
@@ -325,7 +325,7 @@ public class SupplierController extends HttpServlet {
         request.setAttribute("startItem", startItem);
         request.setAttribute("endItem", endItem);
 
-        // FIX: danh sách số trang rút gọn kiểu "1 ... 4 5 6 ... 20" tính sẵn ở
+        // danh sách số trang rút gọn kiểu "1 ... 4 5 6 ... 20" tính sẵn ở
         // server, JSP chỉ việc render, không cần tính toán windowing trong EL.
         request.setAttribute("pageItems", buildPageItems(currentPage, totalPages));
 
@@ -376,6 +376,7 @@ public class SupplierController extends HttpServlet {
             throws ServletException, IOException {
         try {
             saveSupplier(request, response);
+            
         } catch (SQLException | ServletException | IOException e) {
             int supplierId = parseInt(request.getParameter("id"), 0);
             HttpSession session = request.getSession();
@@ -419,7 +420,9 @@ public class SupplierController extends HttpServlet {
         List<Integer> productVariantIds = new ArrayList<>();
         if (rawVariantIds != null && !rawVariantIds.isBlank()) {
             for (String rawId : rawVariantIds.split(",")) {
+                //Nếu không chuyển về int được thì trả về 0
                 int variantId = parseInt(rawId.trim(), 0);
+                //Kiểm tra id lớn hơn 0 và không có trong danh sách thì add thêm vào
                 if (variantId > 0 && !productVariantIds.contains(variantId)) {
                     productVariantIds.add(variantId);
                 }
@@ -435,8 +438,7 @@ public class SupplierController extends HttpServlet {
             return;
         }
 
-        HttpSession session
-                = request.getSession();
+        HttpSession session = request.getSession();
 
         if (supplierId == 0) {
             int newId = supplierDAO.create(supplier);
@@ -453,13 +455,12 @@ public class SupplierController extends HttpServlet {
 
             response.sendRedirect(
                     request.getContextPath()
-                    + "/manager/supplier/detail?id="
+                    + "/manager/supplier?action=detail&id="
                     + newId
             );
 
         } else {
-            boolean updated
-                    = supplierDAO.update(supplier);
+            boolean updated = supplierDAO.update(supplier);
 
             if (!updated) {
                 session.setAttribute(
@@ -481,7 +482,7 @@ public class SupplierController extends HttpServlet {
 
             response.sendRedirect(
                     request.getContextPath()
-                    + "/manager/supplier/detail?id="
+                    + "/manager/supplier?action=detail&id="
                     + supplierId
             );
         }
@@ -529,7 +530,7 @@ public class SupplierController extends HttpServlet {
         if (phone == null || phone.isBlank()) {
             errors.add("Supplier phone is required.");
         } else if (!isValidPhone(phone)) {
-            errors.add("Supplier phone must be exactly 10 digits (no other characters).");
+            errors.add("Supplier phone must be exactly 10 digits, start with 0 (no other characters).");
         }
 
         String description = supplier.getDescription();
@@ -599,7 +600,6 @@ public class SupplierController extends HttpServlet {
 
         int result
                 = parseInt(value, 0);
-
         return result > 0
                 ? result
                 : null;
