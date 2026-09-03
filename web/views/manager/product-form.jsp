@@ -47,7 +47,6 @@
             <form class="entity-form product-form" method="post" enctype="multipart/form-data"
                   action="${pageContext.request.contextPath}/manager/products" novalidate>
                 <%-- Dùng chung form cho Add và Edit; ID bằng 0 là Add, ID lớn hơn 0 là Edit. --%>
-                <input type="hidden" name="action" value="save">
                 <input type="hidden" name="id" value="${product.id}">
                 <div class="form-grid">
                     <label class="span-2">
@@ -220,11 +219,13 @@
                        href="${pageContext.request.contextPath}/manager/products">
                         Cancel
                     </a>
-                    <button class="btn primary large" type="submit">Save Product</button>
+                  
+                    <button class="btn primary large" type="submit"
+                            name="action" value="save">Save Product</button>
                 </div>
             </form>
         </main>
-        <%-- Mẫu inert không submit; JS clone mẫu sạch rồi chèn bản sao vào tbody trong form. --%>
+        <%-- Mẫu insert không submit; JS clone mẫu sạch rồi chèn bản sao vào tbody trong form. --%>
         <template id="variantRowTemplate">
             <tr class="variant-row">
                 <td>
