@@ -24,10 +24,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import model.CategoryModel;
-import model.BrandModel;
 import model.ProductModel;
 import model.ProductVariantModel;
-import validation.ProductBrandValidator;
 
 @WebServlet(name = "ManagerProductController", urlPatterns = {"/manager/products"})
 // Giới hạn multipart bảo vệ server: tối đa 5 MB mỗi ảnh và 60 MB mỗi request form.
@@ -216,17 +214,6 @@ public class ManagerProductController extends HttpServlet {
             String duplicateError = validateUniqueData(product);
             if (duplicateError != null) {
                 forwardFormWithError(request, response, product, duplicateError);
-                return;
-            }
-
-            // Brand đáng ngờ chỉ tạo cảnh báo, không phải lỗi bắt buộc, vì tên model
-            // không phải lúc nào cũng đủ để xác định chính xác nhà sản xuất.
-            String brandWarning = brandMismatchWarning(product);
-            if (brandWarning != null
-                    && !"true".equals(request.getParameter(
-                            "confirmBrandMismatch"))) {
-                forwardFormWithBrandWarning(request, response, product,
-                        brandWarning);
                 return;
             }
 
@@ -611,32 +598,6 @@ public class ManagerProductController extends HttpServlet {
         return null;
     }
 
-    // Cảnh báo khi tên product có dấu hiệu thuộc brand khác với brand đang chọn.
-    private String brandMismatchWarning(ProductModel product)
-            throws SQLException {
-        BrandModel selectedBrand = brandDAO.findById(product.getBrandId());
-        if (selectedBrand == null) {
-            return null;
-        }
-
-        List<String> detectedBrands = ProductBrandValidator.detectBrands(
-                product.getName());
-        if (detectedBrands.size() > 1) {
-            return "The product name contains keywords from multiple brands: "
-                    + String.join(", ", detectedBrands)
-                    + ". Check the product name or choose Save anyway.";
-        }
-        if (!ProductBrandValidator.isMismatch(product.getName(),
-                selectedBrand.getName())) {
-            return null;
-        }
-        String detectedBrand = ProductBrandValidator.detectBrand(
-                product.getName());
-        return "The product name appears to belong to " + detectedBrand
-                + ", but the selected brand is " + selectedBrand.getName()
-                + ". Check the information or choose Save anyway.";
-    }
-
     // Ghép các file front/back theo từng variant và lưu chúng; trả lỗi nếu một ảnh không hợp lệ.
     private String saveUploadedImages(HttpServletRequest request,
             ProductModel product, List<Path> uploadedFiles) {
@@ -881,24 +842,6 @@ public class ManagerProductController extends HttpServlet {
         request.setAttribute("errorFields", errorFields);
         request.setAttribute("errorVariantIndex", errorVariantIndex);
         request.setAttribute("errorAllVariants", errorAllVariants);
-    }
-
-    // Forward lại form với cảnh báo brand và yêu cầu người dùng xác nhận trước khi Save.
-    private void forwardFormWithBrandWarning(HttpServletRequest request,
-            HttpServletResponse response, ProductModel product, String warning)
-            throws ServletException, IOException {
-        restoreExistingImageNames(request, product);
-        request.setAttribute("brandWarning", warning);
-        request.setAttribute("confirmBrandMismatch", true);
-        request.setAttribute("product", product);
-        request.setAttribute("selectedCategoryIds",
-                new HashSet<>(product.getCategoryIds()));
-        try {
-            loadChoices(request);
-        } catch (SQLException ignored) {
-        }
-        request.getRequestDispatcher("/views/manager/product-form.jsp")
-                .forward(request, response);
     }
 
     // Khôi phục tên ảnh cũ vào model vì trình duyệt không gửi lại nội dung file input.

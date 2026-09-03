@@ -26,18 +26,12 @@
                 </div>
             </div>
 
-            <%-- Controller forward lại form với error/brandWarning khi validate chưa đạt. --%>
+            <%-- Controller forward lại form với error khi validate chưa đạt. --%>
             <c:if test="${not empty error}">
                 <div class="alert error">
                     <c:out value="${error}"/>
                 </div>
             </c:if>
-            <c:if test="${not empty brandWarning}">
-                <div class="alert warning">
-                    <c:out value="${brandWarning}"/>
-                </div>
-            </c:if>
-
             <%-- Các c:set ánh xạ errorFields thành class đỏ cho đúng field bị lỗi. --%>
             <c:set var="nameError" value="${not empty errorFields and errorFields.contains('name')}"/>
             <c:set var="brandError" value="${not empty errorFields and errorFields.contains('brandId')}"/>
@@ -55,9 +49,6 @@
                 <%-- Dùng chung form cho Add và Edit; ID bằng 0 là Add, ID lớn hơn 0 là Edit. --%>
                 <input type="hidden" name="action" value="save">
                 <input type="hidden" name="id" value="${product.id}">
-                <input type="hidden" name="confirmBrandMismatch"
-                       value="${confirmBrandMismatch ? 'true' : 'false'}">
-
                 <div class="form-grid">
                     <label class="span-2">
                         Product name *
@@ -229,9 +220,7 @@
                        href="${pageContext.request.contextPath}/manager/products">
                         Cancel
                     </a>
-                    <button class="btn primary large">
-                        ${not empty brandWarning ? 'Save anyway' : 'Save Product'}
-                    </button>
+                    <button class="btn primary large" type="submit">Save Product</button>
                 </div>
             </form>
         </main>
