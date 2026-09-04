@@ -312,16 +312,6 @@ public class ManagerProductController extends HttpServlet {
             return;
         }
 
-        if (productId == 0) {
-            int categoryId = ProductController.integer(
-                    request.getParameter("category"), 0);
-            CategoryModel category = categoryId > 0
-                    ? categoryDAO.findById(categoryId) : null;
-            if (category != null && category.isActive()) {
-                product.getCategories().add(category);
-            }
-        }
-
         request.setAttribute("product", product);
         request.setAttribute("selectedCategoryIds",
                 new HashSet<>(product.getCategoryIds()));
